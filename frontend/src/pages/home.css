@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@keyframes curtainUp {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(0); }
+}
+
+.animate-curtain {
+    animation: curtainUp 1.5s ease-out forwards;
+}
