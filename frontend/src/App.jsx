@@ -10,6 +10,7 @@ import Home from './pages/home.jsx';
 import Register from './pages/register.jsx';
 import Login from './pages/login.jsx';
 import Book from './pages/book.jsx';  // <-- Tambahin import Book
+import Reservations from './pages/reservation.jsx';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
       <Route path="/book" element={<Book />} /> {/* Routing ke Book */}
+      <Route path='/reservation' element={<Reservations/>}/>
     </Routes>
   );
 }
