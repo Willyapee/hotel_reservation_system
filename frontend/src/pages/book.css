@@ -1,121 +1,129 @@
+@import "tailwindcss";
+
 .book-container {
-  padding: 40px;
-  font-family: "Poppins", sans-serif;
-  background: #fafafa;
-  min-height: 100vh;
+	padding: 40px;
+	font-family: 'Poppins', sans-serif;
+	background: #fafafa;
+	min-height: 100vh;
 }
 
 .book-container h2 {
-  font-size: 2rem;
-  font-weight: 600;
-  margin-bottom: 20px;
-  text-align: center;
+	font-size: 2rem;
+	font-weight: 600;
+	margin-bottom: 20px;
+	text-align: center;
 }
 
 /* Booking box (checkin & checkout) */
 .booking-box {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin-bottom: 20px;
+	display: flex;
+	justify-content: center;
+	gap: 40px;
+	margin-bottom: 20px;
 }
 
 .booking-field {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
 }
 
 .booking-field label {
-  font-weight: 500;
-  margin-bottom: 8px;
+	font-weight: 500;
+	margin-bottom: 8px;
 }
 
 .booking-field button {
-  padding: 10px 15px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.3s;
+	padding: 10px 15px;
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: 0.3s;
 }
 
 .booking-field button:hover {
-  border-color: #c0a060;
-  color: #c0a060;
+	border-color: #c0a060;
+	color: #c0a060;
 }
 
 /* Calendar popup */
 .calendar-popup {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
-  animation: fadeIn 0.3s ease-in-out;
+	display: flex;
+	justify-content: center;
+	margin-bottom: 40px;
+	animation: fadeIn 0.3s ease-in-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 /* Room list */
 .room-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 900px;
-  margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	max-width: 900px;
+	margin: 0 auto;
 }
 
 .room-card {
-  display: flex;
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transition: transform 0.3s;
+	display: flex;
+	background: #fff;
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	transition: transform 0.3s;
 }
 
 .room-card:hover {
-  transform: translateY(-4px);
+	transform: translateY(-4px);
 }
 
 .room-img {
-  width: 300px;
-  height: 200px;
-  background-size: cover;
-  background-position: center;
+	width: 300px;
+	height: 200px;
+	background-size: cover;
+	background-position: center;
 }
 
 .room-info {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 .room-info h3 {
-  font-size: 1.4rem;
-  margin-bottom: 8px;
+	font-size: 1.4rem;
+	margin-bottom: 8px;
 }
 
 .room-info p {
-  margin: 4px 0;
-  color: #555;
+	margin: 4px 0;
+	color: #555;
 }
 
 .reserve-btn {
-  margin-top: 12px;
-  padding: 10px 20px;
-  background: #c0a060;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: 0.3s;
+	margin-top: 12px;
+	padding: 10px 20px;
+	background: #c0a060;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: 0.3s;
 }
 
 .reserve-btn:hover {
-  background: #a88746;
+	background: #a88746;
 }

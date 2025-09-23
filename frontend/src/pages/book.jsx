@@ -4,6 +4,7 @@ import { addDays } from "date-fns";
 import "react-date-range/dist/styles.css"; 
 import "react-date-range/dist/theme/default.css"; 
 import "./book.css";
+import { Link } from "react-router-dom";
 
 function Book() {
   const [openCalendar, setOpenCalendar] = useState(false);
@@ -58,7 +59,8 @@ function Book() {
             <h3>Deluxe Room</h3>
             <p>1 King Bed • 45m²</p>
             <p>Large open bay windows, separate dressing room, complimentary minibar.</p>
-            <button className="reserve-btn">Reserve Now</button>
+            
+            <Link to={'/reservation'} className="reserve-btn text-center">Reserve Now</Link>
           </div>
         </div>
       </div>
