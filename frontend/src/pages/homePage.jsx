@@ -6,7 +6,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 import NavigationBar from '../components/navigationBar.jsx';
-import CardSliderHorizontal from '../components/cardSliderHorizontal.jsx';
+import BoxDisplay from '../components/boxDisplay.jsx';
+import Carousel from '../components/carousel.jsx';
 
 import PlaceHolder from '../../public/picture/placeHolder.png';
 
@@ -25,7 +26,7 @@ export default function HomePage() {
 			<div className='w-full h-screen relative overflow-hidden -z-1'>
 				<video
 					src='https://lvmh-chevalblanc.cdn.prismic.io/lvmh-chevalblanc/aCcrMCdWJ-7kSN-l_PaysageCBO.mp4'
-					class='h-full w-full object-cover'
+					className='h-full w-full object-cover'
 					autoPlay
 					loop
 					muted
@@ -63,7 +64,18 @@ export default function HomePage() {
 				</p>
 			</div>
 
-			<CardSliderHorizontal/>
+			<BoxDisplay />
+
+			<div id='dine' className='px-8 py-16 h-96 p-20'>
+				<div className='text-center mb-10'>
+					<h2 className='text-3xl font-bold text-gray-600 mb-4'>Dine With Us</h2>
+					<h3 className='text-lg text-gray-400 mb-10'>
+						Experience culinary excellence at our on-site restaurants and bars, offering a variety
+						of gourmet dishes and drinks.
+					</h3>
+				</div>
+				<Carousel />
+			</div>
 		</div>
 	);
 }
