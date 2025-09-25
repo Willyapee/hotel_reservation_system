@@ -6,7 +6,7 @@
 }
 
 body, html {
-    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
   height: 100%;
   width: 100%;
   overflow-x: hidden;
@@ -265,7 +265,7 @@ footer .footer-bottom {
   gap: 22px;
 }
 .card {
-  background: white;
+  background: #fff;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(183, 156, 156, 0.04);
@@ -290,47 +290,34 @@ footer .footer-bottom {
 
 /* Dine Section*/
 #dine {
-  display: flex;
-  flex-direction: row;
-  gap: 2rem;
-  padding: 2rem;
+  
+  background: #fbfaf9;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+.carousel {
+  transform-style: preserve-3d;
+  justify-self: center;
 }
 
-#dine .left {
-  flex: 1;
+.card-container {
+  transform: rotateY(calc(var(--offset) * 50deg))
+             scaleY(calc(1 + var(--abs-offset) * -0.3))
+             translateZ(calc(var(--abs-offset) * -25rem))
+             translateX(calc(var(--direction) * -3rem));
+  filter: blur(calc(var(--abs-offset) * 1rem));
 }
 
-#dine .slider {
-  flex: 1;
-  max-height: 400px;
-  overflow-y: auto;
-  padding-right: 10px;
+.card {
+  background-color: #fff;
 }
 
-#dine .card {
-  display: flex;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  margin-bottom: 1rem;
-  overflow: hidden;
-}
-
-#dine .card .media {
-  width: 160px;
-  height: 160px;
-  background-size: cover;
-  background-position: center;
-}
-
-#dine .card .content {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.nav {
+  background: none;
+  border: none;
 }
 
 
+/* Social Media Icons */
 .social-icons a {
   color: #f0a500;
   font-size: 24px;
