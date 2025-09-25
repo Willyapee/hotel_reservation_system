@@ -1,0 +1,28 @@
+[
+	{
+		"roomId": "1",
+		"roomName": "Stellar Suite",
+		"roomSize": 100,
+		"roomBed": "King Bed",
+		"roomImage": "../public/picture/room/room1.jpg",
+		"roomDesc": "Stellar"
+	},
+
+	{
+		"roomId": "2",
+		"roomName": "Single Orion",
+		"roomSize": 30,
+		"roomBed": "Single Bed",
+		"roomImage": "../public/picture/room/room3.jpg",
+		"roomDesc": "Orion"
+	},
+
+	{
+		"roomId": "3",
+		"roomName": "Deluxe Luna",
+		"roomSize": 45,
+		"roomBed": "King Bed",
+		"roomImage": "../public/picture/room/room7.jpg",
+		"roomDesc": "Luna"
+	}
+]
