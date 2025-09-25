@@ -1,27 +1,24 @@
 import './App.css';
-import axios from 'axios';
-import { useState, useEffect } from 'react';
-
-// ROUTER
 import { Routes, Route } from 'react-router-dom';
+import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 
-// IMPORT SEMUA PAGE DISINI
-import Home from './pages/home.jsx';
-import Register from './pages/register.jsx';
-import Login from './pages/login.jsx';
-import Book from './pages/book.jsx';  // <-- Tambahin import Book
-import Reservations from './pages/reservation.jsx';
+import HomePage from './pages/homePage.jsx';
+import MenuPage from './pages/menuPage.jsx';
+import NavigationBar from './components/navigationBar.jsx';
+
 
 function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/book" element={<Book />} /> {/* Routing ke Book */}
-      <Route path='/reservation' element={<Reservations/>}/>
-    </Routes>
-  );
+	
+
+	return (
+		<>
+			<Routes>
+				<Route path='/' element={<HomePage />} />
+				<Route path='/menu' element={<MenuPage />} />
+			</Routes>
+		</>
+	);
 }
 
 export default App;

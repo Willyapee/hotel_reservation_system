@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "type": "module",
-  "_typeFunction": "supaya gaperlu require lagi, lgsg import",
+  "_typeFunction": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --env-file=.env server.js"
