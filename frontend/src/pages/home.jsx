@@ -2,9 +2,81 @@ import './home.css';
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+function Carousel({ cards, maxVisibility = 3 }) {
+  const [active, setActive] = useState(2);
+
+  return (
+    <div className="carousel relative w-80 h-[20rem] mx-auto perspective-[1000px]">
+      {active > 0 && (
+        <button
+          className="nav left text-gray-200 text-5xl absolute flex items-center justify-center 
+          top-1/2 -translate-y-1/2 z-10 cursor-pointer select-none"
+          onClick={() => setActive(active - 1)}
+        >
+          &lt;
+        </button>
+      )}
+      {cards.map((card, i) => (
+        <div
+          key={i}
+          className="card-container absolute w-full h-[18rem] transition-all duration-300 ease-out mt-[2rem]"
+          style={{
+            "--active": i === active ? 1 : 0,
+            "--offset": (active - i) / 3,
+            "--direction": Math.sign(active - i),
+            "--abs-offset": Math.abs(active - i),
+            opacity: Math.abs(active - i) >= maxVisibility ? "0" : "1",
+            display: Math.abs(active - i) > maxVisibility ? "none" : "block",
+          }}
+        >
+          <div className="card w-full h-full p-4 rounded-2xl text-gray-700 text-justify shadow-lg bg-white flex flex-col items-center">
+            <img
+              src={card.img}
+              alt={card.title}
+              className="w-full h-40 object-cover rounded-xl mb-4"
+            />
+            <h4 className="text-lg font-bold mb-2 text-center mt-[20px]">{card.title}</h4>
+            <p className="text-sm text-gray-600 text-center">{card.content}</p>
+            {card.description && (
+              <p className="text-xs text-gray-400 text-center mt-2">{card.description}</p>
+            )}
+          </div>
+        </div>
+      ))}
+      {active < cards.length - 1 && (
+        <button
+          className="nav right text-gray-200 text-5xl absolute flex items-center justify-center 
+          top-1/2 -translate-y-1/2 z-10 cursor-pointer select-none right-2"
+          onClick={() => setActive(active + 1)}
+        >
+          &gt;
+        </button>
+      )}
+    </div>
+  );
+}
+
 function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  const cards = [
+    {
+      img: "public/res/res7.jpg",
+      title: "Skyline Restaurant",
+      content: "Enjoy panoramic views while savoring gourmet dishes crafted from local ingredients."
+    },
+    {
+      title: "The Lounge",
+      content: "A relaxed atmosphere offering a diverse menu of international cuisine and cocktails.",
+      img: "/res/res5.jpg"
+    },
+    {
+      title: "Bar Celeste",
+      content: "Unwind with expertly crafted cocktails and a curated selection of wines and spirits.",
+      img: "/res/res3.jpg"
+    }
+  ];
 
   return (
     <>
@@ -98,63 +170,15 @@ function Home() {
       </section>
 
       {/* Dine Section */}
-      <section id="dine" className="flex flex-col md:flex-row items-start gap-8 px-8 py-16">
-        {/* Left Column */}
-        <div className="md:w-1/2">
-          <h2 className="text-3xl font-bold mb-4">Dine With Us</h2>
-          <h3 className="text-lg text-gray-600">
+      <section id="dine" className="px-8 py-16 h-96 p-20">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-600 mb-4">Dine With Us</h2>
+          <h3 className="text-lg text-gray-400 mb-10">
             Experience culinary excellence at our on-site restaurants and bars,
             offering a variety of gourmet dishes and drinks.
           </h3>
         </div>
-
-        {/* Right Column: Vertical Slider */}
-        <div className="md:w-1/2 h-[400px] overflow-y-auto space-y-6 pr-2 custom-scroll">
-          {/* Card 1 */}
-          <div className="bg-white shadow-lg rounded-xl overflow-hidden flex">
-            <div
-              className="w-40 h-40 bg-cover bg-center"
-              style={{ backgroundImage: "url(/dine/dine1.jpg)" }}
-            ></div>
-            <div className="p-4 flex flex-col justify-center">
-              <h4 className="text-xl font-semibold">Skyline Restaurant</h4>
-              <p className="text-sm text-gray-500">Fine Dining</p>
-              <p className="text-gray-600">
-                Enjoy panoramic views while savoring gourmet dishes crafted from local ingredients.
-              </p>
-            </div>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-white shadow-lg rounded-xl overflow-hidden flex">
-            <div
-              className="w-40 h-40 bg-cover bg-center"
-              style={{ backgroundImage: "url(/dine/dine2.jpg)" }}
-            ></div>
-            <div className="p-4 flex flex-col justify-center">
-              <h4 className="text-xl font-semibold">The Lounge</h4>
-              <p className="text-sm text-gray-500">Casual Dining</p>
-              <p className="text-gray-600">
-                A relaxed atmosphere offering a diverse menu of international cuisine and cocktails.
-              </p>
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-white shadow-lg rounded-xl overflow-hidden flex">
-            <div
-              className="w-40 h-40 bg-cover bg-center"
-              style={{ backgroundImage: "url(/dine/dine3.jpg)" }}
-            ></div>
-            <div className="p-4 flex flex-col justify-center">
-              <h4 className="text-xl font-semibold">Bar Celeste</h4>
-              <p className="text-sm text-gray-500">Cocktails & More</p>
-              <p className="text-gray-600">
-                Unwind with expertly crafted cocktails and a curated selection of wines and spirits.
-              </p>
-            </div>
-          </div>
-        </div>
+        <Carousel cards={cards} maxVisibility={3} />
       </section>
 
       {/* Footer */}
