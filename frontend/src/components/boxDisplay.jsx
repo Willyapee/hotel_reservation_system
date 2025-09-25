@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import RoomList from '../../../backend/data/roomList.json';
 
-export default function CardSliderHorizontal() {
+export default function BoxDisplay() {
 	const [room, setRoom] = useState(RoomList);
 	return (
 		<div className='w-full h-full my-20 flex flex-wrap justify-center gap-5 px-10'>

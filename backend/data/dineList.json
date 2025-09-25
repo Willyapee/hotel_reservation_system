@@ -1,0 +1,20 @@
+[
+	{
+		"dineId": 1,
+		"img": "/res/res7.jpg",
+		"title": "Skyline Restaurant",
+		"content": "Enjoy panoramic views while savoring gourmet dishes crafted from local ingredients."
+	},
+	{
+		"dineId": 2,
+		"title": "The Lounge",
+		"content": "A relaxed atmosphere offering a diverse menu of international cuisine and cocktails.",
+		"img": "/res/res5.jpg"
+	},
+	{
+		"dineId": 3,
+		"title": "Bar Celeste",
+		"content": "Unwind with expertly crafted cocktails and a curated selection of wines and spirits.",
+		"img": "/res/res3.jpg"
+	}
+]

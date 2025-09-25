@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+
+.card-container {
+	transform: rotateY(calc(var(--offset) * 50deg)) scaleY(calc(1 + var(--abs-offset) * -0.3))
+		translateZ(calc(var(--abs-offset) * -25rem)) translateX(calc(var(--direction) * -3rem));
+	filter: blur(calc(var(--abs-offset) * 1rem));
+}
+
+.card {
+	background-color: #fff;
+}
