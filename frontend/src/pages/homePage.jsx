@@ -18,7 +18,7 @@ export default function HomePage() {
 	};
 
 	return (
-		<div className='w-full h-full'>
+		<div className='w-[100%] h-[100%] overflow-x-hidden'>
 			<div className='fixed z-1 bg-blend-inherit '>
 				<NavigationBar openMenu={openMenu} handleOpenMenu={handleOpenMenu} />
 			</div>
@@ -54,17 +54,16 @@ export default function HomePage() {
 				</div>
 			</div>
 
-			<div className='w-full h-full my-20 px-20 flex flex-col gap-y-10 justify-center text-center'>
-				<p className='text-3xl'>Lorem Ipsum</p>
-				<p>
-					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam eu sapien nec dolor iaculis
-					ornare. Nullam tristique at libero eget accumsan. Suspendisse potenti. Phasellus ut ex ac
-					orci egestas imperdiet non a felis. Nullam a urna at nunc blandit ornare. Curabitur
-					vehicula leo a arcu lacinia, eu porttitor felis porttitor.
-				</p>
-			</div>
-
-			<BoxDisplay />
+			<section id="rooms" className="bg-[#fbfaf9] font-serif px-0 py-[72px]">
+				<div>
+					<h2 className="text-center text-[32px] mb-[10px] text-[#333]">Rooms & Suites</h2>
+					<h3 className="text-center text-[18px] mb-[40px] text-[#666]">
+						A range of accommodations from intimate suites to private penthouses. Each room carefully
+            			designed for comfort and alpine views.
+					</h3>
+					<BoxDisplay />
+				</div>
+			</section>
 
 			<div id='dine' className='px-8 py-16 h-96 p-20'>
 				<div className='text-center mb-10'>
@@ -75,7 +74,7 @@ export default function HomePage() {
 					</h3>
 				</div>
 				<Carousel />
-			</div>
+			</div>		
 		</div>
 	);
 }
