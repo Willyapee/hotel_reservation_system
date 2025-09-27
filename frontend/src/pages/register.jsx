@@ -1,59 +1,89 @@
-import React, { useState, useEffect } from 'react';
+//FILE PERCOBAANNYA WILLY GA NGARUH SAMA PROJEK KELEN
+import React, { useState } from "react";
+import axios from "axios";
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 
-export default function Register() {
-	const [values, setValues] = useState({
-		username: '',
-		email: '',
-		password: '',
-	});
-	const handleChanges = (e) => {
-		setValues({ ...values, [e.target.name]: e.target.value });
-	};
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		try {
-			const response = await axios.post('http://localhost:8080/auth/register', values);
-			console.log(response);
-		} catch (err) {
-			console.log(err);
-		}
-	};
+const Register = () => {
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
 
-	return (
-		<>
-			<div>
-				<form action=''>
-					<div>
-						<lable>Username</lable>
-						<input
-							type='text'
-							placeholder='Enter Username'
-							name='username'
-							onChanges={handleChanges}
-						/>
-					</div>
-					<div>
-						<lable>email</lable>
-						<input type='email' placeholder='Enter Email' name='email' onChanges={handleChanges} />
-					</div>
-					<div>
-						<lable>Username</lable>
-						<input
-							type='password'
-							placeholder='Enter Password'
-							name='password'
-							onChanges={handleChanges}
-						/>
-					</div>
-					<button type='submit'>Register</button>
-				</form>
-			</div>
-			<div>
-				<p>Already have account</p>
-				<Link to='/login'>Login</Link>
-			</div>
-		</>
-	);
-}
+    axios.defaults.withCredentials = true;
+
+    const validatePassword = () => {
+        if (password !== confirmPassword) {
+            alert("Passwords do not match");
+            return false;
+        }
+        return true;
+    };
+    
+    /*SAMA AJA spt
+    function handleSubmit(e) {}
+    e adalah argument event yg didapat dari onSubmit.
+    */
+    const handleSubmit = (e) => {
+        if (!validatePassword()) return;
+        e.preventDefault(); //prevent reload page abis submit
+        console.log(name, email, password);
+
+        axios.post('http://localhost:3000/auth/register', {
+            name,
+            email,
+            password
+        }).then((res) => {
+            if (res.status === 201) alert("Registration successful");
+        }).catch((error) => {
+            console.log(error);
+        })
+    };
+
+    return (
+        <>
+            <form onSubmit={handleSubmit}>
+                <label htmlFor="name">Name</label>
+                <input
+                    id="name"
+                    type="text"
+                    placeholder="Name"
+                    value={name}
+                    //e = event dari React (isi, target, dll).
+                    //=> = arrow function, cara singkat nulis function.
+                    onChange={(e) => setName(e.target.value)}
+                />
+                <br></br>
+                <label htmlFor="email">Email</label>
+                <input
+                    id="email"
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    />
+                <br></br>
+                <label htmlFor="password">Password</label>
+                <input
+                    id="password"
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    />
+                <br></br>
+                <label>Confirm Password</label>
+                <input
+                    type="password"
+                    placeholder="Confirm Password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                <br></br>
+                <button type="submit">Submit</button>
+            </form>
+            <label> already have an account? <Link to='/login'>Login here</Link></label>
+
+        </>
+    );
+};
+export default Register;
