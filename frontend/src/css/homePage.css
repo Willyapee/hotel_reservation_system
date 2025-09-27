@@ -1,20 +1,27 @@
-@import 'tailwindcss';
-
-/* img {
-    border: 1px solid black;
-} */
-
-/* div {
-    border: 1px solid black;
-} */
-
-html {
-    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+.btn-book {
+  background: linear-gradient(90deg, #d4af37 0%, #b8860b 100%);
+  color: white;
+  font-weight: 600;
+  border-radius: 9999px; /* pill */
+  transition: background 0.3s ease;
+  padding: 0.5rem 1.5rem;
 }
 
-#dine {
-	background: #fbfaf9;
-	font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+.btn-book:hover {
+  background: linear-gradient(90deg, #e6c200 0%, #cfa600 100%);
+}
+
+.btn-floating {
+  background: linear-gradient(90deg, #ffcc00 0%, #ffb300 100%);
+  color: white;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 12px 28px;
+  transition: background 0.3s ease;
+}
+
+.btn-floating:hover {
+  background: linear-gradient(90deg, #ffd633 0%, #e6b800 100%);
 }
 
 #dine h1 {

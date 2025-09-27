@@ -1,61 +1,92 @@
-import '../css/homePage.css';
-import 'react-date-range/dist/styles.css';
-import 'react-date-range/dist/theme/default.css';
-
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-
-import NavigationBar from '../components/navigationBar.jsx';
-import RoomDisplay from '../components/roomDisplay.jsx';
-import Carousel from '../components/carousel.jsx';
-import Footer from '../components/footer.jsx';
-
-import PlaceHolder from '../../public/picture/placeHolder.png';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import NavigationBar from "../components/navigationBar.jsx";
+import RoomDisplay from "../components/roomDisplay.jsx";
+import Carousel from "../components/carousel.jsx";
+import Footer from "../components/footer.jsx";
 
 export default function HomePage() {
-	const [openMenu, setOpenMenu] = useState(false);
-	const handleOpenMenu = () => {
-		setOpenMenu(!openMenu);
-	};
+  const [openMenu, setOpenMenu] = useState(false);
+  const [showFloating, setShowFloating] = useState(true);
 
-	return (
-		<div className='w-[100%] h-auto overflow-x-hidden'>
-				<NavigationBar openMenu={openMenu} handleOpenMenu={handleOpenMenu} />
+  const handleOpenMenu = () => setOpenMenu(!openMenu);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const footer = document.querySelector("footer");
+      if (footer) {
+        const footerTop = footer.getBoundingClientRect().top;
+        const windowHeight = window.innerHeight;
+        setShowFloating(footerTop > windowHeight);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-			<div className='w-full h-screen relative overflow-hidden -z-1'>
-				<video
-					src='https://lvmh-chevalblanc.cdn.prismic.io/lvmh-chevalblanc/aCcrMCdWJ-7kSN-l_PaysageCBO.mp4'
-					className='h-full w-full object-cover'
-					autoPlay
-					loop
-					muted
-					playsInline></video>
-			</div>
+  return (
+    <div className="w-full h-auto overflow-x-hidden">
+      <NavigationBar openMenu={openMenu} handleOpenMenu={handleOpenMenu} />
 
-			<section id="rooms" className="bg-[#fbfaf9] font-serif px-0 py-2">
-				<div>
-					<h2 className="text-center text-[32px] mb-[10px] text-[#333] mt-20">Rooms & Suites</h2>
-					<h3 className="text-center text-[18px] mb-[40px] text-[#666]">
-						A range of accommodations from intimate suites to private penthouses. Each room carefully
-            			designed for comfort and alpine views.
-					</h3>
-					<RoomDisplay />
-				</div>
-			</section>
+      {/* Fixed Book button */}
+      <div className="fixed top-5 right-8 z-50">
+        <Link
+          to="/booking"
+          className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-6 py-2 rounded-lg shadow-md transition-colors duration-300"
+        >
+          Book
+        </Link>
+      </div>
 
-			<div id='dine' className='px-8 py-16 h-auto p-20'>
-				<div className='text-center '>
-					<h2 className='text-[32px] font-bold text-[#333]-600 mb-4'>Dine With Us</h2>
-					<h3 className='text-[20px] text-[#666]'>
-						Experience culinary excellence at our on-site restaurants and bars, offering a variety
-						of gourmet dishes and drinks.
-					</h3>
-				</div>
-				<Carousel />
-			</div>
+      {/* Hero video */}
+      <div className="w-full h-screen relative overflow-hidden">
+        <video
+          src="https://lvmh-chevalblanc.cdn.prismic.io/lvmh-chevalblanc/aCcrMCdWJ-7kSN-l_PaysageCBO.mp4"
+          className="h-full w-full object-cover"
+          autoPlay
+          loop
+          muted
+          playsInline
+        ></video>
+      </div>
 
-			<Footer />
-		</div>
-	);
+      {/* Rooms Section */}
+      <section id="rooms" className="bg-[#fbfaf9] font-serif px-0 py-20">
+        <h2 className="text-center text-3xl font-bold text-[#333] mb-4">
+          Rooms & Suites
+        </h2>
+        <h3 className="text-center text-lg text-[#666] mb-10">
+          A range of accommodations from intimate suites to private penthouses.
+          Each room carefully designed for comfort and alpine views.
+        </h3>
+        <RoomDisplay />
+      </section>
+
+      {/* Dining Section */}
+      <div id="dine" className="px-8 py-20 bg-white">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-[#333] mb-4">Dine With Us</h2>
+          <h3 className="text-lg text-[#666]">
+            Experience culinary excellence at our on-site restaurants and bars,
+            offering a variety of gourmet dishes and drinks.
+          </h3>
+        </div>
+        <Carousel />
+      </div>
+
+      {/* Floating Book Now Button */}
+      {showFloating && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Link
+            to="/booking"
+            className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-6 py-3 rounded-full shadow-lg transition-colors duration-300"
+          >
+            Book Now
+          </Link>
+        </div>
+      )}
+
+      <Footer />
+    </div>
+  );
 }
