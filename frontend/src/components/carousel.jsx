@@ -8,19 +8,19 @@ export default function Carousel() {
 	const [cards, setCards] = useState(Cards);
 
 	return (
-		<div className='transform-3d justify-self-center relative w-80 h-[20rem] perspective-[1000px] select-none'>
+		<div className='transform-3d justify-self-center relative w-100 h-[30rem] perspective-[1000px] select-none'>
 			{active > 1 && (
 				<button
-					className='nav left text-gray-200 text-5xl absolute flex items-center justify-center 
-          top-1/2 -translate-y-1/2 z-10 cursor-pointer select-none'
+					className='nav left text-3xl absolute flex items-center justify-center align-middle
+          top-1/2 -translate-y-1/2 z-10 cursor-pointer select-none left-[-3rem] '
 					onClick={() => setActive(active - 1)}>
-					&lt;
+					&#x25C0;
 				</button>
 			)}
 			{cards.map((item) => (
 				<div
 					key={item.dineId}
-					className='card-container absolute w-full h-[18rem] transition-all duration-300 ease-out mt-[2rem]'
+					className='card-container absolute w-full h-100 transition-all duration-300 ease-out mt-[2rem]'
 					style={{
 						'--active': item.dineId === active ? 1 : 0,
 						'--offset': (active - item.dineId) / 3,
@@ -33,22 +33,22 @@ export default function Carousel() {
 						<img
 							src={item.img}
 							alt={item.title}
-							className='w-full h-40 object-cover rounded-xl mb-4'
+							className='w-full h-60 object-cover rounded-xl mb-4'
 						/>
 						<h4 className='text-lg font-bold mb-2 text-center'>{item.title}</h4>
 						<p className='text-sm text-gray-600 text-center'>{item.content}</p>
 						{item.description && (
-							<p className='text-xs text-gray-400 text-center mt-2'>{item.description}</p>
+							<p className='text-gray-400 text-center mt-2'>{item.description}</p>
 						)}
 					</div>
 				</div>
 			))}
 			{active < cards.length && (
 				<button
-					className='nav right text-gray-200 text-5xl absolute flex items-center justify-center 
-          top-1/2 -translate-y-1/2 z-10 cursor-pointer select-none right-2'
+					className='nav right flex items-center justify-center text-gray-200 text-3xl absolute 
+  top-1/2 -translate-y-1/2 z-10 cursor-pointer select-none right-[-3rem]'
 					onClick={() => setActive(active + 1)}>
-					&gt;
+					&#x25B6;
 				</button>
 			)}
 		</div>

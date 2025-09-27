@@ -28,6 +28,7 @@ export default function HomePage() {
     <div className="w-full h-auto overflow-x-hidden">
       <NavigationBar openMenu={openMenu} handleOpenMenu={handleOpenMenu} />
 
+      {/* Fixed Book button */}
       <div className="fixed top-5 right-8 z-50">
         <Link
           to="/booking"
@@ -37,6 +38,7 @@ export default function HomePage() {
         </Link>
       </div>
 
+      {/* Hero video */}
       <div className="w-full h-screen relative overflow-hidden">
         <video
           src="https://lvmh-chevalblanc.cdn.prismic.io/lvmh-chevalblanc/aCcrMCdWJ-7kSN-l_PaysageCBO.mp4"
@@ -48,6 +50,7 @@ export default function HomePage() {
         ></video>
       </div>
 
+      {/* Rooms Section */}
       <section id="rooms" className="bg-[#fbfaf9] font-serif px-0 py-20">
         <h2 className="text-center text-3xl font-bold text-[#333] mb-4">
           Rooms & Suites
@@ -59,6 +62,7 @@ export default function HomePage() {
         <RoomDisplay />
       </section>
 
+      {/* Dining Section */}
       <div id="dine" className="px-8 py-20 bg-white">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-[#333] mb-4">Dine With Us</h2>
@@ -70,6 +74,7 @@ export default function HomePage() {
         <Carousel />
       </div>
 
+      {/* Floating Book Now Button */}
       {showFloating && (
         <div className="fixed bottom-6 right-6 z-50">
           <Link

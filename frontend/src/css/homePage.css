@@ -23,3 +23,9 @@
 .btn-floating:hover {
   background: linear-gradient(90deg, #ffd633 0%, #e6b800 100%);
 }
+
+#dine h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
