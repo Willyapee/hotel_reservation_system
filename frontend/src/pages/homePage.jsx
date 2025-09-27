@@ -46,8 +46,8 @@ export default function HomePage() {
 
 			<div id='dine' className='px-8 py-16 h-auto p-20'>
 				<div className='text-center '>
-					<h2 className='text-3xl font-bold text-[#333]-600 mb-4'>Dine With Us</h2>
-					<h3 className='text-lg text-[#666]'>
+					<h2 className='text-[32px] font-bold text-[#333]-600 mb-4'>Dine With Us</h2>
+					<h3 className='text-[20px] text-[#666]'>
 						Experience culinary excellence at our on-site restaurants and bars, offering a variety
 						of gourmet dishes and drinks.
 					</h3>

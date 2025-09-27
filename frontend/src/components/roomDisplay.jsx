@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import RoomList from '../../../backend/data/roomList.json';
+import '../css/roomDisplay.css';
 
 export default function BoxDisplay() {
 	const [room, setRoom] = useState(RoomList);
@@ -12,9 +13,9 @@ export default function BoxDisplay() {
 					key={item.roomId}>
 					<img className='h-50 w-80' src={item.roomImage} />
 					<div className='h-auto w-80 p-5 flex flex-col gap-y-2'>
-						<p>{item.roomName}</p>
-						<p>{item.roomBed}</p>
-						<p>{item.roomDesc}</p>
+						<p className='text-gray-800 text-3xl'>{item.roomName}</p>
+						<p className='text-gray-500 text-sm'>{item.roomBed}</p>
+						<p className='text-gray-500 text-sm'>{item.roomDesc}</p>
 					</div>
 				</div>
 			))}

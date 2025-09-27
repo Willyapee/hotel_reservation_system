@@ -16,3 +16,9 @@ html {
 	background: #fbfaf9;
 	font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
 }
+
+#dine h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
