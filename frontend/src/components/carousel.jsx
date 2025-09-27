@@ -8,7 +8,7 @@ export default function Carousel() {
 	const [cards, setCards] = useState(Cards);
 
 	return (
-		<div className='transform-3d justify-self-center relative w-80 h-[20rem] mx-auto my-20 perspective-[1000px] select-none'>
+		<div className='transform-3d justify-self-center relative w-80 h-[20rem] perspective-[1000px] select-none'>
 			{active > 1 && (
 				<button
 					className='nav left text-gray-200 text-5xl absolute flex items-center justify-center 
@@ -35,7 +35,7 @@ export default function Carousel() {
 							alt={item.title}
 							className='w-full h-40 object-cover rounded-xl mb-4'
 						/>
-						<h4 className='text-lg font-bold mb-2 text-center mt-[20px]'>{item.title}</h4>
+						<h4 className='text-lg font-bold mb-2 text-center'>{item.title}</h4>
 						<p className='text-sm text-gray-600 text-center'>{item.content}</p>
 						{item.description && (
 							<p className='text-xs text-gray-400 text-center mt-2'>{item.description}</p>
