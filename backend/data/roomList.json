@@ -2,27 +2,24 @@
 	{
 		"roomId": "1",
 		"roomName": "Stellar Suite",
-		"roomSize": 100,
-		"roomBed": "King Bed",
+		"roomBed": "King Bed • 40m²",
 		"roomImage": "../public/picture/room/room1.jpg",
-		"roomDesc": "Stellar"
+		"roomDesc": "Warm materials, elegant furnishings and sweeping view of the slopes."
 	},
 
 	{
 		"roomId": "2",
 		"roomName": "Single Orion",
-		"roomSize": 30,
-		"roomBed": "Single Bed",
+		"roomBed": "King Bed • Living Area • 50m²",
 		"roomImage": "../public/picture/room/room3.jpg",
-		"roomDesc": "Orion"
+		"roomDesc": "Separate living room, refined details and private balcony."
 	},
 
 	{
 		"roomId": "3",
 		"roomName": "Deluxe Luna",
-		"roomSize": 45,
-		"roomBed": "King Bed",
+		"roomBed": "King Bed • Terrace • 40m²",
 		"roomImage": "../public/picture/room/room7.jpg",
-		"roomDesc": "Luna"
+		"roomDesc": "Expansive terrace, private services and panoramic vistas."
 	}
 ]

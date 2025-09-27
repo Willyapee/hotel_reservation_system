@@ -8,6 +8,10 @@
     border: 1px solid black;
 } */
 
+html {
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
 #dine {
 	background: #fbfaf9;
 	font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
