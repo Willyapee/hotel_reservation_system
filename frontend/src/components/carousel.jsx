@@ -8,8 +8,8 @@ export default function Carousel() {
 	const [cards, setCards] = useState(Cards);
 
 	return (
-		<div className='transform-3d justify-self-center relative w-80 h-[20rem] mx-auto perspective-[1000px]'>
-			{active > 0 && (
+		<div className='transform-3d justify-self-center relative w-80 h-[20rem] mx-auto my-20 perspective-[1000px] select-none'>
+			{active > 1 && (
 				<button
 					className='nav left text-gray-200 text-5xl absolute flex items-center justify-center 
           top-1/2 -translate-y-1/2 z-10 cursor-pointer select-none'
@@ -17,7 +17,7 @@ export default function Carousel() {
 					&lt;
 				</button>
 			)}
-			{cards.map(item => (
+			{cards.map((item) => (
 				<div
 					key={item.dineId}
 					className='card-container absolute w-full h-[18rem] transition-all duration-300 ease-out mt-[2rem]'

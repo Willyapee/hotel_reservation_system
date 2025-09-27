@@ -6,8 +6,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 import NavigationBar from '../components/navigationBar.jsx';
-import BoxDisplay from '../components/boxDisplay.jsx';
+import RoomDisplay from '../components/roomDisplay.jsx';
 import Carousel from '../components/carousel.jsx';
+import Footer from '../components/footer.jsx';
 
 import PlaceHolder from '../../public/picture/placeHolder.png';
 
@@ -19,9 +20,8 @@ export default function HomePage() {
 
 	return (
 		<div className='w-[100%] h-[100%] overflow-x-hidden'>
-			<div className='fixed z-1 bg-blend-inherit '>
 				<NavigationBar openMenu={openMenu} handleOpenMenu={handleOpenMenu} />
-			</div>
+
 
 			<div className='w-full h-screen relative overflow-hidden -z-1'>
 				<video
@@ -31,27 +31,6 @@ export default function HomePage() {
 					loop
 					muted
 					playsInline></video>
-
-				<div className='w-full h-full z-1'>
-					<div className='w-full h-4/20 flex justify-center'>
-						<p className='flex items-end gap-x-1'>
-							Sapphire
-							<img className='h-15' src={PlaceHolder} />
-							Grandeur
-						</p>
-					</div>
-
-					<div className='w-full h-15/20 flex justify-center items-end'>
-						<div>
-							<p>Lorem Ipsum</p>
-							<p>Lorem Ipsum</p>
-
-							<div className='flex gap-x-10 justify-center'>
-								<button>Book</button>
-							</div>
-						</div>
-					</div>
-				</div>
 			</div>
 
 			<section id="rooms" className="bg-[#fbfaf9] font-serif px-0 py-[72px]">
@@ -65,6 +44,8 @@ export default function HomePage() {
 				</div>
 			</section>
 
+			<RoomDisplay/>
+
 			<div id='dine' className='px-8 py-16 h-96 p-20'>
 				<div className='text-center mb-10'>
 					<h2 className='text-3xl font-bold text-gray-600 mb-4'>Dine With Us</h2>
@@ -74,7 +55,9 @@ export default function HomePage() {
 					</h3>
 				</div>
 				<Carousel />
-			</div>		
+			</div>
+
+			<Footer />
 		</div>
 	);
 }
