@@ -39,7 +39,7 @@ export default function HomePage() {
 
       <div className="w-full h-screen relative overflow-hidden">
         <video
-          src="https://lvmh-chevalblanc.cdn.prismic.io/lvmh-chevalblanc/aCcrMCdWJ-7kSN-l_PaysageCBO.mp4"
+          src="public/video/ChevalBlanc.mp4"
           className="h-full w-full object-cover"
           autoPlay
           loop

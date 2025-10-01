@@ -19,9 +19,9 @@ export default function Footer() {
 			</div>
 
 			<div className='flex gap-x-6 gap-y-2 flex-wrap justify-center text-gray-300'>
-				<p>Work With Us</p>
-				<p>Contact Us</p>
-				<p>Privacy Policy</p>
+				<button>Work With Us</button>
+				<button>Contact Us</button>
+				<button>Privacy Policy</button>
 			</div>
 
 			<p className='text-gray-300'>© 2025 Nyx Hotel | All Rights Reserved</p>

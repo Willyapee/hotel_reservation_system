@@ -1,4 +1,5 @@
 /* Kalender wrapper */
+
 .rdrCalendarWrapper {
   background: #fbfaf9 !important;
   border-radius: 16px;
@@ -28,3 +29,24 @@
 .rdrDayHovered {
   background: rgba(193, 154, 107, 0.15) !important;
 }
+
+.checkBox {
+  background-color: #a67c52;
+}
+
+.rdrStartEdge , .rdrEndEdge{
+  background-color: #a67c52;
+}
+
+.rdrInRange {
+  background-color: #896440;
+}
+
+.title {
+  background-color: #102e50;
+}
+
+.rdrDateDisplayItemActive {
+    border-color: #a67c52;
+}
+
