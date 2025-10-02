@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import NavigationBar from "../components/navigationBar.jsx";
+import Introduction from "../components/introduction.jsx";  
 import RoomDisplay from "../components/roomDisplay.jsx";
 import Carousel from "../components/carousel.jsx";
+import Facility from "../components/facility.jsx";
 import Footer from "../components/footer.jsx";
 
 export default function HomePage() {
@@ -28,26 +30,23 @@ export default function HomePage() {
     <div className="w-full h-auto overflow-x-hidden">
       <NavigationBar openMenu={openMenu} handleOpenMenu={handleOpenMenu} />
 
-      <div className="fixed top-5 right-8 z-50">
-        <Link
-          to="/booking"
-          className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-6 py-2 rounded-lg shadow-md transition-colors duration-300"
-        >
-          Book
-        </Link>
-      </div>
+      <Introduction />
 
-      <div className="w-full h-screen relative overflow-hidden">
-        <video
-          src="public/video/ChevalBlanc.mp4"
-          className="h-full w-full object-cover"
-          autoPlay
-          loop
-          muted
-          playsInline
-        ></video>
-      </div>
-
+      <section className="w-full bg-[#fbfaf9] py-16">
+        <div className="w-[90%] h-[35rem] relative overflow-hidden justify-center items-center mx-auto rounded-xl shadow-lg">
+          <video
+            src="public/video/ChevalBlanc.mp4"
+            className="h-full w-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+          ></video>
+        </div>
+      </section>
+      
+      <Facility />
+      
       <section id="rooms" className="bg-[#fbfaf9] px-0 py-20">
         <h2 className="text-center text-4xl font-bold text-[#333] mb-4">
           Rooms & Suites
@@ -70,6 +69,7 @@ export default function HomePage() {
         <Carousel />
       </div>
 
+      
       {showFloating && (
         <div className="fixed bottom-6 right-6 z-50">
           <Link

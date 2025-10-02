@@ -9,7 +9,7 @@ export default function BoxDisplay() {
 		<div className='w-full h-full my-10 flex flex-wrap justify-center gap-5 px-10'>
 			{room.map((item) => (
 				<div
-					className='bg-white rounded-xl overflow-hidden shadow-[0px_10px_20px_-10px_#333]'
+					className='bg-white rounded-xl overflow-hidden shadow-[0px_5px_20px_-10px_#333]'
 					key={item.roomId}>
 					<img className='h-50 w-80' src={item.roomImage} />
 					<div className='h-auto w-80 p-5 flex flex-col gap-y-2'>

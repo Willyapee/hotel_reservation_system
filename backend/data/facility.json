@@ -1,0 +1,12 @@
+[
+  {
+    "name": "The Grand Atrium",
+    "desc": "Step into a world bathed in golden light, where marble floors meet soaring ceilings. The Grand Atrium is more than a lobby — it is the beginning of an unforgettable journey, where elegance greets you at every corner.",
+    "img": "/public/lobby/lobby2.jpg"
+  },
+  {
+    "name": "The Summit Lounge",
+    "desc": "Perched above the city, this exclusive lounge welcomes you with refined elegance, curated spirits, and discreet luxury.",
+    "img": "/public/fac/fac2.jpg"
+  }
+]
