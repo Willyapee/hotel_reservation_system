@@ -1,0 +1,16 @@
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); } /* shift by half since it's doubled */
+}
+
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.marquee-track {
+  display: flex;
+  width: 200%;              /* two copies side by side */
+  animation: marquee 30s linear infinite;
+}

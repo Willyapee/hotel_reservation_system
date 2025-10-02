@@ -5,6 +5,8 @@ import Introduction from "../components/introduction.jsx";
 import RoomDisplay from "../components/roomDisplay.jsx";
 import Carousel from "../components/carousel.jsx";
 import Facility from "../components/facility.jsx";
+import BookingStreak from "../components/bookingstreak.jsx";
+import InfiniteScrollText from "../components/infiniteScrollText.jsx";
 import Footer from "../components/footer.jsx";
 
 export default function HomePage() {
@@ -46,6 +48,8 @@ export default function HomePage() {
       </section>
       
       <Facility />
+
+      <InfiniteScrollText />
       
       <section id="rooms" className="bg-[#fbfaf9] px-0 py-20">
         <h2 className="text-center text-4xl font-bold text-[#333] mb-4">
@@ -68,8 +72,10 @@ export default function HomePage() {
         </div>
         <Carousel />
       </div>
+      
 
       
+
       {showFloating && (
         <div className="fixed bottom-6 right-6 z-50">
           <Link
