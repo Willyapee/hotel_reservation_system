@@ -1,5 +1,3 @@
-/* Kalender wrapper */
-
 .rdrCalendarWrapper {
   background: #fbfaf9 !important;
   border-radius: 16px;
@@ -11,7 +9,7 @@
   color: #3a2f2a !important;
 }
 
-/* Hari aktif */
+/* Hari aktif (hari ini) */
 .rdrDayToday .rdrDayNumber span {
   border: 2px solid #c19a6b;
   color: #c19a6b;
@@ -25,28 +23,42 @@
   color: white !important;
 }
 
-/* Hover */
+/* Hover efek */
 .rdrDayHovered {
   background: rgba(193, 154, 107, 0.15) !important;
 }
 
+/* Tombol check-in/out */
 .checkBox {
   background-color: #a67c52;
+  color: white;
+  font-weight: 500;
 }
 
-.rdrStartEdge , .rdrEndEdge{
-  background-color: #a67c52;
+/* Ujung range */
+.rdrStartEdge,
+.rdrEndEdge {
+  background-color: #a67c52 !important;
 }
 
+/* Di dalam range */
 .rdrInRange {
-  background-color: #896440;
+  background-color: #896440 !important;
 }
 
+/* Judul section */
 .title {
   background-color: #102e50;
 }
 
+/* Border aktif date input */
 .rdrDateDisplayItemActive {
-    border-color: #a67c52;
+  border-color: #a67c52;
 }
 
+/* Hilangkan garis vertikal preview */
+.rdrDayStartPreview,
+.rdrDayInPreview,
+.rdrDayEndPreview {
+  display: none !important;
+}
