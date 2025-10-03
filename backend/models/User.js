@@ -7,10 +7,10 @@ Model mendefinisikan:
 - Relasi antar tabel (hasMany, belongsTo, dll)
 */
 import { DataTypes } from "sequelize";
-import db from "../config/User.js";
+import db from "../config/db.js";
 
 //'users' = nama tabel di database
-const Users = db.define("users", {
+const User = db.define("user", {
     name: {
         type: DataTypes.STRING,
         allowNull: false, 
@@ -31,7 +31,8 @@ const Users = db.define("users", {
         type: DataTypes.STRING,
         allowNull: true
     }
-
+}, {
+    freezeTableName: true  // 👈 bikin Sequelize pakai nama persis
 });
 
-export default Users;
+export default User;

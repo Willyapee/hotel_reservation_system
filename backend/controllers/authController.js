@@ -1,4 +1,4 @@
-import Users from "../models/User.js";
+import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -10,11 +10,11 @@ export const registerUser = async (req, res) => {
     //Express menangkap axios.post via req.bodu
 
     /* 
-    Users itu model Sequelize yang mewakili tabel users di MySQL.
+    User itu model Sequelize yang mewakili tabel user di MySQL.
     findOne = ambil satu baris data dari database.
     { where: { email } } = kondisi query → ambil user dengan kolom email sama dengan nilai email yang dikirim dari frontend.
     */
-    const existingUser = await Users.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       //status 400 = User exist already
       return res.status(400).json({ message: "User already exists" });
@@ -22,7 +22,7 @@ export const registerUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = await Users.create({
+    const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
@@ -44,7 +44,7 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     //cek user email udh bener/blm
-    const user = await Users.findOne({ where: { email } });
+    const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).json({ message: "Invalid email or password" });
     
     console.log("login attempt:", email, password);
