@@ -8,9 +8,8 @@ const augmentedRoomList = RoomList.map((room, index) => ({
 }));
 
 export default function BoxDisplay() {
-    // Start with the first room selected, or start with null for a fully deselected state.
-    // We'll keep the first room selected for better initial presentation.
-    const [selectedRoomId, setSelectedRoomId] = useState(augmentedRoomList[0].roomId);
+    // Start with no room selected
+    const [selectedRoomId, setSelectedRoomId] = useState(null);
     const scrollRef = useRef(null);
 
     const selectedRoom = useMemo(() => 

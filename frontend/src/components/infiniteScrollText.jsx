@@ -3,12 +3,13 @@ import "../css/infiniteScrollText.css";
 
 export default function InfiniteScrollText() {
   const textItems = [
-    "🌟 Indulge in Golden Moments",
-    "🌅 Wake Up to Golden Sunrises",
-    "💎 Golden Points Await You",
-    "🥂 Where Elegance Meets Comfort",
-    "🛎️ Your Stay, Our Pleasure",
-  ];
+  "Nyx Hotel",
+  "“Where nights turn into memories.”",
+  "Nyx Hotel",
+  "“Elegance woven into every stay.”",
+  "Nyx Hotel",
+  "“Experience the quiet luxury of space.”",
+];
 
   return (
     <div className="marquee-container bg-[#102E50] py-4">
