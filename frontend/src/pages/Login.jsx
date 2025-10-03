@@ -12,7 +12,6 @@ const Login = () => {
     function handleSubmit(e) {}
     e adalah argument event yg didapat dari onSubmit.
     */
-
     const handleLogin = async (e) => { 
         e.preventDefault(); //prevent reload page abis submit
         console.log(email, password);
@@ -59,4 +58,5 @@ const Login = () => {
         </>
     );
 };
+
 export default Login;
