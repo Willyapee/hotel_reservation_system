@@ -50,6 +50,7 @@ export default function BoxDisplay() {
         <div className="bg-[#102e50] text-white w-full h-full p-8 md:p-10 rounded-xl flex flex-col justify-between">
             <div>
                 <h2 className="text-2xl font-bold mb-1 text-white">{room.roomName}</h2>
+                <p className="text-sm text-gray-400 mb-6">{room.roomBed}</p>
                 <p className="text-sm text-gray-400 mb-6">{room.roomDesc}</p>
             </div>
 
