@@ -1,10 +1,13 @@
 import express from 'express';
 import cors from 'cors';
-import authRoutes from "./routes/AuthRoutes.js";//nama fileny
+import authRoutes from "./routes/authRoutes.js";
 import reservationRoutes from "./routes/reservationRouter.js";
 import db from "./config/db.js";
 import User from "./models/User.js";
+import cookieParser from "cookie-parser";
+import dotenv from 'dotenv'; // ✅ Add this
 
+dotenv.config(); 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -16,6 +19,7 @@ app.use(cors(
 	}
 ));
 app.use(express.json());
+app.use(cookieParser());
 
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);

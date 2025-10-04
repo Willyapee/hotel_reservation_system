@@ -43,6 +43,11 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is not defined in environment variables");
+      return res.status(500).json({ message: "Server configuration error" });
+    }
+
     //cek user email udh bener/blm
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).json({ message: "Invalid email or password" });
@@ -61,6 +66,13 @@ export const loginUser = async (req, res) => {
       { expiresIn: "1h" }
     );
 
+    res.cookie("token", token, {
+      httpOnly: true,   // tidak bisa diakses JS → aman dari XSS
+      secure: false,    // true kalau pakai https
+      sameSite: "strict",
+      maxAge: 60 * 60 * 1000 // 1 jam
+    });
+
     //respons ke frontend
     res.status(200).json({
       message: "Login successful",
@@ -69,5 +81,28 @@ export const loginUser = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getMe = async (req, res) => {
+  try {
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "Server configuration error" });
+    }
+
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ message: "No token, authorization denied" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findByPk(decoded.id, {
+      attributes: ['id', 'name', 'email'] // exclude password
+    });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json(user);
+
+  } catch (error) {
+    console.log(error);
+    res.status(401).json({ message: "Invalid token" });
   }
 };
