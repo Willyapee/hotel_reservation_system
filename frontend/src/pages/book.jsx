@@ -366,7 +366,7 @@ function Book() {
 
                     {/* PRICE PER NIGHT & TOTAL */}
                     <p className="text-gray-300 mb-2">
-                      Price per night: ${selectedRoom.pricePerNight ?? 0}
+                      Price per night: ${selectedRoom.roomPrice}
                     </p>
                     <p className="text-gray-300 mb-4">
                       Nights: {nights}
@@ -413,7 +413,7 @@ function Book() {
 
                           {/* tampilkan price per night juga di card */}
                           <p className="text-[#c19a6b] font-semibold mb-3">
-                            ${room.pricePerNight ?? 0} / night
+                            ${room.roomPrice ?? 0} / night
                           </p>
 
                           <button className="bg-[#c19a6b] hover:bg-[#a67c52] text-white text-sm px-4 py-2 rounded-lg w-full font-semibold transition">
