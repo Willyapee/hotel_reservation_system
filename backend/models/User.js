@@ -10,29 +10,33 @@ import { DataTypes } from "sequelize";
 import db from "../config/db.js";
 
 //'users' = nama tabel di database
-const User = db.define("user", {
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false, 
+// models/MsUser.js
+const MsUser = db.define("ms_user", {
+    id_user: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    username: {
+        type: DataTypes.STRING(100),
+        allowNull: false
     },
     email: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(100),
         allowNull: false,
+        unique: true
     },
     password: {
-        type: DataTypes.STRING,
-        allowNull: false,
+        type: DataTypes.STRING(255),
+        allowNull: false
     },
-    isVerified: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
-    },
-    verificationToken: {
-        type: DataTypes.STRING,
-        allowNull: true
+    role: {
+        type: DataTypes.ENUM('admin', 'user'),
+        defaultValue: 'user'
     }
 }, {
-    freezeTableName: true  // 👈 bikin Sequelize pakai nama persis
+    freezeTableName: true, // 👈 bikin Sequelize pakai nama persis
+    timestamps: true
 });
 
-export default User;
+export default MsUser;

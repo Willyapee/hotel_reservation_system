@@ -1,27 +1,19 @@
 import { DataTypes } from "sequelize";
 import db from "../config/db.js";
 
-const Room = db.define("room", {
-    id_room: {
+const Booking = db.define("booking", {
+    id_booking: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
-    id_room_type: {
+    id_user: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    room_number: {
-        type: DataTypes.STRING(10),
-        allowNull: false,
-        unique: true
-    },
-    availability: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: true
-    },
-    creation_date: {
+    booking_date: {
         type: DataTypes.DATE,
+        allowNull: false,
         defaultValue: DataTypes.NOW
     }
 }, {
@@ -29,4 +21,4 @@ const Room = db.define("room", {
     timestamps: false
 });
 
-export default Room;
+export default Booking;
