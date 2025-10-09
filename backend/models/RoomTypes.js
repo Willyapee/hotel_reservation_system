@@ -22,6 +22,11 @@ const MsRoomType = db.define("ms_room_type", {
     description: {
         type: DataTypes.TEXT,
         allowNull: true
+    },
+    max_stay_duration: {          // ← ✅ TAMBAH INI!
+        type: DataTypes.INTEGER,  // dalam hari
+        allowNull: false,
+        defaultValue: 30          // default 30 hari
     }
 }, {
     freezeTableName: true,
