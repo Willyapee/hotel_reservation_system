@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import db from "../config/db.js";
 
-const Room = db.define("room", {
+const Rooms = db.define("rooms", {
     id_room: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -25,4 +25,4 @@ const Room = db.define("room", {
     timestamps: false
 });
 
-export default Room;
+export default Rooms;

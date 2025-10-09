@@ -1,98 +1,99 @@
-import MsUser from './MsUser.js';
-import Booking from './Booking.js';
-import Invoice from './Invoice.js';
-import Payment from './Payment.js';
-import MsRoomType from './MsRoomType.js';
-import Room from './Room.js';
-import BookingRoom from './BookingRoom.js';
-import MsFacility from './MsFacility.js';
-import BookingRoomFacility from './BookingRoomFacility.js';
+import MsUser from './Users';
+import MsServices from './MSServices';
+import ServiceReservations from './ServiceReservations';
+import MsRoomType from './msRoomTypes';
+import MsUser from './Users';
+import Rooms from './Rooms';
+import Invoice from './Invoices';
+import Payment from './Payments';
+import Reservations from './Reservations';
+import RoomReservations from './RoomReservations';
 
 const defineRelationships = () => {
-    // 1. USER - BOOKING (One-to-Many)
-    MsUser.hasMany(Booking, {
-        foreignKey: 'id_user',
-        as: 'bookings'
-    });
-    Booking.belongsTo(MsUser, {
-        foreignKey: 'id_user',
-        as: 'user'
-    });
+	// 1. USER - BOOKING (One-to-Many)
+	MsUser.hasMany(Reservations, {
+		foreignKey: 'id_user',
+		as: 'reservations',
+	});
+	Reservations.belongsTo(MsUser, {
+		foreignKey: 'id_user',
+		as: 'user',
+	});
 
-    // 2. BOOKING - INVOICE (One-to-One)
-    Booking.hasOne(Invoice, {
-        foreignKey: 'id_booking',
-        as: 'invoice'
-    });
-    Invoice.belongsTo(Booking, {
-        foreignKey: 'id_booking',
-        as: 'booking'
-    });
-    
-    // 3. INVOICE - PAYMENT (One-to-One)
-    Invoice.hasOne(Payment, {
-        foreignKey: 'id_invoice',
-        as: 'payment'   
-    });
+	// 2. BOOKING - INVOICE (One-to-One)
+	Reservations.hasOne(Invoice, {
+		foreignKey: 'id_reservation',
+		as: 'invoice',
+	});
+	Invoice.belongsTo(Reservations, {
+		foreignKey: 'id_reservation',
+		as: 'reservation',
+	});
 
-    Payment.belongsTo(Invoice, {
-        foreignKey: 'id_invoice',
-        as: 'invoice'  
-    });
-    /*----------------------------------------------------------*/
-    // 4. ROOM TYPE - ROOM (One-to-Many)
-    MsRoomType.hasMany(Room, {
-        foreignKey: 'id_room_type',
-        as: 'rooms'
-    });
-    Room.belongsTo(MsRoomType, {
-        foreignKey: 'id_room_type',
-        as: 'room_type'
-    });
+	// 3. INVOICE - PAYMENT (One-to-One)
+	Invoice.hasOne(Payment, {
+		foreignKey: 'id_invoice',
+		as: 'payment',
+	});
 
-    // 5. BOOKING - BOOKING_ROOM (One-to-Many)
-    Booking.hasMany(BookingRoom, {
-        foreignKey: 'id_booking',
-        as: 'booking_rooms'
-    });
-    BookingRoom.belongsTo(Booking, {
-        foreignKey: 'id_booking',
-        as: 'booking'
-    });
+	Payment.belongsTo(Invoice, {
+		foreignKey: 'id_invoice',
+		as: 'invoice',
+	});
+	/*----------------------------------------------------------*/
+	// 4. ROOM TYPE - ROOM (One-to-Many)
+	MsRoomType.hasMany(Rooms, {
+		foreignKey: 'id_room_type',
+		as: 'rooms',
+	});
+	Rooms.belongsTo(MsRoomType, {
+		foreignKey: 'id_room_type',
+		as: 'room_type',
+	});
 
-    // 6. ROOM - BOOKING_ROOM (One-to-Many)
-    Room.hasMany(BookingRoom, {
-        foreignKey: 'id_room',
-        as: 'booking_rooms'
-    });
-    BookingRoom.belongsTo(Room, {
-        foreignKey: 'id_room',
-        as: 'room'
-    });
-    /*----------------------------------------------------------*/
-    // 7. BOOKING_ROOM - FACILITY (Many-to-Many through BookingRoomFacility)
-    BookingRoom.belongsToMany(MsFacility, {
-        through: BookingRoomFacility,
-        foreignKey: 'id_booking_room',
-        otherKey: 'id_facility',
-        as: 'facilities'
-    });
+	// 5. BOOKING - BOOKING_ROOM (One-to-Many)
+	Reservations.hasMany(RoomReservations, {
+		foreignKey: 'id_reservation',
+		as: 'room_reservations',
+	});
+	RoomReservations.belongsTo(Reservations, {
+		foreignKey: 'id_reservation',
+		as: 'reservation',
+	});
 
-    MsFacility.belongsToMany(BookingRoom, {
-        through: BookingRoomFacility,
-        foreignKey: 'id_facility',
-        otherKey: 'id_booking_room',
-        as: 'booking_rooms'
-    });
+	// 6. ROOM - BOOKING_ROOM (One-to-Many)
+	Rooms.hasMany(RoomReservations, {
+		foreignKey: 'id_room',
+		as: 'room_reservations',
+	});
+	RoomReservations.belongsTo(Rooms, {
+		foreignKey: 'id_room',
+		as: 'room',
+	});
+	/*----------------------------------------------------------*/
+	// 7. BOOKING_ROOM - FACILITY (Many-to-Many through BookingRoomFacility)
+	RoomReservations.belongsToMany(MsServices, {
+		through: ServiceReservations,
+		foreignKey: 'id_room_reservation',
+		otherKey: 'id_service',
+		as: 'services',
+	});
 
-    // 8. Additional direct relations for junction table
-    BookingRoomFacility.belongsTo(BookingRoom, {
-        foreignKey: 'id_booking_room'
-    });
-    
-    BookingRoomFacility.belongsTo(MsFacility, {
-        foreignKey: 'id_facility'
-    });
+	MsServices.belongsToMany(RoomReservations, {
+		through: ServiceReservations,
+		foreignKey: 'id_service',
+		otherKey: 'id_room_reservation',
+		as: 'room_reservations',
+	});
+
+	// 8. Additional direct relations for junction table
+	ServiceReservations.belongsTo(RoomReservations, {
+		foreignKey: 'id_room_reservation',
+	});
+
+	ServiceReservations.belongsTo(MsServices, {
+		foreignKey: 'id_service',
+	});
 };
 
 export default defineRelationships;

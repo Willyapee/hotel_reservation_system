@@ -20,3 +20,5 @@ const ServiceReservations = db.define('service_reservations', {
 		allowNull: false,
 	},
 });
+
+export default ServiceReservations;

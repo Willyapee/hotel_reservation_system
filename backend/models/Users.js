@@ -5,7 +5,7 @@ import { DataTypes } from 'sequelize';
 import db from '../config/db.js';
 
 //Create User Model
-const User = db.define('ms_user', {
+const MsUser = db.define('ms_user', {
 	id_user: {
 		type: DataTypes.INTEGER,
 		primaryKey: true,
@@ -34,4 +34,4 @@ const User = db.define('ms_user', {
 	timestamps: true,
 });
 
-export default User;
+export default MsUser;
