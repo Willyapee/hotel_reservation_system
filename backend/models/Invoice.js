@@ -1,36 +1,37 @@
-import { DataTypes } from "sequelize";
-import db from "../config/db.js";
+//Import Libraries
+import { DataTypes } from 'sequelize';
 
-const Invoice = db.define("invoice", {
-    id_invoice: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    id_booking: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    total_amount: {
-        type: DataTypes.DECIMAL(15, 2),
-        allowNull: false
-    },
-    status: {
-        type: DataTypes.ENUM('pending', 'paid', 'overdue', 'cancelled'),
-        defaultValue: 'pending'
-    },
-    issue_date: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW
-    },
-    due_date: {
-        type: DataTypes.DATE,
-        allowNull: false
-    }
-}, {
-    freezeTableName: true,
-    timestamps: false
+//Import Database
+import db from '../config/db.js';
+
+//Create Invoice Model
+const Invoice = db.define('invoice', {
+	id_invoice: {
+		type: DataTypes.INTEGER,
+		primaryKey: true,
+		autoIncrement: true,
+	},
+
+	total_amount: {
+		type: DataTypes.DECIMAL(63, 2),
+		allowNull: false,
+	},
+	issued_date: {
+		type: DataTypes.DATE,
+		allowNull: false,
+		defaultValue: DataTypes.NOW,
+	},
+	due_date: {
+		type: DataTypes.DATE,
+		allowNull: false,
+	},
+	status: {
+		type: DataTypes.ENUM('pending', 'paid', 'cancelled'),
+		defaultValue: 'pending',
+	},
+
+	freezeTableName: true,
+	timestamps: true,
 });
 
 export default Invoice;

@@ -24,7 +24,7 @@ const Services = db.define('ms_services', {
 		allowNull: false,
 	},
 	unit: {
-		type: DataTypes.ENUM('per_booking', 'per_person', 'per_hour'),
+		type: DataTypes.ENUM('per_booking', 'per_person'),
 		allowNull: false,
 	},
 });
