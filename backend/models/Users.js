@@ -30,8 +30,9 @@ const MsUser = db.define('ms_user', {
 		type: DataTypes.ENUM('admin', 'guest'),
 		defaultValue: 'guest',
 	},
-	freezeTableName: true,
-	timestamps: true,
+}, {
+    freezeTableName: true,
+    timestamps: true,
 });
 
 export default MsUser;

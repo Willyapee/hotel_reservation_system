@@ -35,8 +35,9 @@ const RoomReservations = db.define('room_reservations', {
 		type: DataTypes.DECIMAL(63, 2),
 		allowNull: false,
 	},
-	freezeTableName: true,
-	timestamps: true,
+}, {
+    freezeTableName: true,
+    timestamps: true,
 });
 
 export default RoomReservations;
