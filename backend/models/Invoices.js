@@ -29,9 +29,10 @@ const Invoices = db.define('invoice', {
 		type: DataTypes.ENUM('pending', 'paid', 'cancelled'),
 		defaultValue: 'pending',
 	},
-
+}, {  
 	freezeTableName: true,
 	timestamps: true,
+	
 });
 
 export default Invoices;

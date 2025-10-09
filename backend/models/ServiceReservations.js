@@ -10,7 +10,15 @@ const ServiceReservations = db.define('service_reservations', {
 		type: DataTypes.INTEGER,
 		primaryKey: true,
 		autoIncrement: true,
-	},
+    },
+    id_room_reservation: {          // ← TAMBAH FOREIGN KEY
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    id_service: {                   // ← TAMBAH FOREIGN KEY  
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
 	quantity: {
 		type: DataTypes.INTEGER,
 		allowNull: false,
