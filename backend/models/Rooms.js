@@ -16,10 +16,6 @@ const Room = db.define("room", {
         allowNull: false,
         unique: true
     },
-    availability: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: true
-    },
     creation_date: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
