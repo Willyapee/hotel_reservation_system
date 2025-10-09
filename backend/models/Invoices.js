@@ -31,8 +31,7 @@ const Invoices = db.define('invoice', {
 	},
 }, {  
 	freezeTableName: true,
-	timestamps: true,
-	
+	timestamps: true,	
 });
 
 export default Invoices;

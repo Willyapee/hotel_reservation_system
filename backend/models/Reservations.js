@@ -3,7 +3,6 @@ import { DataTypes } from 'sequelize';
 
 //Import Database
 import db from '../config/db.js';
-import e from 'express';
 
 //Create Reservation Model
 const Reservations = db.define('reservation', {
@@ -21,8 +20,10 @@ const Reservations = db.define('reservation', {
 		allowNull: false,
 		defaultValue: DataTypes.NOW,
 	},
-	freezeTableName: true,
-	timestamps: true,
+}, {
+    freezeTableName: true,
+    timestamps: true,
 });
+
 
 export default Reservations;
