@@ -5,7 +5,7 @@ import { DataTypes } from 'sequelize';
 import db from '../config/db.js';
 
 //Create Services Model
-const Services = db.define('ms_services', {
+const MsServices = db.define('ms_services', {
 	id_service: {
 		type: DataTypes.INTEGER,
 		primaryKey: true,
@@ -28,3 +28,5 @@ const Services = db.define('ms_services', {
 		allowNull: false,
 	},
 });
+
+export default MsServices;

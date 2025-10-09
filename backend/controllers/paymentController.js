@@ -1,6 +1,6 @@
 //Import Models
-import Payment from '../models/Payment';
-import Invoice from '../models/Invoice';
+import Payment from '../models/Payments';
+import Invoice from '../models/Invoices';
 
 //Import Libraries
 import { Op } from 'sequelize';
