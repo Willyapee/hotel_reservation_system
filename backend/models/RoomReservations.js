@@ -8,6 +8,8 @@ import db from '../config/db.js';
 const RoomReservations = db.define('room_reservations', {
 	id_room_reservation: {
 		type: DataTypes.INTEGER,
+		 primaryKey: true,        
+        autoIncrement: true,     
 	},
 	id_reservation: {
 		type: DataTypes.INTEGER,
