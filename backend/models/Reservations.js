@@ -19,11 +19,10 @@ const Reservations = db.define('reservation', {
 		type: DataTypes.DATE,
 		allowNull: false,
 		defaultValue: DataTypes.NOW,
-	},
+    },
 }, {
     freezeTableName: true,
     timestamps: true,
 });
-
 
 export default Reservations;
