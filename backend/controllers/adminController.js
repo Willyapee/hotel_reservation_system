@@ -1,256 +1,456 @@
-// controllers/adminController.js
-import { Op } from 'sequelize';
-import Reservations from '../models/Reservations.js';
-import RoomReservations from '../models/RoomReservations.js';
-import ServiceReservations from '../models/ServiceReservations.js';
-import Room from '../models/Rooms.js';
-import MsServices from '../models/msServices.js';
-import Invoices from '../models/Invoices.js';
-import Payments from '../models/Payments.js';
+//Import Models
+import MsUser from './Users.js';
+import MsServices from './msServices.js';
+import ServiceReservations from './ServiceReservations.js';
+import MsRoomType from './msRoomTypes.js';
+import Rooms from './Rooms.js';
+import Invoices from './Invoices.js';
+import Payments from './Payments.js';
+import Reservations from './Reservations.js';
+import RoomReservations from './RoomReservations.js';
 
-// STEP 6: ASSIGN ROOM WHEN USER CHECK-IN
-export const assignRoomOnCheckin = async (req, res) => {
-    try {
-        const { reservation_id } = req.body;
+//Import Libraries
+import { where } from 'sequelize';
 
-        const reservation = await Reservations.findByPk(reservation_id, {
-            include: [{
-                model: RoomReservations,
-                as: 'room_reservations'
-            }]
-        });
-
-        if (!reservation) {
-            return res.status(404).json({ message: "Reservation not found" });
-        }
-
-        // Cek apakah sudah check-in
-        if (reservation.room_reservations[0].status === 'checked_in') {
-            return res.status(400).json({ message: "Already checked in" });
-        }
-
-        // Update room reservation status to checked_in
-        await RoomReservations.update(
-            { status: 'checked_in' },
-            { where: { id_reservation: parseInt(reservation_id) } }
-        );
-
-        // Update reservation status
-        await reservation.update({ status: 'checked_in' });
-
-        res.json({
-            message: "Check-in successful",
-            reservation_id: reservation_id,
-            status: 'checked_in',
-            room_number: reservation.room_reservations[0].room.room_number,
-            check_in_date: reservation.check_in
-        });
-
-    } catch (error) {
-        console.error("Check-in error:", error);
-        res.status(500).json({ message: "Server error" });
-    }
+//Room Type Management
+//Create New Room Type
+export const createRoomType = async (req, res) => {
+	try {
+		const newRoomType = await MsRoomType.create(req.body);
+		res.status(201).json({ message: 'Room type created successfully', roomType: newRoomType });
+	} catch (error) {
+		res.status(500).json({ message: 'Error Creating New Room Type', error: error.message });
+	}
 };
 
-// STEP 7: ADD SERVICES DURING STAY
-export const addServicesDuringStay = async (req, res) => {
-    try {
-        const { reservation_id, services } = req.body;
-
-        const reservation = await Reservations.findByPk(reservation_id, {
-            include: [{
-                model: RoomReservations,
-                as: 'room_reservations'
-            }]
-        });
-
-        if (!reservation) {
-            return res.status(404).json({ message: "Reservation not found" });
-        }
-
-        // Cek status checked_in
-        if (reservation.room_reservations[0].status !== 'checked_in') {
-            return res.status(400).json({ message: "Customer is not checked in" });
-        }
-
-        const addedServices = [];
-        let additionalTotal = 0;
-
-        for (const service of services) {
-            const serviceData = await MsServices.findByPk(service.id_service);
-            if (serviceData) {
-                const subtotal = serviceData.service_price * service.quantity;
-                additionalTotal += subtotal;
-                
-                const serviceReservation = await ServiceReservations.create({
-                    id_room_reservation: reservation.room_reservations[0].id_room_reservation,
-                    id_service: service.id_service,
-                    quantity: service.quantity,
-                    subtotal_price: subtotal
-                });
-                
-                addedServices.push({
-                    service_name: serviceData.name,
-                    quantity: service.quantity,
-                    unit_price: serviceData.service_price,
-                    subtotal: subtotal
-                });
-            }
-        }
-
-        // Update invoice total amount
-        const invoice = await Invoices.findOne({
-            where: { id_reservation: parseInt(reservation_id) }
-        });
-
-        if (invoice) {
-            const newTotal = parseFloat(invoice.total_amount) + additionalTotal;
-            await invoice.update({ total_amount: newTotal });
-        }
-
-        res.json({
-            message: "Services added successfully during stay",
-            added_services: addedServices,
-            additional_total: additionalTotal,
-            new_invoice_total: invoice ? invoice.total_amount : additionalTotal
-        });
-
-    } catch (error) {
-        console.error("Add services during stay error:", error);
-        res.status(500).json({ message: "Server error" });
-    }
+//Read Room Types
+export const readRoomTypes = async (req, res) => {
+	try {
+		const roomType = await MsRoomType.findAll();
+		res.status(200).json(roomType);
+	} catch (error) {
+		res.status(500).json({ message: 'Error reading room types', error: error.message });
+	}
 };
 
-// STEP 8: CHECKOUT & GENERATE FINAL INVOICE
-export const checkoutAndGenerateInvoice = async (req, res) => {
-    try {
-        const { reservation_id } = req.body;
-
-        const reservation = await Reservations.findByPk(reservation_id, {
-            include: [{
-                model: RoomReservations,
-                as: 'room_reservations',
-                include: [{
-                    model: ServiceReservations,
-                    as: 'services',
-                    include: [{
-                        model: MsServices,
-                        as: 'service'
-                    }]
-                }]
-            }]
-        });
-
-        if (!reservation) {
-            return res.status(404).json({ message: "Reservation not found" });
-        }
-
-        // Update status to checked_out
-        await RoomReservations.update(
-            { status: 'checked_out' },
-            { where: { id_reservation: parseInt(reservation_id) } }
-        );
-
-        await reservation.update({ status: 'checked_out' });
-
-        // Calculate final total dari semua rooms dan services
-        const finalTotal = reservation.room_reservations.reduce((sum, rr) => {
-            const roomSubtotal = parseFloat(rr.subtotal_price);
-            const servicesSubtotal = rr.services.reduce((sSum, sr) => 
-                sSum + parseFloat(sr.subtotal_price), 0
-            );
-            return sum + roomSubtotal + servicesSubtotal;
-        }, 0);
-
-        // Update invoice dengan final total
-        const invoice = await Invoices.findOne({
-            where: { id_reservation: parseInt(reservation_id) }
-        });
-
-        let finalInvoice;
-        if (invoice) {
-            await invoice.update({ 
-                total_amount: finalTotal,
-                status: 'pending_payment' // Status khusus untuk menunggu pembayaran
-            });
-            finalInvoice = invoice;
-        }
-
-        // Siapkan detail untuk response
-        const invoiceDetails = {
-            reservation_id: reservation_id,
-            customer_name: reservation.customer_name,
-            check_in: reservation.check_in,
-            check_out: reservation.check_out,
-            room_charges: reservation.room_reservations.map(rr => ({
-                room_number: rr.room.room_number,
-                room_type: rr.room.room_type.name,
-                subtotal: rr.subtotal_price
-            })),
-            service_charges: reservation.room_reservations.flatMap(rr => 
-                rr.services.map(sr => ({
-                    service_name: sr.service.name,
-                    quantity: sr.quantity,
-                    unit_price: sr.service.service_price,
-                    subtotal: sr.subtotal_price
-                }))
-            ),
-            final_total: finalTotal
-        };
-
-        res.json({
-            message: "Checkout successful. Please proceed to payment.",
-            reservation_id: reservation_id,
-            status: 'checked_out',
-            final_invoice: invoiceDetails,
-            payment_required: true
-        });
-
-    } catch (error) {
-        console.error("Checkout error:", error);
-        res.status(500).json({ message: "Server error" });
-    }
+//Update Room Type
+export const updateRoomType = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const [updated] = await MsRoomType.update(req.body, { where: { id_room_type: id } });
+		if (updated) {
+			const updatedRoomType = await MsRoomType.findByPk(id);
+			res
+				.status(200)
+				.json({ message: 'Room type updated successfully', roomType: updatedRoomType });
+		} else {
+			res.status(404).json({ message: 'Room type not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error updating room type', error: error.message });
+	}
 };
 
-// GET ACTIVE STAYS (Untuk admin lihat siapa yang sedang menginap)
-export const getActiveStays = async (req, res) => {
-    try {
-        const activeStays = await Reservations.findAll({
-            where: { 
-                status: 'checked_in',
-                check_out: { [Op.gte]: new Date() } // Masih dalam masa menginap
-            },
-            include: [{
-                model: RoomReservations,
-                as: 'room_reservations',
-                include: [
-                    {
-                        model: Room,
-                        as: 'room',
-                        include: [{
-                            model: MsRoomType,
-                            as: 'room_type'
-                        }]
-                    },
-                    {
-                        model: ServiceReservations,
-                        as: 'services',
-                        include: [{
-                            model: MsServices,
-                            as: 'service'
-                        }]
-                    }
-                ]
-            }],
-            order: [['check_in', 'ASC']]
-        });
-
-        res.json({
-            active_stays: activeStays
-        });
-
-    } catch (error) {
-        console.error("Get active stays error:", error);
-        res.status(500).json({ message: "Server error" });
-    }
+//Delete Room Type
+export const deleteRoomType = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const deleted = await MsRoomType.destroy({ where: { id_room_type: id } });
+		if (deleted) {
+			res.status(200).json({ message: 'Room type deleted successfully' });
+		} else {
+			res.status(404).json({ message: 'Room type not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error deleting room type', error: error.message });
+	}
 };
+
+//Room Management
+//Create New Room
+export const createRoom = async (req, res) => {
+	try {
+		const newRoom = await Rooms.create(req.body);
+		res.status(201).json({ message: 'Room created successfully', room: newRoom });
+	} catch (error) {
+		res.status(500).json({ message: 'Error Creating New Room', error: error.message });
+	}
+};
+
+//Read Rooms
+export const readRooms = async (req, res) => {
+	try {
+		const rooms = await Rooms.findAll({
+			include: [{ model: MsRoomType, as: 'room_type' }],
+		});
+		res.status(200).json(rooms);
+	} catch (error) {
+		res.status(500).json({ message: 'Error reading rooms', error: error.message });
+	}
+};
+
+//Update Room
+export const updateRoom = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const [updated] = await Rooms.update(req.body, { where: { id_room: id } });
+		if (updated) {
+			const updatedRoom = await Rooms.findByPk(id);
+			res.status(200).json({ message: 'Room updated successfully', room: updatedRoom });
+		} else {
+			res.status(404).json({ message: 'Room not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error updating room', error: error.message });
+	}
+};
+
+//Delete Room
+export const deleteRoom = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const deleted = await Rooms.destroy({ where: { id_room: id } });
+		if (deleted) {
+			res.status(200).json({ message: 'Room deleted successfully' });
+		} else {
+			res.status(404).json({ message: 'Room not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error deleting room', error: error.message });
+	}
+};
+
+//Services Management
+//Create New Service
+export const createService = async (req, res) => {
+	try {
+		const newService = await MsServices.create(req.body);
+		res.status(201).json({ message: 'Service created successfully', service: newService });
+	} catch (error) {
+		res.status(500).json({ message: 'Error Creating New Service', error: error.message });
+	}
+};
+
+//Read Services
+export const readServices = async (req, res) => {
+	try {
+		const services = await MsServices.findAll();
+		res.status(200).json(services);
+	} catch (error) {
+		res.status(500).json({ message: 'Error reading services', error: error.message });
+	}
+};
+
+//Update Service
+export const updateService = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const [updated] = await MsServices.update(req.body, { where: { id_service: id } });
+	} catch (error) {
+		res.status(500).json({ message: 'Error updating service', error: error.message });
+	}
+};
+
+//Delete Service
+export const deleteService = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const deleted = await MsServices.destroy({ where: { id_service: id } });
+		if (deleted) {
+			res.status(200).json({ message: 'Service deleted successfully' });
+		} else {
+			res.status(404).json({ message: 'Service not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error deleting service', error: error.message });
+	}
+};
+
+//Reservation Management
+//Create New Reservation
+export const createReservation = async (req, res) => {
+	try {
+		const reservation = await Reservations.create(req.body);
+		res.status(201).json({ message: 'Reservation created successfully', reservation });
+	} catch (error) {
+		res.status(500).json({ message: 'Error creating reservation', error: error.message });
+	}
+};
+
+//Read Reservations
+export const readReservations = async (req, res) => {
+	try {
+		const reservations = await Reservations.findAll({
+			include: [
+				{ model: MsUser, as: 'id_user' },
+				{ model: Rooms, as: 'id_room' },
+			],
+		});
+		res.status(200).json(reservations);
+	} catch (error) {}
+};
+
+//Update Reservation
+export const updateReservation = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const [updated] = await Reservations.update(req.body, { where: { id_reservation: id } });
+		if (updated) {
+			const updatedReservation = await Reservations.findByPk(id);
+			res
+				.status(200)
+				.json({ message: 'Reservation updated successfully', reservation: updatedReservation });
+		} else {
+			res.status(404).json({ message: 'Reservation not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error updating reservation', error: error.message });
+	}
+};
+
+//Delete Reservation
+export const deleteReservation = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const deleted = await Reservations.destroy({ where: { id_reservation: id } });
+		if (deleted) {
+			res.status(200).json({ message: 'Reservation deleted successfully' });
+		} else {
+			res.status(404).json({ message: 'Reservation not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error deleting reservation', error: error.message });
+	}
+};
+
+//Invoice Management
+//Create New Invoice
+export const createInvoice = async (req, res) => {
+	try {
+		const invoice = await Invoices.create(req.body);
+		res.status(201).json({ message: 'Invoice created successfully', invoice });
+	} catch (error) {
+		res.status(500).json({ message: 'Error creating invoice', error: error.message });
+	}
+};
+
+//Read Invoices
+export const readInvoices = async (req, res) => {
+	try {
+		const invoices = await Invoices.findAll({
+			include: [{ model: Reservations, as: 'id_reservation' }],
+		});
+		res.status(200).json(invoices);
+	} catch (error) {
+		res.status(500).json({ message: 'Error reading invoices', error: error.message });
+	}
+};
+
+//Update Invoice
+export const updateInvoice = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const [updated] = await Invoices.update(req.body, { where: { id_invoice: id } });
+		if (updated) {
+			const updatedInvoice = await Invoices.findByPk(id);
+			res.status(200).json({ message: 'Invoice updated successfully', invoice: updatedInvoice });
+		} else {
+			res.status(404).json({ message: 'Invoice not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error updating invoice', error: error.message });
+	}
+};
+
+//Delete Invoice
+export const deleteInvoice = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const deleted = await Invoices.destroy({ where: { id_invoice: id } });
+		if (deleted) {
+			res.status(200).json({ message: 'Invoice deleted successfully' });
+		} else {
+			res.status(404).json({ message: 'Invoice not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error deleting invoice', error: error.message });
+	}
+};
+
+//Payment Management
+//Create New Payment
+export const createPayment = async (req, res) => {
+	try {
+		const payment = await Payments.create(req.body);
+		res.status(201).json({ message: 'Payment created successfully', payment });
+	} catch (error) {
+		res.status(500).json({ message: 'Error creating payment', error: error.message });
+	}
+};
+
+//Read Payments
+export const readPayments = async (req, res) => {
+	try {
+		const payments = await Payments.findAll({
+			include: [{ model: Invoices, as: 'id_invoice' }],
+		});
+		res.status(200).json(payments);
+	} catch (error) {
+		res.status(500).json({ message: 'Error reading payments', error: error.message });
+	}
+};
+
+//Update Payment
+export const updatePayment = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const [updated] = await Payments.update(req.body, { where: { id_payment: id } });
+
+		if (updated) {
+			const updatedPayment = await Payments.findByPk(id);
+			res.status(200).json({ message: 'Payment updated successfully', payment: updatedPayment });
+		} else {
+			res.status(404).json({ message: 'Payment not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error updating payment', error: error.message });
+	}
+};
+
+//Delete Payment
+export const deletePayment = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const deleted = await Payments.destroy({ where: { id_payment: id } });
+		if (deleted) {
+			res.status(200).json({ message: 'Payment deleted successfully' });
+		} else {
+			res.status(404).json({ message: 'Payment not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error deleting payment', error: error.message });
+	}
+};
+
+//Room Reservation Management
+//Create New Room Reservation
+export const createRoomReservation = async (req, res) => {
+	try {
+		const roomReservation = await RoomReservations.create(req.body);
+		res.status(201).json({ message: 'Room reservation created successfully', roomReservation });
+	} catch (error) {
+		res.status(500).json({ message: 'Error creating room reservation', error: error.message });
+	}
+};
+
+//Read Room Reservations
+export const readRoomReservations = async (req, res) => {
+	try {
+		const roomReservations = await RoomReservations.findAll({
+			include: [
+				{ model: Reservations, as: 'id_reservation' },
+				{ model: Rooms, as: 'id_room' },
+			],
+		});
+		res.status(200).json(roomReservations);
+	} catch (error) {
+		res.status(500).json({ message: 'Error reading room reservations', error: error.message });
+	}
+};
+
+//Update Room Reservation
+export const updateRoomReservation = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const [updated] = await RoomReservations.update(req.body, {
+			where: { id_room_reservation: id },
+		});
+		if (updated) {
+			const updatedRoomReservation = await RoomReservations.findByPk(id);
+			res.status(200).json({
+				message: 'Room reservation updated successfully',
+				roomReservation: updatedRoomReservation,
+			});
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error updating room reservation', error: error.message });
+	}
+};
+
+//Delete Room Reservation
+export const deleteRoomReservation = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const deleted = await RoomReservations.destroy({ where: { id_room_reservation: id } });
+		if (deleted) {
+			res.status(200).json({ message: 'Room reservation deleted successfully' });
+		} else {
+			res.status(404).json({ message: 'Room reservation not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error deleting room reservation', error: error.message });
+	}
+};
+
+//Service Reservation Management
+//Create New Service Reservation
+export const createServiceReservation = async (req, res) => {
+	try {
+		const serviceReservation = await ServiceReservations.create(req.body);
+		res
+			.status(201)
+			.json({ message: 'Service reservation created successfully', serviceReservation });
+	} catch (error) {
+		res.status(500).json({ message: 'Error creating service reservation', error: error.message });
+	}
+};
+
+//Read Service Reservations
+export const readServiceReservations = async (req, res) => {
+	try {
+		const serviceReservations = await ServiceReservations.findAll({
+			include: [
+				{ model: Reservations, as: 'id_reservation' },
+				{ model: MsServices, as: 'id_service' },
+			],
+		});
+		res.status(200).json(serviceReservations);
+	} catch (error) {
+		res.status(500).json({ message: 'Error reading service reservations', error: error.message });
+	}
+};
+
+//Update Service Reservation
+export const updateServiceReservation = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const [updated] = await ServiceReservations.update(req.body, {
+			where: { id_service_reservation: id },
+		});
+		if (updated) {
+			const updatedServiceReservation = await ServiceReservations.findByPk(id);
+			res.status(200).json({
+				message: 'Service reservation updated successfully',
+				serviceReservation: updatedServiceReservation,
+			});
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error updating service reservation', error: error.message });
+	}
+};
+
+//Delete Service Reservation
+export const deleteServiceReservation = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const deleted = await ServiceReservations.destroy({ where: { id_service_reservation: id } });
+		if (deleted) {
+			res.status(200).json({ message: 'Service reservation deleted successfully' });
+		} else {
+			res.status(404).json({ message: 'Service reservation not found' });
+		}
+	} catch (error) {
+		res.status(500).json({ message: 'Error deleting service reservation', error: error.message });
+	}
+};
+

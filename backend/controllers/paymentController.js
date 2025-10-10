@@ -1,27 +1,23 @@
-// controllers/paymentController.js
-import Payments from '../models/Payments.js';
-import Invoices from '../models/Invoices.js';
-import RoomReservations from '../models/RoomReservations.js';
+//Import Models
+import Payment from '../models/Payments';
+import Invoice from '../models/Invoices';
 
-// PROCESS PAYMENT
-export const processPayment = async (req, res) => {
-    try {
-        const { id_invoice, amount, method, transaction_id } = req.body;
+//Create a new Payment
+export const createPayment = async (req, res) => {
+	try {
+		const { id_invoice, amount, payment_method } = req.body;
+		const userId = req.user.id;
 
-        // Validasi input
-        if (!id_invoice || !amount || !method) {
-            return res.status(400).json({
-                message: "Invoice ID, amount, and payment method are required"
-            });
-        }
-
-        // Validasi invoice exists dan status
-        const invoice = await Invoices.findByPk(id_invoice, {
-            include: [{
-                model: 'reservation',
-                include: ['room_reservations']
-            }]
-        });
+		//Validate Invoice Exists
+		const invoice = await Invoice.findOne({
+			where: { id_invoice },
+			include: [
+				{
+					association: 'booking',
+					where: { id_user: userId },
+				},
+			],
+		});
 
         if (!invoice) {
             return res.status(404).json({ message: "Invoice not found" });
