@@ -11,7 +11,10 @@ const Invoices = db.define('invoice', {
 		primaryKey: true,
 		autoIncrement: true,
 	},
-
+	id_reservation: {  // ← ✅ TAMBAH FOREIGN KEY INI
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
 	total_amount: {
 		type: DataTypes.DECIMAL(63, 2),
 		allowNull: false,

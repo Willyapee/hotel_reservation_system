@@ -27,6 +27,10 @@ const MsRoomType = db.define("ms_room_type", {
         type: DataTypes.INTEGER,  // dalam hari
         allowNull: false,
         defaultValue: 30          // default 30 hari
+    },
+    image_url: {
+        type: DataTypes.STRING(500),
+        allowNull: true
     }
 }, {
     freezeTableName: true,
