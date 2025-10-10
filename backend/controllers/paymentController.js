@@ -2,9 +2,6 @@
 import Payment from '../models/Payments';
 import Invoice from '../models/Invoices';
 
-//Import Libraries
-import { Op } from 'sequelize';
-
 //Create a new Payment
 export const createPayment = async (req, res) => {
 	try {
