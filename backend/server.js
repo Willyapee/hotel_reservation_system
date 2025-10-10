@@ -6,14 +6,18 @@ import dotenv from 'dotenv';
 
 //Import Database dan Relationship
 import db from './config/db.js';
-import defineRelationships from './models/Relationship';
+import defineRelationships from './models/Relationship.js'; // ← TAMBAH .js
 
 //Import Routes
 import authRoutes from './routes/authRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import reservationRoutes from './routes/reservationRoutes.js';
-import facilityRoutes from './routes/facilityRoutes.js';
-import paymentsRoutes from './routes/paymentsRoutes.js';
+import roomReservationsRoutes from './routes/roomReservationsRoutes.js';
+import servicesRoutes from './routes/servicesRoutes.js';
+import serviceReservationsRoutes from './routes/serviceReservationsRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import invoiceRoutes from './routes/invoiceRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -31,31 +35,31 @@ app.use(express.json());
 
 //Routes
 app.use('/auth', authRoutes);
-
 app.use('/rooms', roomRoutes);
-
 app.use('/reservations', reservationRoutes);
+app.use('/room-reservations', roomReservationsRoutes);
+app.use('/services', servicesRoutes);
+app.use('/service-reservations', serviceReservationsRoutes);
+app.use('/admin', adminRoutes);
+app.use('/invoices', invoiceRoutes);
+app.use('/payments', paymentRoutes);
 
-app.use('/facilities', facilityRoutes);
-
-app.use('/payments', paymentsRoutes);
-
-//Database connection and synxhronization
+//Database connection and synchronization
 (async() => {
 	try {
 		await db.authenticate();
-		console.log('conected to the database');
+		console.log('Connected to the database');
 
 		defineRelationships();
-		console.log('relationships defined');
+		console.log('Relationships defined');
 
 		await db.sync({ alter: true });
-		console.log('all models were synchronized successfully');
+		console.log('All models were synchronized successfully');
 
 		app.listen(PORT, () => {
 			console.log(`Server running on http://localhost:${PORT}`);
 		})
 	} catch (error) {
-		console.error('unable to connect to the database:', error);
+		console.error('Unable to connect to the database:', error);
 	}
-})
+})();

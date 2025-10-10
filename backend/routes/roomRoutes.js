@@ -1,14 +1,10 @@
-import express from "express";
-import { 
-  getAllRooms, 
-  getRoomById, 
-  checkRoomAvailability
-} from "../controllers/roomController.js";
+// routes/roomRoutes.js
+import express from 'express';
+import { searchAvailableRooms } from '../controllers/roomController.js';
 
 const router = express.Router();
 
-router.get("/", getAllRooms);
-router.get("/:roomId", getRoomById);
-router.get("/availability/check", checkRoomAvailability);
+// GET /rooms/search?check_in=2024-01-15&check_out=2024-01-20&adults=2
+router.get('/search', searchAvailableRooms);
 
 export default router;
