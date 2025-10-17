@@ -5,7 +5,6 @@ import Introduction from "../components/introduction.jsx";
 import RoomDisplay from "../components/roomDisplay.jsx";
 import Carousel from "../components/carousel.jsx";
 import Facility from "../components/facility.jsx";
-import BookingStreak from "../components/bookingstreak.jsx";
 import InfiniteScrollText from "../components/infiniteScrollText.jsx";
 import Parallax from "../components/parralax.jsx";
 import Footer from "../components/footer.jsx";

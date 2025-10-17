@@ -7,8 +7,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import "../css/book.css";
 import RoomList from "../../../backend/data/roomList.json";
 import Cards from "../../../backend/data/dineList.json"; // data untuk katalog bawah
+import { useNavigate } from "react-router-dom";
 
 function Book() {
+  const navigate = useNavigate();
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openGuest, setOpenGuest] = useState(false);
   const [openSearchResult, setOpenSearchResult] = useState(false);
@@ -416,9 +418,13 @@ function Book() {
                             ${room.roomPrice ?? 0} / night
                           </p>
 
-                          <button className="bg-[#c19a6b] hover:bg-[#a67c52] text-white text-sm px-4 py-2 rounded-lg w-full font-semibold transition">
+                          <button
+                            className="bg-[#c19a6b] hover:bg-[#a67c52] text-white text-sm px-4 py-2 rounded-lg w-full font-semibold transition"
+                            onClick={() => navigate('/register')}
+                          >
                             Book Now
                           </button>
+                          
                         </div>
                       </motion.div>
                     ))}

@@ -26,3 +26,23 @@ h4 {
 p {
 	font-size: 18px;
 }
+
+
+
+@media (min-width: 640px) {
+  .cardContainer {
+    max-width: 700px;
+    height: 28rem;
+  }
+}
+@media (min-width: 768px) {
+  .cardContainer {
+    max-width: 900px;
+    height: 30rem;
+  }
+}
+
+/* Navigation buttons */
+.nav {
+  padding: 0.5rem 1rem;
+}
