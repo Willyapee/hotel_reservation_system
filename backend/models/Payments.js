@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import db from "../config/db.js";
 
-const Payment = db.define("payment", {
+const Payments = db.define("payment", {
     id_payment: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -33,4 +33,4 @@ const Payment = db.define("payment", {
     timestamps: false
 });
 
-export default Payment;
+export default Payments;
