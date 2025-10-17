@@ -11,7 +11,6 @@ const MsUser = db.define('ms_user', {
 		primaryKey: true,
 		autoIncrement: true,
 	},
-
 	username: {
 		type: DataTypes.STRING(255),
 		allowNull: false,

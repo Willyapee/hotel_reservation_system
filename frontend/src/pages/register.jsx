@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import "../css/register.css";
 
 const Register = () => {
-  const [name, setName] = useState("");
+  const [username, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,21 +22,18 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     if (!validatePassword()) return;
-    e.preventDefault();
-    console.log(name, email, password);
+    e.preventDefault(); 
+    console.log(username, email, password);
 
-    axios
-      .post("http://localhost:3000/auth/register", {
-        name,
+    axios.post('http://localhost:3000/auth/register', {
+        username,
         email,
-        password,
-      })
-      .then((res) => {
+        password
+    }).then((res) => {
         if (res.status === 201) alert("Registration successful");
-      })
-      .catch((error) => {
+    }).catch((error) => {
         console.log(error);
-      });
+    })
   };
 
   useEffect(() => {
@@ -82,8 +79,8 @@ const Register = () => {
                 id="name"
                 type="text"
                 placeholder="Enter your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={username}
+                onChange={(e) => setUserName(e.target.value)}
                 className="w-full mt-1 bg-white/10 text-white rounded-lg px-4 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a2b4ff] transition-all duration-300"
               />
             </div>
