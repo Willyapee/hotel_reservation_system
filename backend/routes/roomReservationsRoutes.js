@@ -3,8 +3,7 @@ import express from 'express';
 import { 
     createBooking, 
     getUserBookings, 
-    cancelBooking,
-    getRoomReservationById 
+    cancelBooking
 } from '../controllers/roomReservationsController.js';
 
 const router = express.Router();
@@ -16,7 +15,7 @@ router.post('/', createBooking);
 router.get('/user/:id_user', getUserBookings);
 
 // GET /room-reservations/:id - Get room reservation by ID
-router.get('/:id', getRoomReservationById);
+// router.get('/:id', getRoomReservationById);
 
 // PUT /room-reservations/:id_reservation/cancel - Cancel room reservation
 router.put('/:id/cancel', cancelBooking);

@@ -3,7 +3,7 @@ import Invoices from '../models/Invoices.js';
 import Reservations from '../models/Reservations.js';
 import RoomReservations from '../models/RoomReservations.js';
 import ServiceReservations from '../models/ServiceReservations.js';
-import MsUser from '../models/Users.js';
+import MsUser from '../models/MsUsers.js';
 
 // GET INVOICE BY ID
 export const getInvoiceById = async (req, res) => {

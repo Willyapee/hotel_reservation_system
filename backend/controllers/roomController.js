@@ -1,93 +1,115 @@
 // controllers/roomController.js
 import { Op } from 'sequelize';
-import db from '../config/db.js';
 import MsRoomType from '../models/msRoomTypes.js';
-import Room from '../models/Rooms.js';
+import Rooms from '../models/Rooms.js';
 import RoomReservations from '../models/RoomReservations.js';
-import MsServices from '../models/msServices.js';
 
-// Helper function
-const calculateDaysDifference = (check_in, check_out) => {
-    const start = new Date(check_in);
-    const end = new Date(check_out);
-    return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-};
-
-// Helper function - Count available rooms by type
-const countAvailableRoomsByType = async (id_room_type, check_in, check_out) => {
-    const rooms = await Room.findAll({
-        where: { id_room_type }
-    });
-
-    let availableCount = 0;
-    for (const room of rooms) {
-        const conflictingBooking = await RoomReservations.findOne({
-            where: {
-                id_room: room.id_room,
-                status: { [Op.notIn]: ['cancelled', 'checked_out'] },
-                [Op.and]: [
-                    { check_in_date: { [Op.lte]: check_out } },
-                    { check_out_date: { [Op.gte]: check_in } }
-                ]
-            }
-        });
-        if (!conflictingBooking) availableCount++;
-    }
-    return availableCount;
-};
-
-// STEP 1-2: SEARCH AVAILABLE ROOM TYPES
 export const searchAvailableRooms = async (req, res) => {
     try {
         const { check_in, check_out, adults } = req.query;
         
-        // Validasi input
+        // Validasi parameter
         if (!check_in || !check_out || !adults) {
             return res.status(400).json({
-                message: "Check-in, check-out dates and adults count are required"
+                success: false,
+                message: 'Parameter check_in, check_out, dan adults diperlukan'
             });
         }
 
-        const stayDuration = calculateDaysDifference(check_in, check_out);
-        
-        // 1. Cari room types yang sesuai capacity dan max_stay_duration
+        const checkInDate = new Date(check_in);
+        const checkOutDate = new Date(check_out);
+        const adultsCount = parseInt(adults);
+
+        // Validasi tanggal
+        if (checkInDate >= checkOutDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tanggal check-out harus setelah check-in'
+            });
+        }
+
+        if (adultsCount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Jumlah adults harus lebih dari 0'
+            });
+        }
+
+        // Hitung durasi menginap
+        const duration = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+
+        // 1. Cari semua room type yang memenuhi kapasitas
         const roomTypes = await MsRoomType.findAll({
             where: {
-                capacity: { [Op.gte]: parseInt(adults) },
-                max_stay_duration: { [Op.gte]: stayDuration }
+                capacity: {
+                    [Op.gte]: adultsCount
+                }
             }
         });
 
-        // 2. Untuk setiap room type, hitung available rooms
-        const availableRoomTypes = [];
-        for (const roomType of roomTypes) {
-            const availableRoomsCount = await countAvailableRoomsByType(
-                roomType.id_room_type, check_in, check_out
-            );
-            
-            if (availableRoomsCount > 0) {
-                availableRoomTypes.push({
-                    ...roomType.toJSON(),
-                    available_rooms_count: availableRoomsCount,
-                    total_price: roomType.price_per_night * stayDuration
+        // 2. Untuk setiap room type, hitung kamar yang available
+        const availableRooms = await Promise.all(
+            roomTypes.map(async (roomType) => {
+                // Cari semua kamar dengan room type ini
+                const allRooms = await Rooms.findAll({
+                    where: { id_room_type: roomType.id_room_type }
                 });
-            }
-        }
 
-        // 3. Get available services untuk ditampilkan
-        const availableServices = await MsServices.findAll();
+                // Cari kamar yang sudah direservasi pada periode tersebut
+                const bookedRooms = await RoomReservations.findAll({
+                    where: {
+                        id_room: allRooms.map(room => room.id_room),
+                        [Op.or]: [
+                            {
+                                check_in_date: { [Op.lt]: checkOutDate },
+                                check_out_date: { [Op.gt]: checkInDate },
+                                status: { [Op.in]: ['reserved', 'checked_in'] }
+                            }
+                        ]
+                    },
+                    attributes: ['id_room']
+                });
+
+                const bookedRoomIds = bookedRooms.map(room => room.id_room);
+                const availableRoomCount = allRooms.filter(room => 
+                    !bookedRoomIds.includes(room.id_room)
+                ).length;
+
+                return {
+                    roomId: roomType.id_room_type, // Using room type ID as identifier
+                    roomName: roomType.name,
+                    roomBed: roomType.room_bed,
+                    roomDesc: roomType.description,
+                    roomImage: roomType.image_url || '/default-room.jpg',
+                    roomPrice: parseFloat(roomType.price_per_night),
+                    availableRooms: availableRoomCount,
+                    capacity: roomType.capacity,
+                    maxStayDuration: roomType.max_stay_duration,
+                    totalPrice: parseFloat(roomType.price_per_night) * duration,
+                    duration: duration
+                };
+            })
+        );
+
+        // Filter hanya room type yang punya kamar available
+        const filteredRooms = availableRooms.filter(room => room.availableRooms > 0);
 
         res.json({
-            check_in,
-            check_out,
-            stay_duration: stayDuration,
-            adults: parseInt(adults),
-            available_room_types: availableRoomTypes,
-            available_services: availableServices
+            success: true,
+            searchParams: {
+                check_in: check_in,
+                check_out: check_out,
+                adults: adultsCount,
+                duration: duration
+            },
+            availableRooms: filteredRooms
         });
 
     } catch (error) {
-        console.error("Search rooms error:", error);
-        res.status(500).json({ message: "Server error" });
+        console.error('Room search error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Terjadi kesalahan saat mencari kamar'
+        });
     }
 };

@@ -1,8 +1,8 @@
 // Relationship.js - ✅ BENAR
 import MsUser from './MsUsers.js';
-import MsServices from './MsServices.js'; // ← FILE BENAR
+import MsServices from './msServices.js'; // ← FILE BENAR
 import ServiceReservations from './ServiceReservations.js';
-import MsRoomType from './MsRoomTypes.js';
+import MsRoomType from './msRoomTypes.js';
 import Rooms from './Rooms.js';
 import Invoices from './Invoices.js'; // ← VARIABLE BENAR
 import Payments from './Payments.js'; // ← VARIABLE BENAR
@@ -48,6 +48,7 @@ const defineRelationships = () => {
 	MsRoomType.hasMany(Rooms, {
 		foreignKey: 'id_room_type',
 		as: 'rooms',
+		onDelete: 'CASCADE'
 	});
 	Rooms.belongsTo(MsRoomType, {
 		foreignKey: 'id_room_type',
