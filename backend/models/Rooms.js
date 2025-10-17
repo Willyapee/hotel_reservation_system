@@ -9,7 +9,7 @@ const Rooms = db.define("rooms", {
     },
     id_room_type: {
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: false,
     },
     room_number: {
         type: DataTypes.STRING(10),

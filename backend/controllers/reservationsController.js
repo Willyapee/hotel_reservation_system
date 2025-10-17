@@ -7,7 +7,7 @@ import MsRoomType from '../models/msRoomTypes.js';
 import Room from '../models/Rooms.js';
 import MsServices from '../models/msServices.js';
 import Invoices from '../models/Invoices.js';
-import MsUser from '../models/Users.js';
+import MsUser from '../models/MsUsers.js';
 
 // Helper function
 const calculateDaysDifference = (check_in, check_out) => {

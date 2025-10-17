@@ -11,11 +11,11 @@ import defineRelationships from './models/Relationship.js'; // ← TAMBAH .js
 //Import Routes
 import authRoutes from './routes/authRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
-import reservationRoutes from './routes/reservationRoutes.js';
+import reservationRoutes from './routes/reservationsRoutes.js';
 import roomReservationsRoutes from './routes/roomReservationsRoutes.js';
-import servicesRoutes from './routes/servicesRoutes.js';
+import servicesRoutes from './routes/serviceRoutes.js';
 import serviceReservationsRoutes from './routes/serviceReservationsRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
+// import adminRoutes from './routes/adminRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 
@@ -40,7 +40,7 @@ app.use('/reservations', reservationRoutes);
 app.use('/room-reservations', roomReservationsRoutes);
 app.use('/services', servicesRoutes);
 app.use('/service-reservations', serviceReservationsRoutes);
-app.use('/admin', adminRoutes);
+// app.use('/admin', adminRoutes);
 app.use('/invoices', invoiceRoutes);
 app.use('/payments', paymentRoutes);
 

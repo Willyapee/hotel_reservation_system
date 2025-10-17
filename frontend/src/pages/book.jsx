@@ -1,20 +1,22 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { DateRange } from "react-date-range";
-import { addDays, differenceInDays } from "date-fns";
+import { addDays, differenceInDays, format } from "date-fns";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { motion, AnimatePresence } from "framer-motion";
 import "../css/book.css";
-import RoomList from "../../../backend/data/roomList.json";
 import Cards from "../../../backend/data/dineList.json";
 import { Link } from "react-router-dom";
-import { ShoppingCart, X } from "lucide-react";
+import { ShoppingCart, X, Loader } from "lucide-react";
 
 function Book() {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openGuest, setOpenGuest] = useState(false);
   const [openSearchResult, setOpenSearchResult] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [availableRooms, setAvailableRooms] = useState([]);
+  const [searchParams, setSearchParams] = useState(null);
 
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
@@ -27,6 +29,45 @@ function Book() {
       key: "selection",
     },
   ]);
+
+  // Fungsi untuk mencari kamar tersedia
+  const searchRooms = async () => {
+    if (!date[0].startDate || !date[0].endDate) return;
+    
+    setLoading(true);
+    try {
+      const checkIn = format(date[0].startDate, 'yyyy-MM-dd');
+      const checkOut = format(date[0].endDate, 'yyyy-MM-dd');
+      
+      const queryParams = new URLSearchParams({
+        check_in: checkIn,
+        check_out: checkOut,
+        adults: adults.toString()
+      });
+
+      const response = await fetch(`http://localhost:3000/rooms/search?${queryParams}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setAvailableRooms(data.availableRooms);
+        setSearchParams(data.searchParams);
+        setOpenSearchResult(true);
+      } else {
+        alert(data.message || 'Gagal mencari kamar');
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      alert('Terjadi kesalahan saat mencari kamar');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle search button click
+  const handleSearch = () => {
+    setOpenCalendar(false);
+    searchRooms();
+  };
 
   const handleAddChild = () => {
     if (children < 9) {
@@ -54,8 +95,8 @@ function Book() {
   );
 
   const selectedRoom = useMemo(
-    () => RoomList.find((room) => room.roomId === selectedRoomId),
-    [selectedRoomId]
+    () => availableRooms.find((room) => room.roomId === selectedRoomId),
+    [selectedRoomId, availableRooms]
   );
 
   const [showFloating, setShowFloating] = useState(true);
@@ -78,13 +119,28 @@ function Book() {
     <div className="bg-[#102e50] text-white w-full h-full p-8 md:p-10 rounded-xl flex flex-col justify-between">
       <div>
         <h2 className="text-2xl font-bold mb-1 text-white">{room.roomName}</h2>
-        <p className="text-sm text-gray-400 mb-6">{room.roomBed}</p>
-        <p className="text-sm text-gray-400 mb-6">{room.roomDesc || "No description available."}</p>
+        <p className="text-sm text-gray-400 mb-2">{room.roomBed}</p>
+        <p className="text-sm text-gray-400 mb-4">
+          Available: {room.availableRooms} room{room.availableRooms > 1 ? 's' : ''}
+        </p>
+        <p className="text-sm text-gray-400 mb-6">
+          {room.roomDesc || "No description available."}
+        </p>
+        <div className="text-sm text-gray-400">
+          <p>Capacity: {room.capacity} adults</p>
+          <p>Max Stay: {room.maxStayDuration} days</p>
+          <p>Duration: {room.duration} night{room.duration > 1 ? 's' : ''}</p>
+        </div>
       </div>
       <div className="pt-5 border-t border-[#34495e] flex justify-between items-center">
         <div className="flex flex-col">
-          <span className="text-sm text-gray-400">Price / night</span>
-          <span className="text-4xl font-extrabold text-yellow-500">${room.roomPrice}</span>
+          <span className="text-sm text-gray-400">Total for {room.duration} night{room.duration > 1 ? 's' : ''}</span>
+          <span className="text-4xl font-extrabold text-yellow-500">
+            ${room.totalPrice.toFixed(2)}
+          </span>
+          <span className="text-sm text-gray-400">
+            (${room.roomPrice.toFixed(2)} / night)
+          </span>
         </div>
       </div>
     </div>
@@ -287,10 +343,7 @@ function Book() {
                   <div className="mt-6 text-center">
                     <button
                       className="inline-block bg-[#c19a6b] hover:bg-[#a67c52] text-white px-6 py-3 rounded-lg text-lg shadow-md transition-colors duration-300"
-                      onClick={() => {
-                        setOpenCalendar(false);
-                        setOpenSearchResult(true);
-                      }}
+                      onClick={handleSearch}
                     >
                       Search
                     </button>
@@ -339,10 +392,30 @@ function Book() {
             <h2 className="text-3xl font-bold text-[#102E50] mb-10 text-center">
               Available Rooms
             </h2>
-            {RoomList.map((room) => (
+            
+            {loading && (
+              <div className="flex justify-center items-center py-20">
+                <Loader className="w-8 h-8 animate-spin text-[#c19a6b]" />
+                <span className="ml-2 text-gray-600">Loading available rooms...</span>
+              </div>
+            )}
+            
+            {!loading && availableRooms.length === 0 && (
+              <div className="text-center py-20">
+                <p className="text-gray-600 text-lg">No rooms available for your selected criteria.</p>
+                <button 
+                  onClick={() => setOpenCalendar(true)}
+                  className="mt-4 text-[#c19a6b] hover:text-[#a67c52] underline"
+                >
+                  Modify your search
+                </button>
+              </div>
+            )}
+            
+            {!loading && availableRooms.map((room) => (
               <div key={room.roomId} className="relative bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row items-start gap-6">
                 <img
-                  src={room.roomImage.replace("../public", "")}
+                  src={room.roomImage}
                   alt={room.roomName}
                   className="w-full md:w-64 h-48 object-cover rounded-lg cursor-pointer"
                   onClick={() => setSelectedRoomId((prev) => prev === room.roomId ? null : room.roomId)}

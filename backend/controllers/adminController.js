@@ -1,13 +1,13 @@
 //Import Models
-import MsUser from './Users.js';
-import MsServices from './msServices.js';
-import ServiceReservations from './ServiceReservations.js';
-import MsRoomType from './msRoomTypes.js';
-import Rooms from './Rooms.js';
-import Invoices from './Invoices.js';
-import Payments from './Payments.js';
-import Reservations from './Reservations.js';
-import RoomReservations from './RoomReservations.js';
+import MsUser from '../models/MsUsers.js'
+import MsServices from '../models/msServices.js';
+import ServiceReservations from '../models/ServiceReservations.js';
+import MsRoomType from '../models//msRoomTypes.js';
+import Rooms from '../models//Rooms.js';
+import Invoices from '../models//Invoices.js';
+import Payments from '../models//Payments.js';
+import Reservations from '../models//Reservations.js';
+import RoomReservations from '../models//RoomReservations.js';
 
 //Import Libraries
 import { where } from 'sequelize';

@@ -5,7 +5,7 @@ import {
     confirmReservationAfterLogin,
     getAllReservations,
     getUserReservations
-} from '../controllers/reservationController.js';
+} from '../controllers/reservationsController.js';
 import { verifyToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();

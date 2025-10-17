@@ -1,6 +1,6 @@
 //Import Models
-import Payment from '../models/Payments';
-import Invoice from '../models/Invoices';
+import Payment from '../models/Payments.js';
+import Invoice from '../models/Invoices.js';
 
 //Create a new Payment
 export const createPayment = async (req, res) => {
