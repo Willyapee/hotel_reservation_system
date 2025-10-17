@@ -10,7 +10,7 @@ export default function Carousel() {
     const maxVisibility = 2; // Show 2 cards before and after the active card (total 5 visible)
 
     return (
-        <div className='transform-3d justify-self-center relative w-100 h-[30rem] perspective-[1000px] select-none'>
+        <div className='cardContainer transform-3d justify-self-center relative w-100 h-[30rem] perspective-[1000px] select-none'>
             {active > 0 && (
                 <button
                     className='nav left text-3xl absolute flex items-center justify-center align-middle
@@ -31,7 +31,7 @@ export default function Carousel() {
                         opacity: Math.abs(active - i) > maxVisibility ? '0' : '1',
                         display: Math.abs(active - i) > maxVisibility ? 'none' : 'block',
                     }}>
-                    <div className='item w-full h-full p-4 rounded-2xl text-gray-700 text-justify shadow-lg bg-white flex flex-col items-center'>
+                    <div className='card w-full h-full p-4 rounded-2xl text-gray-700 text-justify shadow-lg bg-white flex flex-col items-center'>
                         <img
                             src={item.img}
 							alt={item.title}
