@@ -5,11 +5,17 @@ import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { motion, AnimatePresence } from "framer-motion";
 import "../css/book.css";
+
+import RoomList from "../../../backend/data/roomList.json";
+import { useNavigate } from "react-router-dom";
+
 import Cards from "../../../backend/data/dineList.json";
 import { Link } from "react-router-dom";
 import { ShoppingCart, X, Loader } from "lucide-react";
 
+
 function Book() {
+  const navigate = useNavigate();
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openGuest, setOpenGuest] = useState(false);
   const [openSearchResult, setOpenSearchResult] = useState(false);

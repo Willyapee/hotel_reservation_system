@@ -83,11 +83,11 @@ export default function BoxDisplay() {
                                     relative flex-shrink-0 rounded-2xl overflow-hidden cursor-pointer 
                                     shadow-xl transition-all duration-500 ease-in-out
                                     ${isSelected
-                                        ? 'w-[480px] h-[400px] shadow-2xl shadow-gray-900/40' // Zoomed/Selected State
-                                        : 'w-[250px] h-[350px] opacity-100 hover:-translate-y-2 hover:opacity-80' // Thumbnail State
+                                        ? 'w-[480px] h-[400px] shadow-2xl shadow-gray-900/40' 
+                                        : 'w-[250px] h-[350px] opacity-100 hover:-translate-y-2 hover:opacity-80' 
                                     }
                                 `}
-                                onClick={() => handleRoomClick(room.roomId)} // Updated handler
+                                onClick={() => handleRoomClick(room.roomId)} 
                             >
                                 <img 
                                     src={room.roomImage} 
@@ -98,7 +98,7 @@ export default function BoxDisplay() {
                                     `}
                                 />
                                 
-                                {/* Info overlay for ALL items (Only the dark card covers it when selected) */}
+                                {/* Info overlay */}
                                 <div className="absolute inset-x-0 bottom-0 p-4 text-white bg-gradient-to-t from-black/80 to-transparent">
                                     <span className="font-bold text-lg block">{room.roomName}</span>
                                     <span className="text-sm">{room.roomBed.split(' • ')[0]}</span>
