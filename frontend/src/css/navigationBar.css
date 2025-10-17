@@ -1,1 +1,40 @@
-@import 'tailwindcss';
+
+.menuButton {
+  font-size: 20px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: white;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1100;
+}
+
+.menuButton:hover {
+  transform: scale(1.1);
+  color: #e4bd22;
+}
+
+.menuButton span {
+  transition: transform 0.3s ease;
+}
+
+.overlay-menu-item {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  padding: 0;
+}
+
+.overlay-menu-item:hover {
+  color: #f0a500;
+  padding-left: 3px;
+  transform: translateX(2px);
+}

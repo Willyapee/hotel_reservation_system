@@ -9,13 +9,21 @@ import BookingStreak from "../components/bookingstreak.jsx";
 import InfiniteScrollText from "../components/infiniteScrollText.jsx";
 import Parallax from "../components/parralax.jsx";
 import Footer from "../components/footer.jsx";
-
+import MenuOverlay from "../components/menuOverlay.jsx";
 
 export default function HomePage() {
   const [openMenu, setOpenMenu] = useState(false);
   const [showFloating, setShowFloating] = useState(true);
 
   const handleOpenMenu = () => setOpenMenu(!openMenu);
+  const handleCloseMenu = () => setOpenMenu(false);
+
+  const handleNavigateToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,8 +41,18 @@ export default function HomePage() {
   return (
     <div className="w-full h-auto overflow-x-hidden">
       <NavigationBar openMenu={openMenu} handleOpenMenu={handleOpenMenu} />
+      
+      {/* Menu Overlay */}
+      <MenuOverlay 
+        isOpen={openMenu} 
+        onClose={handleCloseMenu}
+        onNavigate={handleNavigateToSection}
+      />
 
-      <Introduction />
+      <section id="introduction">
+        <Introduction />
+      </section>
+      
 
       <section className="w-full bg-[#fbfaf9] py-16">
         <div className="w-[90%] h-[35rem] relative overflow-hidden justify-center items-center mx-auto rounded-xl shadow-lg">
@@ -48,8 +66,10 @@ export default function HomePage() {
           ></video>
         </div>
       </section>
-      
-      <Facility />
+
+      <section id="facilities">
+        <Facility />
+      </section>
 
       <InfiniteScrollText />
       
@@ -74,8 +94,6 @@ export default function HomePage() {
         </div>
         <Carousel />
       </div>
-      
-      
 
       {showFloating && (
         <div className="fixed bottom-6 right-6 z-50">
