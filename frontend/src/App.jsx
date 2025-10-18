@@ -3,6 +3,7 @@ import HomePage from "./pages/homePage.jsx";
 import Register from "./pages/register.jsx";
 import Login from "./pages/Login.jsx";
 import Book from "./pages/book.jsx";
+import Profile from "./pages/profile.jsx";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
       <Route path="/booking" element={<Book />} />
+      <Route path="/profile" element={<Profile />} />
     </Routes>
   );
 }

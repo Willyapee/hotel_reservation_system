@@ -11,7 +11,8 @@ import { useNavigate } from "react-router-dom";
 
 import Cards from "../../../backend/data/dineList.json";
 import { Link } from "react-router-dom";
-import { ShoppingCart, X, Loader } from "lucide-react";
+import { ShoppingCart, X, Loader, ArrowLeft} from "lucide-react";
+
 
 
 function Book() {
@@ -155,7 +156,15 @@ function Book() {
   return (
     <div className="w-full min-h-screen bg-[#fbfaf9]">
       {/* HEADER */}
-      <div className="w-full h-17 fixed flex items-center gap-x-10 px-4 py-2 bg-[#102E50] z-10"></div>
+      <div className="w-full h-17 fixed flex items-center gap-x-10 px-4 py-2 bg-[#102E50] z-10">
+        <button
+              onClick={() => navigate('/')}
+              className="absolute left-6 z-20 flex items-center gap-2 text-white bg-[#102E50] px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:scale-105"
+          >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-3sm font-medium">Back to Home</span>
+          </button>
+      </div>
 
       <div className="p-10 pt-20">
         <div className="title p-6 rounded-lg w-full shadow-md">
