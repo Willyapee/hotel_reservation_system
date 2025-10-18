@@ -111,12 +111,14 @@ const Profile = () => {
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-semibold text-gray-800">Personal Information</h3>
           <button
-            onClick={handleEditToggle}
-            className="flex items-center gap-2 text-[#c19a6b] hover:text-[#a67c52] transition-colors"
-          >
-            {isEditing ? <Save className="w-5 h-5" /> : <Edit2 className="w-5 h-5" />}
-            <span>{isEditing ? "Save" : "Edit"}</span>
-          </button>
+  onClick={handleEditToggle}
+  className="flex items-center gap-2 transition-colors"
+>
+  {isEditing ? <Save className="w-5 h-5 text-[#8f632d] " /> : <Edit2 className="w-5 h-5 text-[#8f632d] " />}
+  <span className="text-[#8f632d] ">
+    {isEditing ? "Save" : "Edit"}
+  </span>
+</button>
         </div>
 
         <div className="space-y-4">
