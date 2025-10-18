@@ -1,0 +1,65 @@
+NYX HOTEL WEBSITE PROJECT DETAILS
+=================================
+
+WEBSITE INFORMATION:
+-------------------
+Website Address: (linknya)
+Repository: [Your GitHub repository link here]
+
+LOGIN CREDENTIALS:
+------------------
+Admin Account:
+- Email: admin@gmail.com
+- Password: admin
+- Access:
+
+
+Guest (demo) Account:
+- Email: guest@gmail.com
+- Password: guest123
+- Access: Basic user privileges
+
+GROUP MEMBERS:
+--------------
+1. Abthal Akbar (00000121788)
+2. Ceryne (00000135652)
+3. Josiah Maximus Suryadi (00000108749)
+4. William Asabha Purnamadjaja (00000115707)
+
+
+ROLES AND RESPONSIBILITIES:
+---------------------------
+Abthal Akbar:
+- 
+
+Ceryne:
+- 
+
+Josiah Maximus Suryadi:
+- 
+
+William Asabha Purnamadjaja:
+- 
+
+
+TECHNICAL STACK:
+----------------
+Frontend: React.js, Tailwind CSS, Framer Motion
+Backend: Node.js, Express.js
+Database: MongoDB/MySQL
+Authentication: JWT/Session-based
+Deployment: [Netlify/Vercel/Other]
+
+PROJECT FEATURES:
+-----------------
+✓ Responsive Hotel Website
+✓ Room Booking System
+✓ User Registration & Authentication
+✓ Room Availability Check
+✓ Admin Dashboard
+✓ Payment Integration
+
+ADDITIONAL INFORMATION:
+-----------------------
+[Any special instructions, API keys information, environment variables, or additional notes about the project]
+
