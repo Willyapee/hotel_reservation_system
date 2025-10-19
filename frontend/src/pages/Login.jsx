@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import axios from "axios";
+//FILE PERCOBAANNYA WILLY GA NGARUH SAMA PROJEK KELEN
+import React, { useState } from 'react';
+import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 
@@ -9,23 +10,30 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
-    const handleLogin = async (e) => { 
-        e.preventDefault();
-        console.log(email, password);
+    const handleLogin = async (e) => {
+		e.preventDefault();
+		try {
+			const res = await axios.post('http://localhost:3000/auth/login', {
+				email,
+				password,
+			});
 
-        axios.post("http://localhost:3000/auth/login", {
-            email,
-            password,
-        }).then((res) => {
-            if (res.status === 200) {
-                alert("Login successful");
-                navigate('/');
-            }
-        }).catch(error => {
-            console.log(error);
-            alert("Login failed. Please check your credentials and try again.");
-        })
-    };
+			console.log('Response:', res.data);
+
+			if (res.data.token) {
+				localStorage.setItem('token', res.data.token);
+				localStorage.setItem('role', res.data.role);
+				if (res.data.role === 'admin') {
+					navigate('/admin');
+				} else {
+					navigate('/');
+				}
+			}
+		} catch (err) {
+			console.error(err.response ? err.response.data : err.message);
+			alert(err.response?.data?.message || 'Login failed');
+		}
+	};
 
     const handleBackToHome = () => {
         navigate('/');

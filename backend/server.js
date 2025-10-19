@@ -18,6 +18,7 @@ import serviceReservationsRoutes from './routes/serviceReservationsRoutes.js';
 // import adminRoutes from './routes/adminRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import userRoutes from '../backend/routes/userRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -43,9 +44,10 @@ app.use('/service-reservations', serviceReservationsRoutes);
 // app.use('/admin', adminRoutes);
 app.use('/invoices', invoiceRoutes);
 app.use('/payments', paymentRoutes);
+app.use('/users', userRoutes);
 
 //Database connection and synchronization
-(async() => {
+(async () => {
 	try {
 		await db.authenticate();
 		console.log('Connected to the database');
@@ -58,7 +60,7 @@ app.use('/payments', paymentRoutes);
 
 		app.listen(PORT, () => {
 			console.log(`Server running on http://localhost:${PORT}`);
-		})
+		});
 	} catch (error) {
 		console.error('Unable to connect to the database:', error);
 	}
