@@ -1,6 +1,6 @@
 import User from '../models/MsUsers.js';
 
-export const listUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
 	try {
 		const users = await User.findAll();
 		res.json(users);

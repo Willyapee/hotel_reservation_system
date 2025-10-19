@@ -73,6 +73,8 @@ export const loginUser = async (req, res) => {
 		//respons ke frontend
 		res.status(200).json({
 			message: 'Login successful',
+			token: token,
+			role: user.role,
 		});
 	} catch (error) {
 		console.log(error);
