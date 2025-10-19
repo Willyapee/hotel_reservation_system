@@ -1,148 +1,194 @@
-// FILE PERCOBAANNYA WILLY GA NGARUH SAMA PROJEK KELEN
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
-import '../css/register.css';
+import React, { useState } from "react";
+import axios from "axios";
+import { Link } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, User, Mail, Lock, ArrowLeft } from "lucide-react";
+
 
 const Register = () => {
-	const [username, setUserName] = useState('');
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-	const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUserName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-	axios.defaults.withCredentials = true;
+  axios.defaults.withCredentials = true;
 
-	const validatePassword = () => {
-		if (password !== confirmPassword) {
-			alert('Passwords do not match');
-			return false;
-		}
-		return true;
-	};
+  const validatePassword = () => {
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return false;
+    }
+    return true;
+  };
 
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		if (!validatePassword()) return;
+  const handleSubmit = (e) => {
+    if (!validatePassword()) return;
+    e.preventDefault(); 
+    console.log(username, email, password);
 
-		console.log(username, email, password);
+    axios.post('http://localhost:3000/auth/register', {
+        username,
+        email,
+        password
+    }).then((res) => {
+        if (res.status === 201) alert("Registration successful");
+    }).catch((error) => {
+        console.log(error);
+    })
+  };
 
-		axios
-			.post('http://localhost:3000/auth/register', {
-				username,
-				email,
-				password,
-			})
-			.then((res) => {
-				if (res.status === 201) alert('Registration successful');
-			})
-			.catch((error) => {
-				console.log(error);
-			});
-	};
+const navigate = useNavigate();
 
-	useEffect(() => {
-		const particles = document.querySelector('.particles');
-		const handleMouseMove = (e) => {
-			const dot = document.createElement('div');
-			dot.className = 'dot';
-			dot.style.left = `${e.pageX}px`;
-			dot.style.top = `${e.pageY}px`;
-			particles.appendChild(dot);
-			setTimeout(() => dot.remove(), 1500);
-		};
-		window.addEventListener('mousemove', handleMouseMove);
-		return () => window.removeEventListener('mousemove', handleMouseMove);
-	}, []);
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 w-full h-full">
+        <video
+          src="public/video/ChevalBlanc.mp4"
+          className="h-full w-full object-cover"
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]"></div>
+      </div>
 
-	return (
-		<div className='relative min-h-screen overflow-hidden bg-[#0a0f29] flex flex-col lg:flex-row text-white font-sans'>
-			{/* Parallax star layers */}
-			<div className='stars stars1'></div>
-			<div className='stars stars2'></div>
-			<div className='stars stars3'></div>
-			<div className='particles'></div>
+      <button
+          onClick={() => navigate('/')}
+          className="absolute top-6 left-6 z-20 flex items-center gap-2 text-white bg-[#102E50] hover:bg-[#1a3a5f] px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:scale-105"
+      >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Back to Home</span>
+      </button>
 
-			{/* LEFT — form */}
-			<div className='flex-1 flex items-center justify-center p-8 lg:p-16 relative z-10'>
-				<div className='relative w-full max-w-md backdrop-blur-lg bg-white/10 border border-white/20 rounded-3xl shadow-[0_0_40px_rgba(255,255,255,0.1)] p-10 animate-fadein'>
-					<div className='absolute inset-0 rounded-3xl border border-[#b2aaff]/20 animate-orbit pointer-events-none'></div>
+      <div className="relative w-full max-w-md bg-[#fffcfc96] backdrop-blur-sm rounded-2xl shadow-2xl  overflow-hidden z-10">
+       
+        <div className="bg-[#102e50fc] p-5 text-center flex items-center gap-4">
+          <div className="flex justify-center">
+            <img src='../picture/logo/logoNoBG.png' className='w-20 h-auto' alt="Nyx Hotel" />
+          </div>
+          <h1 className="text-xl font-bold text-white">Create Your Account</h1>
+        </div>
 
-					<h1 className='text-3xl font-semibold text-center mb-6 tracking-wide text-[#d6d3ff]'>
-						Nyx Hotel Registration
-					</h1>
+        <div className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {/* Name Field */}
+            <div className="relative">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  id="name"
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={username}
+                  onChange={(e) => setUserName(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent transition-all duration-300"
+                  required
+                />
+              </div>
+            </div>
 
-					<form onSubmit={handleSubmit} className='space-y-4'>
-						<div>
-							<label htmlFor='name' className='block text-[#e2e2ff] font-medium'>
-								Name
-							</label>
-							<input
-								id='name'
-								type='text'
-								placeholder='Enter your name'
-								value={username}
-								onChange={(e) => setUserName(e.target.value)}
-								className='w-full mt-1 bg-white/10 text-white rounded-lg px-4 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a2b4ff] transition-all duration-300'
-							/>
-						</div>
+            {/* Email Field */}
+            <div className="relative">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent transition-all duration-300"
+                  required
+                />
+              </div>
+            </div>
 
-						<div>
-							<label htmlFor='email' className='block text-[#e2e2ff] font-medium'>
-								Email
-							</label>
-							<input
-								id='email'
-								type='email'
-								placeholder='Enter your email'
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								className='w-full mt-1 bg-white/10 text-white rounded-lg px-4 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a2b4ff] transition-all duration-300'
-							/>
-						</div>
+            {/* Password Field */}
+            <div className="relative">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-12 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent transition-all duration-300"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
 
-						<div>
-							<label htmlFor='password' className='block text-[#e2e2ff] font-medium'>
-								Password
-							</label>
-							<input
-								id='password'
-								type='password'
-								placeholder='••••••••'
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								className='w-full mt-1 bg-white/10 text-white rounded-lg px-4 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a2b4ff] transition-all duration-300'
-							/>
-						</div>
+            {/* Confirm Password Field */}
+            <div className="relative">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full pl-10 pr-12 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent transition-all duration-300"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
 
-						<div>
-							<label className='block text-[#e2e2ff] font-medium'>Confirm Password</label>
-							<input
-								type='password'
-								placeholder='Confirm your password'
-								value={confirmPassword}
-								onChange={(e) => setConfirmPassword(e.target.value)}
-								className='w-full mt-1 bg-white/10 text-white rounded-lg px-4 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a2b4ff] transition-all duration-300'
-							/>
-						</div>
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-[#c19a6b] to-[#a67c52] text-white font-semibold py-3 px-4 rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:ring-offset-2"
+            >
+              Create Account
+            </button>
+          </form>
 
-						<button
-							type='submit'
-							className='w-full mt-4 bg-gradient-to-r from-[#6f89ff] to-[#a8c4ff] text-[#0a0f29] font-semibold py-2 rounded-lg shadow-md hover:shadow-[0_0_15px_rgba(167,198,255,0.7)] hover:scale-[1.02] transition-all duration-500 relative overflow-hidden group'>
-							<span className='absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000'></span>
-							Register
-						</button>
-					</form>
-
-					<p className='text-center mt-6 text-[#bdbdfb]'>
-						Already have an account?{' '}
-						<Link to='/login' className='text-[#ffd580] hover:text-[#ffe4a3] transition-all'>
-							Login here
-						</Link>
-					</p>
-				</div>
-			</div>
-		</div>
-	);
+          <div className="mt-5 text-center">
+            <p className="text-gray-600">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-[#102e50] hover:text-[#195aa4] font-semibold transition-colors duration-300"
+              >
+                Log in here
+              </Link>
+            </p>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Register;

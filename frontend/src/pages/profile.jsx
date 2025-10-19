@@ -1,0 +1,387 @@
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { 
+  User, Mail, Phone, MapPin, Calendar, 
+  Edit2, Save, X, Camera, Bell, Shield,
+  CreditCard, Heart, History, LogOut,
+  ArrowLeft
+} from "lucide-react";
+
+const Profile = () => {
+  const navigate = useNavigate();
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
+  
+  // Mock user data - replace with actual data from your backend
+  const [user, setUser] = useState({
+    name: "John Doe",
+    email: "john.doe@example.com",
+    phone: "+1 (555) 123-4567",
+    address: "123 Luxury Street, Resort City",
+    joinDate: "January 15, 2024",
+    membership: "Gold Member",
+    avatar: "../picture/logo/logoNoBG.png"
+  });
+
+  const [formData, setFormData] = useState({ ...user });
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+      // Save changes
+      setUser(formData);
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleCancelEdit = () => {
+    setFormData({ ...user });
+    setIsEditing(false);
+  };
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSignOut = () => {
+    // Add your sign out logic here
+    console.log("Signing out...");
+    navigate('/');
+  };
+
+  // Mock booking history
+  const bookingHistory = [
+    {
+      id: 1,
+      room: "Deluxe Suite",
+      checkIn: "2024-03-15",
+      checkOut: "2024-03-18",
+      total: "$1,200",
+      status: "Completed"
+    },
+    {
+      id: 2,
+      room: "Executive Room",
+      checkIn: "2024-02-10",
+      checkOut: "2024-02-12",
+      total: "$600",
+      status: "Completed"
+    }
+  ];
+
+  // Mock favorites
+  const favorites = [
+    {
+      id: 1,
+      name: "Deluxe Suite",
+      image: "../picture/rooms/deluxe-suite.jpg",
+      price: "$400/night"
+    },
+    {
+      id: 2,
+      name: "Presidential Suite",
+      image: "../picture/rooms/presidential-suite.jpg",
+      price: "$800/night"
+    }
+  ];
+
+  const ProfileInfo = () => (
+    <div className="space-y-6">
+      {/* Avatar Section */}
+      <div className="text-center">
+        <div className="relative inline-block">
+          <img
+            src={user.avatar}
+            alt="Profile"
+            className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg mx-auto"
+          />
+          <button className="absolute bottom-2 right-2 bg-[#c19a6b] text-white p-2 rounded-full hover:bg-[#a67c52] transition-colors">
+            <Camera className="w-4 h-4" />
+          </button>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-800 mt-4">{user.name}</h2>
+        <p className="text-[#c19a6b] font-semibold">{user.membership}</p>
+        <p className="text-gray-600 text-sm">Member since {user.joinDate}</p>
+      </div>
+
+      {/* Profile Details */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-semibold text-gray-800">Personal Information</h3>
+          <button
+  onClick={handleEditToggle}
+  className="flex items-center gap-2 transition-colors"
+>
+  {isEditing ? <Save className="w-5 h-5 text-[#8f632d] " /> : <Edit2 className="w-5 h-5 text-[#8f632d] " />}
+  <span className="text-[#8f632d] ">
+    {isEditing ? "Save" : "Edit"}
+  </span>
+</button>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <User className="w-5 h-5 text-gray-400" />
+            <div className="flex-1">
+              <label className="block text-sm text-gray-600 mb-1">Full Name</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent"
+                />
+              ) : (
+                <p className="text-gray-800">{user.name}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Mail className="w-5 h-5 text-gray-400" />
+            <div className="flex-1">
+              <label className="block text-sm text-gray-600 mb-1">Email</label>
+              {isEditing ? (
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent"
+                />
+              ) : (
+                <p className="text-gray-800">{user.email}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Phone className="w-5 h-5 text-gray-400" />
+            <div className="flex-1">
+              <label className="block text-sm text-gray-600 mb-1">Phone</label>
+              {isEditing ? (
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent"
+                />
+              ) : (
+                <p className="text-gray-800">{user.phone}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <MapPin className="w-5 h-5 text-gray-400" />
+            <div className="flex-1">
+              <label className="block text-sm text-gray-600 mb-1">Address</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent"
+                />
+              ) : (
+                <p className="text-gray-800">{user.address}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {isEditing && (
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={handleEditToggle}
+              className="flex-1 bg-[#c19a6b] text-white py-2 rounded-lg hover:bg-[#a67c52] transition-colors"
+            >
+              Save Changes
+            </button>
+            <button
+              onClick={handleCancelEdit}
+              className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const BookingHistory = () => (
+    <div className="space-y-4">
+      <h3 className="text-xl font-semibold text-gray-800 mb-6">Booking History</h3>
+      {bookingHistory.map(booking => (
+        <div key={booking.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="font-semibold text-gray-800">{booking.room}</h4>
+              <p className="text-gray-600 text-sm">
+                {booking.checkIn} - {booking.checkOut}
+              </p>
+              <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mt-2">
+                {booking.status}
+              </span>
+            </div>
+            <div className="text-right">
+              <p className="font-bold text-gray-800">{booking.total}</p>
+              <button className="text-[#c19a6b] hover:text-[#a67c52] text-sm mt-2">
+                View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  const Favorites = () => (
+    <div className="space-y-4">
+      <h3 className="text-xl font-semibold text-gray-800 mb-6">Favorite Rooms</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {favorites.map(fav => (
+          <div key={fav.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <img
+              src={fav.image}
+              alt={fav.name}
+              className="w-full h-48 object-cover"
+            />
+            <div className="p-4">
+              <h4 className="font-semibold text-gray-800">{fav.name}</h4>
+              <p className="text-[#c19a6b] font-semibold">{fav.price}</p>
+              <button className="w-full mt-3 bg-[#c19a6b] text-white py-2 rounded-lg hover:bg-[#a67c52] transition-colors">
+                Book Now
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const Settings = () => (
+    <div className="space-y-6">
+      <h3 className="text-xl font-semibold text-gray-800 mb-6">Account Settings</h3>
+      
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Bell className="w-5 h-5 text-gray-400" />
+            <div>
+              <h4 className="font-semibold text-gray-800">Notifications</h4>
+              <p className="text-gray-600 text-sm">Manage your notification preferences</p>
+            </div>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" className="sr-only peer" defaultChecked />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#c19a6b]"></div>
+          </label>
+        </div>
+
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Shield className="w-5 h-5 text-gray-400" />
+            <div>
+              <h4 className="font-semibold text-gray-800">Privacy</h4>
+              <p className="text-gray-600 text-sm">Control your privacy settings</p>
+            </div>
+          </div>
+          <button className="text-[#c19a6b] hover:text-[#a67c52]">Manage</button>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <CreditCard className="w-5 h-5 text-gray-400" />
+            <div>
+              <h4 className="font-semibold text-gray-800">Payment Methods</h4>
+              <p className="text-gray-600 text-sm">Manage your payment options</p>
+            </div>
+          </div>
+          <button className="text-[#c19a6b] hover:text-[#a67c52]">Manage</button>
+        </div>
+      </div>
+
+      <button
+        onClick={handleSignOut}
+        className="w-full bg-red-800 text-white py-3 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+      >
+        <LogOut className="w-5 h-5" />
+        Sign Out
+      </button>
+    </div>
+  );
+
+  const tabItems = [
+    { id: "profile", label: "Profile", icon: User },
+    { id: "bookings", label: "Bookings", icon: History },
+    { id: "favorites", label: "Favorites", icon: Heart },
+    { id: "settings", label: "Settings", icon: Shield }
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#fbfaf9]">
+      {/* Header */}
+      <div className="bg-[#102E50] p-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Back to Home</span>
+            </button>
+            <img src="../picture/logo/logoNoBG.png" className="w-10 h-auto" alt="Nyx Hotel" />
+          </div>
+          <h1 className="text-xl font-bold text-white">My Profile</h1>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar Navigation */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-6">
+              <nav className="space-y-2">
+                {tabItems.map(tab => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+  key={tab.id}
+  onClick={() => setActiveTab(tab.id)}
+  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
+    activeTab === tab.id
+      ? "bg-[#c19a6b]"
+      : "hover:bg-gray-100"
+  }`}
+>
+  <Icon className={`w-5 h-5 ${activeTab === tab.id ? "text-white" : "text-gray-600"}`} />
+  <span className={activeTab === tab.id ? "text-white" : "text-gray-600"}>
+    {tab.label}
+  </span>
+</button>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              {activeTab === "profile" && <ProfileInfo />}
+              {activeTab === "bookings" && <BookingHistory />}
+              {activeTab === "favorites" && <Favorites />}
+              {activeTab === "settings" && <Settings />}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Profile;

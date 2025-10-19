@@ -95,7 +95,7 @@ export default function HomePage() {
       </div>
 
       {showFloating && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 right-6 z-30">
           <Link
             to="/booking"
             className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-6 py-3 rounded-full shadow-lg transition-colors duration-300"
