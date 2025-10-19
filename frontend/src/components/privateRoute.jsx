@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from 'jwt-decode';
 
 export default function PrivateRoute({ children, role }) {
 	const token = localStorage.getItem('token');
@@ -19,6 +19,7 @@ export default function PrivateRoute({ children, role }) {
 	} catch {
 		// Token rusak / expired → paksa login ulang
 		localStorage.removeItem('token');
+		localStorage.removeItem('role');
 		return <Navigate to='/login' replace />;
 	}
 }
