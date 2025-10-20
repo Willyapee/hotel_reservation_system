@@ -1,51 +1,61 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-
 import '../css/admin.css';
-
 import Log from '../components/log';
 
 export default function Admin() {
-	const [visibleTab, setVisibleTab] = useState(null);
+  const [visibleTab, setVisibleTab] = useState(null);
 
-	const currentTab = () => {
-		switch (visibleTab) {
-			case 'log':
-				return <Log />;
-			default:
-				return null;
-		}
-	};
+  const currentTab = () => {
+    switch (visibleTab) {
+      case 'log':
+        return <Log />;
+      default:
+        return (
+          <div className="admin-placeholder">
+            Select a section from the sidebar to view details.
+          </div>
+        );
+    }
+  };
 
-	return (
-		<div className='w-full h-full'>
-			<div className='w-full h-10 p-2 flex grid-cols-3 justify-center'>
-				<div className='w-full h-full'></div>
-				<div className='w-full h-full flex justify-center'>
-					<p>Dashboard</p>
-				</div>
-				<div className='w-full h-full flex justify-end'>
-					<Link to={'/login'}>
-						<button className='bg-blue-500'>Log Out</button>
-					</Link>
-				</div>
-			</div>
+  return (
+    <div className="admin-container">
+      {/* ===== FIXED TOP NAVBAR ===== */}
+      <div className="w-full h-17 fixed flex items-center justify-between px-8 py-2 bg-[#102E50] text-white z-10 shadow-md">
+        <h1 className="text-xl font-semibold tracking-wide">Admin Dashboard</h1>
+        <Link to="/login">
+          <button className="logout-btn">Log Out</button>
+        </Link>
+      </div>
 
-			<div className='w-full h-75 flex grid-cols-2'>
-				<div className='w-1/10 h-full border-1 flex flex-col gap-y-2 p-2'>
-					<div className='w-full h-auto'>
-						<button onClick={() => setVisibleTab('log')} className='w-full bg-blue-500'>
-							Log
-						</button>
-					</div>
-					<div className='w-full h-auto'>
-						<button onClick={() => setVisibleTab('room')} className='w-full bg-blue-500'>
-							Room
-						</button>
-					</div>
-				</div>
-				<div className='w-9/10 h-full border-1'>{currentTab()}</div>
-			</div>
-		</div>
-	);
+      {/* ===== MAIN CONTENT WRAPPER (add padding-top to avoid overlap) ===== */}
+      <div className="admin-main pt-20">
+        {/* Sidebar */}
+        <aside className="admin-sidebar">
+          <button
+            onClick={() => setVisibleTab('log')}
+            className={`sidebar-btn ${visibleTab === 'log' ? 'active' : ''}`}
+          >
+            Log
+          </button>
+          <button
+            onClick={() => setVisibleTab('room')}
+            className={`sidebar-btn ${visibleTab === 'room' ? 'active' : ''}`}
+          >
+            Room
+          </button>
+        </aside>
+
+        {/* Content */}
+        <main className="admin-content">
+          <div className="content-card">{currentTab()}</div>
+        </main>
+      </div>
+
+      <footer className="admin-footer">
+        © 2025 Cheval Blanc Admin Panel — All Rights Reserved.
+      </footer>
+    </div>
+  );
 }
