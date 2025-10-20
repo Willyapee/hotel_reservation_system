@@ -1,5 +1,5 @@
 import React from "react";
-import FacilityList from "../../../backend/data/facility.json";
+import FacilityList from "../data/facility.json";
 import "../css/facility.css";
 
 export default function Facility() {
