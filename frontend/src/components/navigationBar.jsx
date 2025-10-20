@@ -5,20 +5,40 @@ import { Link } from 'react-router-dom';
 import PlaceHolder from '../../public/picture/placeHolder.png';
 
 export default function NavigationBar({ openMenu, handleOpenMenu }) {
-  const user = {
-    name: 'John Doe',
-    initials: 'JD',
-    isLoggedIn: true
+  const [user, setUser] = useState({
+    name: '',
+    initials: '',
+    isLoggedIn: false,
+    role: 'guest'
+  });
+
+  // Check authentication status on component mount
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = () => {
+    const token = localStorage.getItem('token');
+    const username = localStorage.getItem('username');
+    const role = localStorage.getItem('role');
+    
+    if (token && username) {
+      setUser({
+        name: username,
+        initials: username.split(' ').map(n => n[0]).join('').toUpperCase(),
+        isLoggedIn: true,
+        role: role || 'guest'
+      });
+    }
   };
 
   const handleUserAction = () => {
     if (user.isLoggedIn) {
       window.location.href = '/profile';
     } else {
-      window.location.href = '/register';
+      window.location.href = '/login';
     }
   };
-
 
   return (
     <div className='w-full h-fit fixed flex items-center gap-x-10 px-4 py-2 bg-[#102E50] z-40'>
@@ -43,8 +63,11 @@ export default function NavigationBar({ openMenu, handleOpenMenu }) {
           </button>
         ) : (
           <div className="flex items-center gap-x-3 right-0">
-            <button className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-4 py-2 rounded-lg transition-all duration-300 ease-in-out text-sm hover:scale-105 z-10">
-              Sign Up
+            <button 
+              onClick={() => window.location.href = '/login'}
+              className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-4 py-2 rounded-lg transition-all duration-300 ease-in-out text-sm hover:scale-105 z-10"
+            >
+              Sign In
             </button>
           </div>
         )}

@@ -1,25 +1,85 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   User, Mail, Phone, MapPin, Calendar, 
   Edit2, Save, X, Camera, Bell, Shield,
   CreditCard, Heart, History, LogOut,
   ArrowLeft
 } from "lucide-react";
+import axios from "axios";
 
 const Profile = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+  const [loading, setLoading] = useState(true);
   
   const [user, setUser] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    joinDate: "January 15, 2024",
+    name: "",
+    email: "",
+    joinDate: "",
     avatar: "../picture/logo/logoNoBG.png"
   });
 
   const [formData, setFormData] = useState({ ...user });
+
+  // Check authentication and fetch user data
+  useEffect(() => {
+    const checkAuthAndFetchUser = async () => {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        // Redirect to login if no token
+        navigate('/login');
+        return;
+      }
+
+      try {
+        // Fetch user data from backend
+        const response = await axios.get('http://localhost:3000/auth/me', {
+          withCredentials: true
+        });
+
+        const userData = response.data;
+        setUser({
+          name: userData.username,
+          email: userData.email,
+          joinDate: new Date().toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          }),
+          avatar: "../picture/logo/logoNoBG.png"
+        });
+        
+        setFormData({
+          name: userData.username,
+          email: userData.email,
+          joinDate: new Date().toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          }),
+          avatar: "../picture/logo/logoNoBG.png"
+        });
+
+        // Store username in localStorage for other components
+        localStorage.setItem('username', userData.username);
+
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        // If token is invalid, redirect to login
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('username');
+        navigate('/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuthAndFetchUser();
+  }, [navigate]);
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -41,8 +101,14 @@ const Profile = () => {
   };
 
   const handleSignOut = () => {
-    console.log("Signing out...");
+    // Clear localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('username');
+    
+    // Redirect to home
     navigate('/');
+    window.location.reload();
   };
 
   // Mock booking history
@@ -79,14 +145,13 @@ const Profile = () => {
           </button>
         </div>
         <h2 className="text-2xl font-bold text-gray-800 mt-4">{user.name}</h2>
-        <p className="text-[#c19a6b] font-semibold">{user.membership}</p>
         <p className="text-gray-600 text-sm">Member since {user.joinDate}</p>
       </div>
 
       {/* Profile Details */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-semibold text-gray-800">Personal Information</h3>
+          <h3 className="text-xl font-semibold text-gray-800">Personal Information - ONGOING DEVELOPMENT</h3>
           <button
             onClick={handleEditToggle}
             className="flex items-center gap-2 transition-colors"
@@ -132,7 +197,6 @@ const Profile = () => {
               )}
             </div>
           </div>
-          
         </div>
 
         {isEditing && (
@@ -151,7 +215,6 @@ const Profile = () => {
             </button>
           </div>
         )}
-        
       </div>
 
       <button
@@ -161,7 +224,6 @@ const Profile = () => {
         <LogOut className="w-5 h-5" />
         Sign Out
       </button>
-
     </div>
   );
 
@@ -192,11 +254,21 @@ const Profile = () => {
     </div>
   );
 
-  
   const tabItems = [
     { id: "profile", label: "Profile", icon: User },
     { id: "bookings", label: "Bookings", icon: History }
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#fbfaf9] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c19a6b] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fbfaf9]">

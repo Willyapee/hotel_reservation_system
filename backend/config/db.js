@@ -16,7 +16,7 @@ const db = new Sequelize(
 	//addition
 	{
 		host: process.env.DB_HOST,
-		dialect: 'mysql', //jenis database engine yg dipake sequelize
+		dialect: 'mysql', 
 	}
 );
 

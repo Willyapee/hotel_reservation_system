@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import MsUser from '../models/MsUsers.js';
-import sequelize from '../config/db.js'; // pastikan sesuai path koneksi DB-mu
+import sequelize from '../config/db.js'; 
 
 const admin = async () => {
 	try {

@@ -29,16 +29,30 @@ GROUP MEMBERS:
 ROLES AND RESPONSIBILITIES:
 ---------------------------
 Abthal Akbar:
-- 
+- Frontend
+- Created book.jsx, checkout.jsx, admin.jsx
+- Created Invoice activity log
 
 Ceryne:
-- 
+- Frontend
+- Created homePage.jsx, register.jsx, profile.jsx, login.jsx
+- Created most jsx components
 
 Josiah Maximus Suryadi:
-- 
+- Fullstack
+- Set up the VPS (Hostinger)
+- Implementing mySQL database into ExpressJS
+- Half of the backend features and integration to the Frontend
+- Created CRUD for user log
+- Created some jsx components
 
 William Asabha Purnamadjaja:
-- 
+- Backend
+- Established framework and initial repository and base code creation
+- Half of the backend features and integration to the Frontend
+- Created CRUD for room management
+- Implementing mySQL database into ExpressJS
+
 
 
 TECHNICAL STACK:

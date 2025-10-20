@@ -5,24 +5,28 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
     name: '',
     initials: '',
     isLoggedIn: false,
-    role: 'user'
+    role: 'guest'
   });
 
-  // Ambil data user dari localStorage saat komponen mount
+  // Check authentication status
   useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = () => {
     const token = localStorage.getItem('token');
-    const userRole = localStorage.getItem('role');
-    const userName = localStorage.getItem('username') || 'User';
+    const username = localStorage.getItem('username');
+    const role = localStorage.getItem('role');
     
-    if (token) {
+    if (token && username) {
       setUser({
-        name: userName,
-        initials: userName.split(' ').map(n => n[0]).join('').toUpperCase(),
+        name: username,
+        initials: username.split(' ').map(n => n[0]).join('').toUpperCase(),
         isLoggedIn: true,
-        role: userRole || 'user'
+        role: role || 'guest'
       });
     }
-  }, []);
+  };
 
   const menuItems = [
     {
@@ -84,11 +88,12 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
     localStorage.removeItem('role');
     localStorage.removeItem('username');
     
+    // Reset user state
     setUser({
       name: '',
       initials: '',
       isLoggedIn: false,
-      role: 'user'
+      role: 'guest'
     });
     
     // Redirect to home

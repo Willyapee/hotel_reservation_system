@@ -23,15 +23,15 @@ const MsRoomType = db.define("ms_room_type", {
         type: DataTypes.TEXT,
         allowNull: true
     },
-    room_bed: {  // ← ✅ TAMBAH FIELD INI
+    room_bed: { 
         type: DataTypes.STRING(100),
         allowNull: false,
         defaultValue: 'King Bed • 40m²'
     },
-    max_stay_duration: {          // ← ✅ TAMBAH INI!
-        type: DataTypes.INTEGER,  // dalam hari
+    max_stay_duration: {         
+        type: DataTypes.INTEGER, 
         allowNull: false,
-        defaultValue: 30          // default 30 hari
+        defaultValue: 30    
     },
     image_url: {
         type: DataTypes.STRING(500),

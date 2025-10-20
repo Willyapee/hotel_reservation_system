@@ -1,10 +1,6 @@
-//Import Libraries
 import { DataTypes } from 'sequelize';
-
-//Import Database
 import db from '../config/db.js';
 
-//Create Reservation Model
 const Reservations = db.define('reservation', {
 	id_reservation: {
 		type: DataTypes.INTEGER,

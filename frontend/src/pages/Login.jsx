@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
-import SuccessPopup from "../components/SuccessPopup"; // Sesuaikan path
+import SuccessPopup from "../components/SuccessPopup";
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -10,28 +10,42 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const [popupMessage, setPopupMessage] = useState("");
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        
         try {
             const res = await axios.post('http://localhost:3000/auth/login', {
                 email,
                 password,
+            }, {
+                withCredentials: true // Tambahkan ini untuk cookie
             });
 
             console.log('Response:', res.data);
 
             if (res.data.token) {
+                // Simpan token dan role di localStorage
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('role', res.data.role);
                 
+                // Simpan username sementara (nanti akan di-fetch dari /auth/me)
+                // Untuk sementara, gunakan email sebagai username
+                const username = email.split('@')[0];
+                localStorage.setItem('username', username);
+                
+                // Tampilkan popup sukses
                 setPopupMessage("Login successful! Welcome back to Nyx Hotel.");
                 setShowSuccessPopup(true);
             }
         } catch (err) {
             console.error(err.response ? err.response.data : err.message);
             alert(err.response?.data?.message || 'Login failed');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -42,6 +56,7 @@ const Login = () => {
             navigate('/admin');
         } else {
             navigate('/');
+            window.location.reload(); // Tambahkan reload untuk update NavigationBar & MenuOverlay
         }
     };
 
@@ -130,9 +145,10 @@ const Login = () => {
 
                         <button
                             type="submit"
-                            className="w-full bg-gradient-to-r from-[#c19a6b] to-[#a67c52] text-white font-semibold mt-5 py-3 px-4 rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:ring-offset-2"
+                            disabled={loading}
+                            className="w-full bg-gradient-to-r from-[#c19a6b] to-[#a67c52] text-white font-semibold mt-5 py-3 px-4 rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Sign In
+                            {loading ? 'Signing In...' : 'Sign In'}
                         </button>
                     </form>
 
