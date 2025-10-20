@@ -1,0 +1,23 @@
+.font-times {
+  font-family: "Times New Roman", Times, serif;
+}
+
+.bg-primary {
+  background-color: #102e50;
+}
+
+.text-primary {
+  color: #102e50;
+}
+
+.bg-accent {
+  background-color: #c19a6b;
+}
+
+.bg-accent-dark {
+  background-color: #a67c52;
+}
+
+.text-accent {
+  color: #c19a6b;
+}
