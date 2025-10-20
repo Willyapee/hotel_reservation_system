@@ -12,7 +12,6 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   
-  // Mock user 
   const [user, setUser] = useState({
     name: "John Doe",
     email: "john.doe@example.com",

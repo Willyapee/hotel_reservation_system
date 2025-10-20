@@ -5,8 +5,8 @@ const SuccessPopup = ({
   message, 
   onClose, 
   duration = 3000,
-  type = 'success', // 'success', 'error', 'info', 'luxury'
-  position = 'center', // 'center', 'top', 'bottom'
+  type = 'success', 
+  position = 'center',
   showCloseButton = true,
   autoClose = true,
   showIcon = true,

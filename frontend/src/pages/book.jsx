@@ -22,7 +22,6 @@ function Book() {
   const [availableRooms, setAvailableRooms] = useState([]);
   const [searchParams, setSearchParams] = useState(null);
 
-  // CHANGED: Multi-room state instead of single adults/children
   const [rooms, setRooms] = useState([
     {
       id: 1,
@@ -40,7 +39,6 @@ function Book() {
     },
   ]);
 
-  // ADDED: Multi-room helper functions
   const handleAddRoom = () => {
     if (rooms.length < 5) {
       setRooms([
@@ -66,11 +64,9 @@ function Book() {
 const updateRoomAdults = (roomId, value) => {
   setRooms(rooms.map(room => {
     if (room.id === roomId) {
-      // allow adults to go down to 0 for automatic adjustment
       let newAdults = Math.max(0, Math.min(9, value));
       let newChildren = room.children;
 
-      // If total > MAX_TOTAL, reduce children automatically
       if (newAdults + newChildren > MAX_TOTAL) {
         const excess = newAdults + newChildren - MAX_TOTAL;
         newChildren = Math.max(0, newChildren - excess);
@@ -94,21 +90,17 @@ const updateRoomChildren = (roomId, value) => {
         let newChildren = Math.max(0, Math.min(9, value));
         let newAdults = room.adults;
 
-        // Jika total > MAX_TOTAL, kurangi adults otomatis
         if (newAdults + newChildren > MAX_TOTAL) {
           const excess = newAdults + newChildren - MAX_TOTAL;
           newAdults = Math.max(0, newAdults - excess);
         }
 
-        // Buat array umur anak baru
         let newChildAges = [...room.childAges];
 
-        // Jika menambah anak baru → isi default "" (belum dipilih)
         while (newChildAges.length < newChildren) {
           newChildAges.push("");
         }
 
-        // Jika mengurangi anak → hapus sisa elemen
         while (newChildAges.length > newChildren) {
           newChildAges.pop();
         }
@@ -145,7 +137,6 @@ const updateRoomChildren = (roomId, value) => {
 
   const { totalAdults, totalChildren } = getTotalGuests();
 
-  // Fungsi untuk mencari kamar tersedia
   const searchRooms = async () => {
     if (!date[0].startDate || !date[0].endDate) return;
     
@@ -178,7 +169,6 @@ const updateRoomChildren = (roomId, value) => {
     }
   };
 
-  // Handle search button click
   const handleSearch = () => {
     setOpenCalendar(false);
     searchRooms();
@@ -209,7 +199,6 @@ const updateRoomChildren = (roomId, value) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // DETAIL CARD PERSIS BOXDISPLAY
   const DetailCard = ({ room }) => (
     <div className="bg-[#102e50] text-white w-full h-full p-8 md:p-10 rounded-xl flex flex-col justify-between">
       <div>
@@ -302,7 +291,6 @@ const updateRoomChildren = (roomId, value) => {
 <AnimatePresence>
   {openGuest && (
     <>
-      {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.5 }}
@@ -312,7 +300,6 @@ const updateRoomChildren = (roomId, value) => {
         onClick={() => setOpenGuest(false)}
       />
 
-      {/* Popup utama */}
       <motion.div
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
@@ -332,7 +319,6 @@ const updateRoomChildren = (roomId, value) => {
             Select Guests
           </h3>
 
-          {/* Room Cards */}
           <div className="space-y-6 max-h-[60vh] overflow-y-auto px-1">
             {rooms.map((room, index) => (
               <motion.div

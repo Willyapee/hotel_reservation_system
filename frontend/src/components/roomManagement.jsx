@@ -30,7 +30,6 @@ const RoomManagement = () => {
     room_number: ''
   });
 
-  // Load data on component mount
   useEffect(() => {
     fetchRoomTypes();
     fetchRooms();
@@ -182,9 +181,8 @@ const RoomManagement = () => {
       );
       
       if (confirmed) {
-        // Switch to Rooms tab to show the rooms that need to be deleted
         setActiveTab('rooms');
-        setSearchTerm(roomTypeName); // Auto-filter to show relevant rooms
+        setSearchTerm(roomTypeName); 
       }
       return;
     }
@@ -511,11 +509,9 @@ const RoomManagement = () => {
       {/* Room Types Tab */}
       {!loading && activeTab === 'roomTypes' && (
         <>
-          {/* Room Types Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRoomTypes.map(roomType => (
               <div key={roomType.id_room_type} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
-                {/* Room Image */}
                 <div className="h-48 bg-gradient-to-br from-[#102E50] to-[#1a3a5f] relative">
                   <img 
                     src={roomType.image_url || '/default-room.jpg'} 

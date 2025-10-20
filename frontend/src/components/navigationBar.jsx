@@ -13,10 +13,8 @@ export default function NavigationBar({ openMenu, handleOpenMenu }) {
 
   const handleUserAction = () => {
     if (user.isLoggedIn) {
-      // Navigate to user profile
       window.location.href = '/profile';
     } else {
-      // Navigate to sign in
       window.location.href = '/register';
     }
   };

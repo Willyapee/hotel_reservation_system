@@ -19,11 +19,9 @@ export default function BoxDisplay() {
 
     const handleRoomClick = (roomId) => {
         setSelectedRoomId(currentId => {
-            // If the same room is clicked again, return null to deselect everything.
             if (currentId === roomId) {
                 return null;
             }
-            // Otherwise, select the new room.
             return roomId;
         });
     };
@@ -104,7 +102,6 @@ export default function BoxDisplay() {
                                     <span className="text-sm">{room.roomBed.split(' • ')[0]}</span>
                                 </div>
 
-                                {/* Conditional Rendering of the Big Detail Card */}
                                 {isSelected && (
                                     <div className="absolute inset-0 p-5 flex justify-center items-center z-10">
                                         <DetailCard room={room} />

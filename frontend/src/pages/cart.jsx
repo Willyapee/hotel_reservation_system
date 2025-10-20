@@ -7,7 +7,6 @@ function Cart() {
   const navigate = useNavigate();
   const [cartData, setCartData] = useState([]);
 
-  // Load cart data (support old single-room format)
   useEffect(() => {
     const stored = localStorage.getItem("cartData");
     if (stored) {
@@ -15,12 +14,11 @@ function Cart() {
       if (Array.isArray(parsed)) {
         setCartData(parsed);
       } else {
-        setCartData([parsed]); // convert old single-room object to array
+        setCartData([parsed]); 
       }
     }
   }, []);
 
-  // Hapus satu kamar
   const handleRemove = (index) => {
     const updated = cartData.filter((_, i) => i !== index);
     setCartData(updated);
@@ -31,13 +29,11 @@ function Cart() {
     }
   };
 
-  // Hitung total keseluruhan
   const totalPrice = cartData.reduce(
     (sum, item) => sum + (item.room?.total || 0),
     0
   );
 
-  // Lanjut ke checkout
   const handleProceed = () => {
     if (cartData.length === 0) return;
     localStorage.setItem("cartData", JSON.stringify(cartData));

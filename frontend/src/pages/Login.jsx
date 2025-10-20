@@ -26,7 +26,6 @@ const Login = () => {
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('role', res.data.role);
                 
-                // Tampilkan popup sukses
                 setPopupMessage("Login successful! Welcome back to Nyx Hotel.");
                 setShowSuccessPopup(true);
             }
@@ -38,7 +37,6 @@ const Login = () => {
 
     const handlePopupClose = () => {
         setShowSuccessPopup(false);
-        // Redirect berdasarkan role setelah popup ditutup
         const role = localStorage.getItem('role');
         if (role === 'admin') {
             navigate('/admin');
@@ -87,7 +85,6 @@ const Login = () => {
 
                 <div className="p-8">
                     <form onSubmit={handleLogin} className="space-y-3">
-                        {/* Form fields tetap sama */}
                         <div className="relative">
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                                 Email Address
