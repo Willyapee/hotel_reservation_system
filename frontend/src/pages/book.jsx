@@ -299,7 +299,7 @@ const updateRoomChildren = (roomId, value) => {
           </div>
         </div>
 
-        {/* POPUP GUEST - MULTI ROOM VERSION */}
+        {/* POPUP GUEST */}
 <AnimatePresence>
   {openGuest && (
     <>
@@ -434,16 +434,6 @@ const updateRoomChildren = (roomId, value) => {
               </motion.div>
             ))}
           </div>
-
-          {/* Add Room Button */}
-          {rooms.length < 5 && (
-            <button
-              onClick={handleAddRoom}
-              className="w-full mt-6 py-3 border-2 border-dashed rounded-lg btn-outline font-semibold"
-            >
-              + Add Another Room
-            </button>
-          )}
 
           {/* Done Button */}
           <div className="mt-6 text-center">
