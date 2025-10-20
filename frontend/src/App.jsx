@@ -5,28 +5,32 @@ import Login from './pages/Login.jsx';
 import Book from './pages/book.jsx';
 import Admin from './pages/admin.jsx';
 import Profile from './pages/profile.jsx';
+import Cart from './pages/cart.jsx';
+import Checkout from './pages/checkout.jsx'; // ⬅️ tambahkan ini
 
 import { Navigate } from 'react-router-dom';
 import PrivateRoute from '../src/components/privateRoute.jsx';
 
 function App() {
-	return (
-		<Routes>
-			<Route path='/' element={<HomePage />} />
-			<Route path='/register' element={<Register />} />
-			<Route path='/login' element={<Login />} />
-			<Route path='/profile' element={<Profile />} />
-			<Route path='/booking' element={<Book />} />
-			<Route
-				path='/admin'
-				element={
-					<PrivateRoute role='admin'>
-						<Admin />
-					</PrivateRoute>
-				}
-			/>
-		</Routes>
-	);
+  return (
+    <Routes>
+      <Route path='/' element={<HomePage />} />
+      <Route path='/register' element={<Register />} />
+      <Route path='/login' element={<Login />} />
+      <Route path='/profile' element={<Profile />} />
+      <Route path='/booking' element={<Book />} />
+      <Route path='/cart' element={<Cart />} />
+      <Route path='/checkout' element={<Checkout />} /> {/* ⬅️ tambahkan route ini */}
+      <Route
+        path='/admin'
+        element={
+          <PrivateRoute role='admin'>
+            <Admin />
+          </PrivateRoute>
+        }
+      />
+    </Routes>
+  );
 }
 
 export default App;

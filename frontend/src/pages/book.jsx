@@ -13,8 +13,6 @@ import Cards from "../../../backend/data/dineList.json";
 import { Link } from "react-router-dom";
 import { ShoppingCart, X, Loader, ArrowLeft} from "lucide-react";
 
-
-
 function Book() {
   const navigate = useNavigate();
   const [openCalendar, setOpenCalendar] = useState(false);
@@ -25,9 +23,15 @@ function Book() {
   const [availableRooms, setAvailableRooms] = useState([]);
   const [searchParams, setSearchParams] = useState(null);
 
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
-  const [childAges, setChildAges] = useState([]);
+  // CHANGED: Multi-room state instead of single adults/children
+  const [rooms, setRooms] = useState([
+    {
+      id: 1,
+      adults: 1,
+      children: 0,
+      childAges: []
+    }
+  ]);
 
   const [date, setDate] = useState([
     {
@@ -36,6 +40,111 @@ function Book() {
       key: "selection",
     },
   ]);
+
+  // ADDED: Multi-room helper functions
+  const handleAddRoom = () => {
+    if (rooms.length < 5) {
+      setRooms([
+        ...rooms,
+        {
+          id: rooms.length + 1,
+          adults: 1,
+          children: 0,
+          childAges: []
+        }
+      ]);
+    }
+  };
+
+  const handleRemoveRoom = (roomId) => {
+    if (rooms.length > 1) {
+      setRooms(rooms.filter(room => room.id !== roomId));
+    }
+  };
+
+  const MAX_TOTAL = 9;
+
+const updateRoomAdults = (roomId, value) => {
+  setRooms(rooms.map(room => {
+    if (room.id === roomId) {
+      // allow adults to go down to 0 for automatic adjustment
+      let newAdults = Math.max(0, Math.min(9, value));
+      let newChildren = room.children;
+
+      // If total > MAX_TOTAL, reduce children automatically
+      if (newAdults + newChildren > MAX_TOTAL) {
+        const excess = newAdults + newChildren - MAX_TOTAL;
+        newChildren = Math.max(0, newChildren - excess);
+      }
+
+      const newChildAges =
+        newChildren > room.childAges.length
+          ? [...room.childAges, ...Array(newChildren - room.childAges.length).fill(0)]
+          : room.childAges.slice(0, newChildren);
+
+      return { ...room, adults: newAdults, children: newChildren, childAges: newChildAges };
+    }
+    return room;
+  }));
+};
+
+const updateRoomChildren = (roomId, value) => {
+  setRooms(
+    rooms.map((room) => {
+      if (room.id === roomId) {
+        let newChildren = Math.max(0, Math.min(9, value));
+        let newAdults = room.adults;
+
+        // Jika total > MAX_TOTAL, kurangi adults otomatis
+        if (newAdults + newChildren > MAX_TOTAL) {
+          const excess = newAdults + newChildren - MAX_TOTAL;
+          newAdults = Math.max(0, newAdults - excess);
+        }
+
+        // Buat array umur anak baru
+        let newChildAges = [...room.childAges];
+
+        // Jika menambah anak baru → isi default "" (belum dipilih)
+        while (newChildAges.length < newChildren) {
+          newChildAges.push("");
+        }
+
+        // Jika mengurangi anak → hapus sisa elemen
+        while (newChildAges.length > newChildren) {
+          newChildAges.pop();
+        }
+
+        return {
+          ...room,
+          adults: newAdults,
+          children: newChildren,
+          childAges: newChildAges,
+        };
+      }
+      return room;
+    })
+  );
+};
+
+
+  const updateChildAge = (roomId, childIndex, age) => {
+    setRooms(rooms.map(room => {
+      if (room.id === roomId) {
+        const newChildAges = [...room.childAges];
+        newChildAges[childIndex] = parseInt(age);
+        return { ...room, childAges: newChildAges };
+      }
+      return room;
+    }));
+  };
+
+  const getTotalGuests = () => {
+    const totalAdults = rooms.reduce((sum, room) => sum + room.adults, 0);
+    const totalChildren = rooms.reduce((sum, room) => sum + room.children, 0);
+    return { totalAdults, totalChildren };
+  };
+
+  const { totalAdults, totalChildren } = getTotalGuests();
 
   // Fungsi untuk mencari kamar tersedia
   const searchRooms = async () => {
@@ -49,7 +158,7 @@ function Book() {
       const queryParams = new URLSearchParams({
         check_in: checkIn,
         check_out: checkOut,
-        adults: adults.toString()
+        adults: totalAdults.toString()
       });
 
       const response = await fetch(`http://localhost:3000/rooms/search?${queryParams}`);
@@ -74,26 +183,6 @@ function Book() {
   const handleSearch = () => {
     setOpenCalendar(false);
     searchRooms();
-  };
-
-  const handleAddChild = () => {
-    if (children < 9) {
-      setChildren(children + 1);
-      setChildAges([...childAges, 0]);
-    }
-  };
-
-  const handleRemoveChild = () => {
-    if (children > 0) {
-      setChildren(children - 1);
-      setChildAges(childAges.slice(0, -1));
-    }
-  };
-
-  const handleChildAgeChange = (index, value) => {
-    const updated = [...childAges];
-    updated[index] = parseInt(value);
-    setChildAges(updated);
   };
 
   const nights = Math.max(
@@ -180,7 +269,7 @@ function Book() {
                 onClick={() => setOpenGuest(true)}
                 className="checkBox px-6 py-3 border rounded-lg shadow-sm hover:bg-gray-50 transition text-lg bg-white"
               >
-                {adults} Adults, {children} Children
+                {rooms.length} Room{rooms.length > 1 ? 's' : ''} · {totalAdults} Adult{totalAdults > 1 ? 's' : ''} · {totalChildren} Child{totalChildren !== 1 ? 'ren' : ''}
               </button>
             </div>
 
@@ -210,114 +299,191 @@ function Book() {
           </div>
         </div>
 
-        {/* POPUP GUEST */}
-        <AnimatePresence>
-          {openGuest && (
-            <>
+        {/* POPUP GUEST - MULTI ROOM VERSION */}
+<AnimatePresence>
+  {openGuest && (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.5 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+        className="fixed inset-0 bg-overlay z-40"
+        onClick={() => setOpenGuest(false)}
+      />
+
+      {/* Popup utama */}
+      <motion.div
+        initial={{ opacity: 0, y: -40 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -40 }}
+        transition={{ duration: 0.5 }}
+        className="fixed inset-0 flex items-center justify-center z-50"
+      >
+        <div className="relative p-8 bg-white rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105 w-full max-w-2xl">
+          <button
+            onClick={() => setOpenGuest(false)}
+            className="absolute -top-4 -right-4 w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-xl btn-close"
+          >
+            ✕
+          </button>
+
+          <h3 className="text-2xl font-bold mb-6 text-secondary text-center">
+            Select Guests
+          </h3>
+
+          {/* Room Cards */}
+          <div className="space-y-6 max-h-[60vh] overflow-y-auto px-1">
+            {rooms.map((room, index) => (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className="fixed inset-0 bg-black backdrop-blur-sm z-40"
-                onClick={() => setOpenGuest(false)}
-              />
-              <motion.div
-                initial={{ opacity: 0, y: -40 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -40 }}
-                transition={{ duration: 0.5 }}
-                className="fixed inset-0 flex items-center justify-center z-50"
+                key={room.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+                className="border-2 border-gray-200 rounded-xl p-6 bg-light"
               >
-                <div className="relative p-8 bg-white rounded-2xl shadow-2xl w-[380px]">
-                  <button
-                    onClick={() => setOpenGuest(false)}
-                    className="absolute -top-4 -right-4 bg-[#c19a6b] text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-[#a67c52] transition text-xl"
-                  >
-                    ✕
-                  </button>
-                  <h3 className="text-xl font-bold mb-6 text-[#3a2f2a] text-center">
-                    Select Guests
-                  </h3>
-                  <div className="flex justify-between items-center mb-5">
-                    <span className="font-medium text-[#333]">Adults (16+)</span>
-                    <div className="flex items-center gap-3">
-                      <button
-                        className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold text-[#c19a6b] hover:bg-gray-100 disabled:opacity-30"
-                        onClick={() => setAdults(Math.max(1, adults - 1))}
-                        disabled={adults <= 1}
-                      >
-                        –
-                      </button>
-                      <span className="min-w-[20px] text-center text-lg font-semibold">
-                        {adults}
-                      </span>
-                      <button
-                        className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold text-[#c19a6b] hover:bg-gray-100 disabled:opacity-30"
-                        onClick={() => {
-                          if (adults + children < 9) setAdults(adults + 1);
-                        }}
-                        disabled={adults + children >= 9}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center mb-5">
-                    <span className="font-medium text-[#333]">Children (0–15)</span>
-                    <div className="flex items-center gap-3">
-                      <button
-                        className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold text-[#c19a6b] hover:bg-gray-100 disabled:opacity-30"
-                        onClick={handleRemoveChild}
-                        disabled={children <= 0}
-                      >
-                        –
-                      </button>
-                      <span className="min-w-[20px] text-center text-lg font-semibold">
-                        {children}
-                      </span>
-                      <button
-                        className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold text-[#c19a6b] hover:bg-gray-100 disabled:opacity-30"
-                        onClick={() => {
-                          if (adults + children < 9) handleAddChild();
-                        }}
-                        disabled={adults + children >= 9}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                  {childAges.map((age, index) => (
-                    <div key={index} className="mb-3">
-                      <label className="block text-sm font-medium text-gray-600">
-                        Child {index + 1} Age
-                      </label>
-                      <select
-                        value={age}
-                        onChange={(e) =>
-                          handleChildAgeChange(index, e.target.value)
-                        }
-                        className="w-full border rounded px-3 py-2 mt-1"
-                      >
-                        {[...Array(16).keys()].map((num) => (
-                          <option key={num} value={num}>
-                            {num}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => setOpenGuest(false)}
-                    className="mt-5 w-full bg-[#c19a6b] text-white py-2 rounded-lg hover:bg-[#a67c52]"
-                  >
-                    Done
-                  </button>
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-lg font-bold text-primary">
+                    Room {index + 1}
+                  </h4>
+                  {rooms.length > 1 && (
+                    <button
+                      onClick={() => handleRemoveRoom(room.id)}
+                      className="text-sm font-semibold btn-remove"
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
+
+                {/* Adults */}
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-medium text-dark">Adults (16+)</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold btn-round"
+                      onClick={() => updateRoomAdults(room.id, room.adults - 1)}
+                      disabled={room.adults <= 0}
+                    >
+                      –
+                    </button>
+                    <span className="min-w-[20px] text-center text-lg font-semibold">
+                      {room.adults}
+                    </span>
+                    <button
+                      className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold btn-round"
+                      onClick={() => updateRoomAdults(room.id, room.adults + 1)}
+                      disabled={room.adults >= 9}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Children */}
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-medium text-dark">Children (0–15)</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold btn-round"
+                      onClick={() =>
+                        updateRoomChildren(room.id, room.children - 1)
+                      }
+                      disabled={room.children <= 0}
+                    >
+                      –
+                    </button>
+                    <span className="min-w-[20px] text-center text-lg font-semibold">
+                      {room.children}
+                    </span>
+                    <button
+                      className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold btn-round"
+                      onClick={() =>
+                        updateRoomChildren(room.id, room.children + 1)
+                      }
+                      disabled={room.children >= 9}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Child Ages */}
+                {room.childAges.map((age, childIndex) => (
+                  <div key={childIndex} className="mb-3 ml-4">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Child {childIndex + 1} Age
+                    </label>
+                    <select
+                      value={age}
+                      onChange={(e) =>
+                        updateChildAge(room.id, childIndex, e.target.value)
+                      }
+                      className="w-full border rounded px-3 py-2 select-box"
+                    >
+                      <option value="">Select age</option>
+                      {[...Array(16).keys()].map((num) => (
+                        <option key={num} value={num}>
+                          {num} years old
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
               </motion.div>
-            </>
+            ))}
+          </div>
+
+          {/* Add Room Button */}
+          {rooms.length < 5 && (
+            <button
+              onClick={handleAddRoom}
+              className="w-full mt-6 py-3 border-2 border-dashed rounded-lg btn-outline font-semibold"
+            >
+              + Add Another Room
+            </button>
           )}
-        </AnimatePresence>
+
+          {/* Done Button */}
+          <div className="mt-6 text-center">
+            {(() => {
+              const isAllAgesSelected = rooms.every((room) =>
+                room.childAges.every(
+                  (age) =>
+                    age !== "" &&
+                    age !== null &&
+                    age !== undefined &&
+                    !isNaN(age)
+                )
+              );
+
+              return (
+                <button
+                  onClick={() => {
+                    if (isAllAgesSelected) {
+                      setOpenGuest(false);
+                    } else {
+                      alert(
+                        "Please select all children's ages before continuing!"
+                      );
+                    }
+                  }}
+                  className={`inline-block px-6 py-3 rounded-lg text-lg shadow-md btn-done ${
+                    !isAllAgesSelected ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  disabled={!isAllAgesSelected}
+                >
+                  Done
+                </button>
+              );
+            })()}
+          </div>
+        </div>
+      </motion.div>
+    </>
+  )}
+</AnimatePresence>
 
         {/* POPUP CALENDAR */}
         <AnimatePresence>

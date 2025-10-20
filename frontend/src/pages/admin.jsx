@@ -65,6 +65,9 @@ export default function Admin() {
 				</main>
 			</div>
 
+      <footer className="admin-footer">
+        © 2025 Nyx Hotel Admin Panel — All Rights Reserved.
+      </footer>
     </div>
   );
 }
