@@ -5,18 +5,43 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 
 function Cart() {
   const navigate = useNavigate();
-  const [cartData, setCartData] = useState(null);
+  const [cartData, setCartData] = useState([]);
 
+  // Load cart data (support old single-room format)
   useEffect(() => {
     const stored = localStorage.getItem("cartData");
     if (stored) {
-      setCartData(JSON.parse(stored));
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        setCartData(parsed);
+      } else {
+        setCartData([parsed]); // convert old single-room object to array
+      }
     }
   }, []);
 
-  const handleRemove = () => {
-    localStorage.removeItem("cartData");
-    setCartData(null);
+  // Hapus satu kamar
+  const handleRemove = (index) => {
+    const updated = cartData.filter((_, i) => i !== index);
+    setCartData(updated);
+    if (updated.length === 0) {
+      localStorage.removeItem("cartData");
+    } else {
+      localStorage.setItem("cartData", JSON.stringify(updated));
+    }
+  };
+
+  // Hitung total keseluruhan
+  const totalPrice = cartData.reduce(
+    (sum, item) => sum + (item.room?.total || 0),
+    0
+  );
+
+  // Lanjut ke checkout
+  const handleProceed = () => {
+    if (cartData.length === 0) return;
+    localStorage.setItem("cartData", JSON.stringify(cartData));
+    navigate("/checkout");
   };
 
   return (
@@ -39,7 +64,7 @@ function Cart() {
         </h2>
 
         {/* Jika Cart Kosong */}
-        {!cartData ? (
+        {cartData.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -63,60 +88,79 @@ function Cart() {
             transition={{ duration: 0.5 }}
             className="space-y-6"
           >
-            {/* Room Detail */}
-            <div className="flex flex-col md:flex-row items-center bg-white rounded-xl shadow-md p-6 gap-6">
-              <img
-                src={cartData.room.image}
-                alt={cartData.room.name}
-                className="w-full md:w-48 h-40 object-cover rounded-lg"
-              />
-              <div className="flex-1 w-full">
-                <h3 className="text-2xl font-semibold text-[#c19a6b] mb-2">
-                  {cartData.room.name}
-                </h3>
-                <p className="text-gray-600 mb-1">Type: {cartData.room.type}</p>
-                <p className="text-gray-600 mb-1">
-                  Guests: {cartData.guests.adults} Adults,{" "}
-                  {cartData.guests.children} Children
-                </p>
-                <p className="text-gray-600 mb-1">
-                  Stay: {cartData.nights} nights
-                </p>
-                <p className="text-[#102E50] font-bold text-lg">
-                  ${cartData.room.price} / night
-                </p>
-              </div>
-              <button
-                onClick={handleRemove}
-                className="text-red-600 hover:text-red-800 transition"
+            {/* LIST ROOM */}
+            {cartData.map((cartItem, index) => (
+              <div
+                key={index}
+                className="flex flex-col md:flex-row items-center bg-white rounded-xl shadow-md p-6 gap-6"
               >
-                <Trash2 />
-              </button>
-            </div>
+                <img
+                  src={cartItem.room?.image}
+                  alt={cartItem.room?.name}
+                  className="w-full md:w-48 h-40 object-cover rounded-lg"
+                />
+                <div className="flex-1 w-full">
+                  <h3 className="text-2xl font-semibold text-[#c19a6b] mb-2">
+                    {cartItem.room?.name || "Room"}
+                  </h3>
+                  <p className="text-gray-600 mb-1">
+                    Type: {cartItem.room?.type || "-"}
+                  </p>
+                  <p className="text-gray-600 mb-1">
+                    Guests: {cartItem.guests?.adults || 0} Adults,{" "}
+                    {cartItem.guests?.children || 0} Children
+                  </p>
+                  <p className="text-gray-600 mb-1">
+                    Stay: {cartItem.nights || 0} nights
+                  </p>
+                  <p className="text-[#102E50] font-bold text-lg">
+                    ${cartItem.room?.price || 0} / night
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleRemove(index)}
+                  className="text-red-600 hover:text-red-800 transition"
+                >
+                  <Trash2 />
+                </button>
+              </div>
+            ))}
 
-            {/* Booking Summary */}
+            {/* SUMMARY */}
             <div className="mt-10 bg-[#102E50] text-white p-8 rounded-xl shadow-xl space-y-2">
-              <div className="flex justify-between">
-                <span>Check-in:</span>
-                <span>{cartData.checkIn}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Check-out:</span>
-                <span>{cartData.checkOut}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Total Nights:</span>
-                <span>{cartData.nights}</span>
-              </div>
+              {cartData.length === 1 ? (
+                <>
+                  <div className="flex justify-between">
+                    <span>Check-in:</span>
+                    <span>{cartData[0].checkIn}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Check-out:</span>
+                    <span>{cartData[0].checkOut}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Total Nights:</span>
+                    <span>{cartData[0].nights}</span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-center text-gray-200">
+                  Multiple rooms selected ({cartData.length})
+                </p>
+              )}
+
               <div className="flex justify-between items-center mt-6">
                 <span className="text-lg font-medium">Total Price:</span>
                 <span className="text-3xl font-extrabold text-yellow-400">
-                  ${cartData.room.total}
+                  ${totalPrice.toFixed(2)}
                 </span>
               </div>
 
               <div className="text-center mt-8">
-                <button className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-300">
+                <button
+                  onClick={handleProceed}
+                  className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-300"
+                >
                   Proceed to Checkout
                 </button>
               </div>
