@@ -1,25 +1,45 @@
-// // routes/adminRoutes.js
-// import express from 'express';
-// import { 
-//     // assignRoomOnCheckin,
-//     // addServicesDuringStay,
-//     checkoutAndGenerateInvoice,
-//     getActiveStays
-// } from '../controllers/adminController.js';
-// import { verifyToken } from '../middleware/authMiddleware.js';
+// backend/routes/adminRoutes.js
+import express from 'express';
+import {
+	createRoom,
+	readRooms,
+	updateRoom,
+	deleteRoom,
+	createRoomType,
+	readRoomTypes,
+	updateRoomType,
+	deleteRoomType,
+} from '../controllers/adminController.js';
 
-// const router = express.Router();
+const router = express.Router();
 
-// // POST /admin/checkin - Assign room on check-in
-// router.post('/checkin', verifyToken, assignRoomOnCheckin);
+// === Room Management (CRUD untuk Rooms) ===
+// GET /admin/rooms - (Read)
+router.get('/rooms', readRooms);
 
-// // POST /admin/services - Add services during stay
-// // router.post('/services', verifyToken, addServicesDuringStay);
+// POST /admin/rooms - (Create)
+router.post('/rooms', createRoom);
 
-// // POST /admin/checkout - Checkout and generate final invoice
-// router.post('/checkout', verifyToken, checkoutAndGenerateInvoice);
+// PUT /admin/rooms/:id - (Update)
+router.put('/rooms/:id', updateRoom);
 
-// // GET /admin/active-stays - Get active stays
-// router.get('/active-stays', verifyToken, getActiveStays);
+// DELETE /admin/rooms/:id - (Delete)
+router.delete('/rooms/:id', deleteRoom);
 
-// export default router;
+// === Room Type Management (CRUD untuk Room Types) ===
+// (Sangat direkomendasikan untuk admin.jsx Anda,
+// agar Anda bisa memilih Tipe Kamar saat membuat Kamar baru)
+
+// GET /admin/room-types
+router.get('/room-types', readRoomTypes);
+
+// POST /admin/room-types
+router.post('/room-types', createRoomType);
+
+// PUT /admin/room-types/:id
+router.put('/room-types/:id', updateRoomType);
+
+// DELETE /admin/room-types/:id
+router.delete('/room-types/:id', deleteRoomType);
+
+export default router;

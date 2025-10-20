@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import '../css/admin.css';
 import Log from '../components/log';
 import RoomManagement from '../components/roomManagement';
+import Room from '../components/room.jsx';
 
 export default function Admin() {
-  const [visibleTab, setVisibleTab] = useState(null);
+	const [visibleTab, setVisibleTab] = useState(null);
 
   const currentTab = () => {
     switch (visibleTab) {
@@ -30,15 +31,15 @@ export default function Admin() {
     }
   };
 
-  return (
-    <div className="admin-container">
-      {/* ===== FIXED TOP NAVBAR ===== */}
-      <div className="w-full h-17 fixed flex items-center justify-between px-8 py-2 bg-[#102E50] text-white z-10 shadow-md">
-        <h1 className="text-xl font-semibold tracking-wide">Admin Dashboard</h1>
-        <Link to="/login">
-          <button className="logout-btn">Log Out</button>
-        </Link>
-      </div>
+	return (
+		<div className='admin-container'>
+			{/* ===== FIXED TOP NAVBAR ===== */}
+			<div className='w-full h-17 fixed flex items-center justify-between px-8 py-2 bg-[#102E50] text-white z-10 shadow-md'>
+				<h1 className='text-xl font-semibold tracking-wide'>Admin Dashboard</h1>
+				<Link to='/login'>
+					<button className='logout-btn'>Log Out</button>
+				</Link>
+			</div>
 
       {/* ===== MAIN CONTENT WRAPPER ===== */}
       <div className="admin-main pt-20">
@@ -58,11 +59,11 @@ export default function Admin() {
           </button>
         </aside>
 
-        {/* Content */}
-        <main className="admin-content">
-          <div className="content-card">{currentTab()}</div>
-        </main>
-      </div>
+				{/* Content */}
+				<main className='admin-content'>
+					<div className='content-card'>{currentTab()}</div>
+				</main>
+			</div>
 
     </div>
   );
