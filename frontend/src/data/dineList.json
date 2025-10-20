@@ -1,0 +1,32 @@
+[
+	{
+		"dineId": 1,
+		"img": "/res/res7.jpg",
+		"title": "Skyline Restaurant",
+		"content": "Enjoy panoramic views while savoring gourmet dishes crafted from local ingredients."
+	},
+	{
+		"dineId": 2,
+		"title": "The Lounge",
+		"content": "A relaxed atmosphere offering a diverse menu of international cuisine and cocktails.",
+		"img": "/res/res5.jpg"
+	},
+	{
+		"dineId": 3,
+		"title": "Bar Celeste",
+		"content": "Unwind with expertly crafted cocktails and a curated selection of wines and spirits.",
+		"img": "/res/res3.jpg"
+	},
+	{
+		"dineId": 4,
+		"title": "The Garden Café",
+		"content": "A charming café nestled in a lush garden setting, perfect for casual dining and afternoon tea.",
+		"img": "/res/res4.jpg"
+	},
+	{
+		"dineId": 5,
+		"title": "Rooftop Bistro",
+		"content": "Experience dining under the stars with a menu that celebrates seasonal flavors.",
+		"img": "/res/res6.jpg"
+	}
+]
