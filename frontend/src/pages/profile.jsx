@@ -24,7 +24,6 @@ const Profile = () => {
 
   const handleEditToggle = () => {
     if (isEditing) {
-      // Save changes
       setUser(formData);
     }
     setIsEditing(!isEditing);
@@ -43,7 +42,6 @@ const Profile = () => {
   };
 
   const handleSignOut = () => {
-    // Add your sign out logic here
     console.log("Signing out...");
     navigate('/');
   };
@@ -214,7 +212,6 @@ const Profile = () => {
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Home</span>
             </button>
-            <img src="../picture/logo/logoNoBG.png" className="w-10 h-auto" alt="Nyx Hotel" />
           </div>
           <h1 className="text-xl font-bold text-white">My Profile</h1>
         </div>
@@ -249,7 +246,6 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="lg:col-span-3">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
               {activeTab === "profile" && <ProfileInfo />}

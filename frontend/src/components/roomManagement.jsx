@@ -333,7 +333,7 @@ const RoomManagement = () => {
       `• Room: ${roomNumber}\n` +
       `• Type: ${roomTypeName}\n\n` +
       `This will permanently remove the room from the system.\n\n` +
-      `🚨 This action cannot be undone!`
+      `This action cannot be undone!`
     );
 
     if (!confirmed) return;
@@ -352,7 +352,6 @@ const RoomManagement = () => {
       
       alert('✅ ' + (data.message || 'Room deleted successfully!'));
       fetchRooms();
-      // Refresh room types count
       fetchRoomTypes();
     } catch (error) {
       console.error('Error deleting room:', error);
@@ -371,7 +370,6 @@ const RoomManagement = () => {
     setShowRoomModal(true);
   };
 
-  // Reset forms
   const resetRoomTypeForm = () => {
     setRoomTypeForm({
       name: '',
@@ -395,7 +393,6 @@ const RoomManagement = () => {
     setErrors({});
   };
 
-  // Handle input changes
   const handleRoomTypeInputChange = (e) => {
     const { name, value } = e.target;
     setRoomTypeForm(prev => ({
@@ -469,25 +466,28 @@ const RoomManagement = () => {
             onClick={() => setActiveTab('roomTypes')}
             className={`px-4 py-2 font-medium ${
               activeTab === 'roomTypes'
-                ? 'border-b-2 border-[#102E50] text-[#102E50]'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'border-b-2 border-[#102E50]'
+                : ''
             }`}
           >
-            Room Types ({roomTypes.length})
+            <span className={activeTab === 'roomTypes' ? 'text-[#102E50]' : 'text-gray-500 hover:text-gray-700'}>
+              Room Types ({roomTypes.length})
+            </span>
           </button>
           <button
             onClick={() => setActiveTab('rooms')}
             className={`px-4 py-2 font-medium ${
               activeTab === 'rooms'
-                ? 'border-b-2 border-[#102E50] text-[#102E50]'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'border-b-2 border-[#102E50]'
+                : ''
             }`}
           >
-            Rooms ({rooms.length})
+            <span className={activeTab === 'rooms' ? 'text-[#102E50]' : 'text-gray-500 hover:text-gray-700'}>
+              Rooms ({rooms.length})
+            </span>
           </button>
         </div>
 
-        {/* Search Bar */}
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
