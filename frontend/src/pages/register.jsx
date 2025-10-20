@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Mail, Lock, ArrowLeft } from "lucide-react";
-
+import SuccessPopup from "../components/SuccessPopup"; 
 
 const Register = () => {
   const [username, setUserName] = useState("");
@@ -12,6 +12,8 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
 
   axios.defaults.withCredentials = true;
 
@@ -33,13 +35,22 @@ const Register = () => {
         email,
         password
     }).then((res) => {
-        if (res.status === 201) alert("Registration successful");
+        if (res.status === 201) {
+          setPopupMessage("Registration successful! Welcome to Nyx Hotel.");
+          setShowSuccessPopup(true);
+        }
     }).catch((error) => {
         console.log(error);
+        alert("Registration failed. Please try again.");
     })
   };
 
-const navigate = useNavigate();
+  const handlePopupClose = () => {
+    setShowSuccessPopup(false);
+    navigate('/login'); // Redirect ke login setelah popup ditutup
+  };
+
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -63,7 +74,7 @@ const navigate = useNavigate();
           <span className="text-sm font-medium">Back to Home</span>
       </button>
 
-      <div className="relative w-full max-w-md bg-[#fffcfc96] backdrop-blur-sm rounded-2xl shadow-2xl  overflow-hidden z-10">
+      <div className="relative w-full max-w-md bg-[#fffcfc96] backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden z-10">
        
         <div className="bg-[#102e50fc] p-5 text-center flex items-center gap-4">
           <div className="flex justify-center">
@@ -74,7 +85,6 @@ const navigate = useNavigate();
 
         <div className="p-8">
           <form onSubmit={handleSubmit} className="space-y-3">
-            {/* Name Field */}
             <div className="relative">
               <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-2">
                 Full Name
@@ -93,7 +103,6 @@ const navigate = useNavigate();
               </div>
             </div>
 
-            {/* Email Field */}
             <div className="relative">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
@@ -112,7 +121,6 @@ const navigate = useNavigate();
               </div>
             </div>
 
-            {/* Password Field */}
             <div className="relative">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
@@ -138,7 +146,6 @@ const navigate = useNavigate();
               </div>
             </div>
 
-            {/* Confirm Password Field */}
             <div className="relative">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                 Confirm Password
@@ -164,7 +171,6 @@ const navigate = useNavigate();
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-[#c19a6b] to-[#a67c52] text-white font-semibold py-3 px-4 rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:ring-offset-2"
@@ -184,9 +190,16 @@ const navigate = useNavigate();
               </Link>
             </p>
           </div>
-          
         </div>
       </div>
+
+      {/* Pop up */}
+      {showSuccessPopup && (
+        <SuccessPopup 
+          message={popupMessage} 
+          onClose={handlePopupClose}
+        />
+      )}
     </div>
   );
 };

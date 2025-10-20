@@ -2,25 +2,34 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../css/admin.css';
 import Log from '../components/log';
+import RoomManagement from '../components/roomManagement';
 import Room from '../components/room.jsx';
 
 export default function Admin() {
 	const [visibleTab, setVisibleTab] = useState(null);
 
-	const currentTab = () => {
-		switch (visibleTab) {
-			case 'log':
-				return <Log />;
-			case 'room':
-				return <Room />;
-			default:
-				return (
-					<div className='admin-placeholder'>
-						Select a section from the sidebar to view details.
-					</div>
-				);
-		}
-	};
+  const currentTab = () => {
+    switch (visibleTab) {
+      case 'log':
+        return <Log />;
+      case 'room':
+        return <RoomManagement />;
+      default:
+        return (
+          <div className="admin-placeholder">
+            <div className="text-center py-12">
+              <div className="w-24 h-24 bg-[#102E50] rounded-full flex items-center justify-center mx-auto mb-4">
+                <img src="../picture/logo/logoNoBG.png" alt="Logo" className="w-22 h-22" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to Admin Dashboard</h2>
+              <p className="text-gray-600 max-w-md mx-auto">
+                Select a section from the sidebar to manage your hotel operations.
+              </p>
+            </div>
+          </div>
+        );
+    }
+  };
 
 	return (
 		<div className='admin-container'>
@@ -32,21 +41,23 @@ export default function Admin() {
 				</Link>
 			</div>
 
-			{/* ===== MAIN CONTENT WRAPPER (add padding-top to avoid overlap) ===== */}
-			<div className='admin-main pt-20'>
-				{/* Sidebar */}
-				<aside className='admin-sidebar'>
-					<button
-						onClick={() => setVisibleTab('log')}
-						className={`sidebar-btn ${visibleTab === 'log' ? 'active' : ''}`}>
-						Log
-					</button>
-					<button
-						onClick={() => setVisibleTab('room')}
-						className={`sidebar-btn ${visibleTab === 'room' ? 'active' : ''}`}>
-						Room
-					</button>
-				</aside>
+      {/* ===== MAIN CONTENT WRAPPER ===== */}
+      <div className="admin-main pt-20">
+        {/* Sidebar */}
+        <aside className="admin-sidebar">
+          <button
+            onClick={() => setVisibleTab('room')}
+            className={`sidebar-btn ${visibleTab === 'room' ? 'active' : ''}`}
+          >
+            Room Management
+          </button>
+          <button
+            onClick={() => setVisibleTab('log')}
+            className={`sidebar-btn ${visibleTab === 'log' ? 'active' : ''}`}
+          >
+            Activity Log
+          </button>
+        </aside>
 
 				{/* Content */}
 				<main className='admin-content'>
@@ -54,9 +65,6 @@ export default function Admin() {
 				</main>
 			</div>
 
-			<footer className='admin-footer'>
-				© 2025 Cheval Blanc Admin Panel — All Rights Reserved.
-			</footer>
-		</div>
-	);
+    </div>
+  );
 }

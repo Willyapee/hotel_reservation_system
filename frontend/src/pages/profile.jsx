@@ -12,14 +12,11 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   
-  // Mock user data - replace with actual data from your backend
+  // Mock user 
   const [user, setUser] = useState({
     name: "John Doe",
     email: "john.doe@example.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Luxury Street, Resort City",
     joinDate: "January 15, 2024",
-    membership: "Gold Member",
     avatar: "../picture/logo/logoNoBG.png"
   });
 
@@ -71,25 +68,8 @@ const Profile = () => {
     }
   ];
 
-  // Mock favorites
-  const favorites = [
-    {
-      id: 1,
-      name: "Deluxe Suite",
-      image: "../picture/rooms/deluxe-suite.jpg",
-      price: "$400/night"
-    },
-    {
-      id: 2,
-      name: "Presidential Suite",
-      image: "../picture/rooms/presidential-suite.jpg",
-      price: "$800/night"
-    }
-  ];
-
   const ProfileInfo = () => (
     <div className="space-y-6">
-      {/* Avatar Section */}
       <div className="text-center">
         <div className="relative inline-block">
           <img
@@ -111,14 +91,14 @@ const Profile = () => {
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-semibold text-gray-800">Personal Information</h3>
           <button
-  onClick={handleEditToggle}
-  className="flex items-center gap-2 transition-colors"
->
-  {isEditing ? <Save className="w-5 h-5 text-[#8f632d] " /> : <Edit2 className="w-5 h-5 text-[#8f632d] " />}
-  <span className="text-[#8f632d] ">
-    {isEditing ? "Save" : "Edit"}
-  </span>
-</button>
+            onClick={handleEditToggle}
+            className="flex items-center gap-2 transition-colors"
+          >
+            {isEditing ? <Save className="w-5 h-5 text-[#8f632d] " /> : <Edit2 className="w-5 h-5 text-[#8f632d] " />}
+            <span className="text-[#8f632d] ">
+              {isEditing ? "Save" : "Edit"}
+            </span>
+          </button>
         </div>
 
         <div className="space-y-4">
@@ -155,40 +135,7 @@ const Profile = () => {
               )}
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <Phone className="w-5 h-5 text-gray-400" />
-            <div className="flex-1">
-              <label className="block text-sm text-gray-600 mb-1">Phone</label>
-              {isEditing ? (
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent"
-                />
-              ) : (
-                <p className="text-gray-800">{user.phone}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <MapPin className="w-5 h-5 text-gray-400" />
-            <div className="flex-1">
-              <label className="block text-sm text-gray-600 mb-1">Address</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent"
-                />
-              ) : (
-                <p className="text-gray-800">{user.address}</p>
-              )}
-            </div>
-          </div>
+          
         </div>
 
         {isEditing && (
@@ -207,7 +154,17 @@ const Profile = () => {
             </button>
           </div>
         )}
+        
       </div>
+
+      <button
+        onClick={handleSignOut}
+        className="w-full bg-red-700 text-white py-3 rounded-lg hover:bg-red-800 transition-colors flex items-center justify-center gap-2"
+      >
+        <LogOut className="w-5 h-5" />
+        Sign Out
+      </button>
+
     </div>
   );
 
@@ -238,87 +195,10 @@ const Profile = () => {
     </div>
   );
 
-  const Favorites = () => (
-    <div className="space-y-4">
-      <h3 className="text-xl font-semibold text-gray-800 mb-6">Favorite Rooms</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {favorites.map(fav => (
-          <div key={fav.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-            <img
-              src={fav.image}
-              alt={fav.name}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <h4 className="font-semibold text-gray-800">{fav.name}</h4>
-              <p className="text-[#c19a6b] font-semibold">{fav.price}</p>
-              <button className="w-full mt-3 bg-[#c19a6b] text-white py-2 rounded-lg hover:bg-[#a67c52] transition-colors">
-                Book Now
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const Settings = () => (
-    <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-800 mb-6">Account Settings</h3>
-      
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Bell className="w-5 h-5 text-gray-400" />
-            <div>
-              <h4 className="font-semibold text-gray-800">Notifications</h4>
-              <p className="text-gray-600 text-sm">Manage your notification preferences</p>
-            </div>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" className="sr-only peer" defaultChecked />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#c19a6b]"></div>
-          </label>
-        </div>
-
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Shield className="w-5 h-5 text-gray-400" />
-            <div>
-              <h4 className="font-semibold text-gray-800">Privacy</h4>
-              <p className="text-gray-600 text-sm">Control your privacy settings</p>
-            </div>
-          </div>
-          <button className="text-[#c19a6b] hover:text-[#a67c52]">Manage</button>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <CreditCard className="w-5 h-5 text-gray-400" />
-            <div>
-              <h4 className="font-semibold text-gray-800">Payment Methods</h4>
-              <p className="text-gray-600 text-sm">Manage your payment options</p>
-            </div>
-          </div>
-          <button className="text-[#c19a6b] hover:text-[#a67c52]">Manage</button>
-        </div>
-      </div>
-
-      <button
-        onClick={handleSignOut}
-        className="w-full bg-red-800 text-white py-3 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
-      >
-        <LogOut className="w-5 h-5" />
-        Sign Out
-      </button>
-    </div>
-  );
-
+  
   const tabItems = [
     { id: "profile", label: "Profile", icon: User },
-    { id: "bookings", label: "Bookings", icon: History },
-    { id: "favorites", label: "Favorites", icon: Heart },
-    { id: "settings", label: "Settings", icon: Shield }
+    { id: "bookings", label: "Bookings", icon: History }
   ];
 
   return (
@@ -350,19 +230,19 @@ const Profile = () => {
                   const Icon = tab.icon;
                   return (
                     <button
-  key={tab.id}
-  onClick={() => setActiveTab(tab.id)}
-  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
-    activeTab === tab.id
-      ? "bg-[#c19a6b]"
-      : "hover:bg-gray-100"
-  }`}
->
-  <Icon className={`w-5 h-5 ${activeTab === tab.id ? "text-white" : "text-gray-600"}`} />
-  <span className={activeTab === tab.id ? "text-white" : "text-gray-600"}>
-    {tab.label}
-  </span>
-</button>
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                        activeTab === tab.id
+                          ? "bg-[#c19a6b]"
+                          : "hover:bg-gray-100"
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 ${activeTab === tab.id ? "text-white" : "text-gray-600"}`} />
+                      <span className={activeTab === tab.id ? "text-white" : "text-gray-600"}>
+                        {tab.label}
+                      </span>
+                    </button>
                   );
                 })}
               </nav>
@@ -374,8 +254,6 @@ const Profile = () => {
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
               {activeTab === "profile" && <ProfileInfo />}
               {activeTab === "bookings" && <BookingHistory />}
-              {activeTab === "favorites" && <Favorites />}
-              {activeTab === "settings" && <Settings />}
             </div>
           </div>
         </div>
