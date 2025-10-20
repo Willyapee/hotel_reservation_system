@@ -3,7 +3,7 @@
 		"roomId": "1",
 		"roomName": "Stellar Suite",
 		"roomBed": "King Bed • 40m²",
-		"roomImage": "../public/room/room1.jpg",
+		"roomImage": "/room/room1.jpg",
 		"roomPrice": 200,
 		"roomDesc": "Warm materials, elegant furnishings and sweeping view of the slopes."
 	},
@@ -11,7 +11,7 @@
 		"roomId": "2",
 		"roomName": "Orion Suite",
 		"roomBed": "King Bed • Living Area • 50m²",
-		"roomImage": "../public/room/room3.jpg",
+		"roomImage": "/room/room3.jpg",
 		"roomPrice": 250,
 		"roomDesc": "Separate living room, refined details and private balcony."
 	},
@@ -19,7 +19,7 @@
 		"roomId": "3",
 		"roomName": "Deluxe Luna",
 		"roomBed": "King Bed • Terrace • 40m²",
-		"roomImage": "../public/room/room7.jpg",
+		"roomImage": "/room/room7.jpg",
 		"roomPrice": 300,
 		"roomDesc": "Expansive terrace, private services and panoramic vistas."
 	},
@@ -27,7 +27,7 @@
 		"roomId": "4",
 		"roomName": "Celestial Chamber",
 		"roomBed": "Queen Bed • 35m²",
-		"roomImage": "../public/room/room4.jpg",
+		"roomImage": "/room/room4.jpg",
 		"roomPrice": 350,
 		"roomDesc": "Cozy elegance with soft tones, perfect for a serene retreat."
 	},
@@ -35,7 +35,7 @@
 		"roomId": "5",
 		"roomName": "Aurora Retreat",
 		"roomBed": "King Bed • Balcony • 45m²",
-		"roomImage": "../public/room/room5.jpg",
+		"roomImage": "/room/room5.jpg",
 		"roomPrice": 400,
 		"roomDesc": "Bright interiors with natural light and a private balcony overlooking the skyline."
 	},
@@ -43,7 +43,7 @@
 		"roomId": "6",
 		"roomName": "Galaxy Loft",
 		"roomBed": "King Bed • Duplex • 55m²",
-		"roomImage": "../public/room/room8.jpg",
+		"roomImage": "/room/room8.jpg",
 		"roomPrice": 450,
 		"roomDesc": "Two-story loft with modern design, spacious living area, and sweeping city views."
 	},
@@ -51,7 +51,7 @@
 		"roomId": "7",
 		"roomName": "Nova Deluxe",
 		"roomBed": "Twin Beds • 38m²",
-		"roomImage": "../public/room/room9.jpg",
+		"roomImage": "/room/room9.jpg",
 		"roomPrice": 500,
 		"roomDesc": "Refined comfort with flexible twin setup, ideal for friends or family."
 	},
@@ -59,7 +59,7 @@
 		"roomId": "8",
 		"roomName": "Lunar Penthouse",
 		"roomBed": "King Bed • Jacuzzi • 90m²",
-		"roomImage": "../public/room/room6.jpg",
+		"roomImage": "/room/room6.jpg",
 		"roomPrice": 550,
 		"roomDesc": "Opulent penthouse featuring a jacuzzi, floor-to-ceiling windows, and premium amenities."
 	}
