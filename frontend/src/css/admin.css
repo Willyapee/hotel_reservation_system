@@ -117,3 +117,25 @@
   border-top: 1px solid #e6e6e6;
   font-size: 0.9rem;
 }
+
+.print-btn {
+    background-color: #102E50;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.print-btn:hover {
+    background-color: #0d2540;
+}
+
+.fixed-print-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 50;
+}
