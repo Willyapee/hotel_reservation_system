@@ -1,12 +1,31 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../css/admin.css';
 import Log from '../components/log';
 import RoomManagement from '../components/roomManagement';
-import Room from '../components/room.jsx';
+import NavigationBar from "../components/navigationBar.jsx";
+import MenuOverlay from "../components/menuOverlay.jsx";
+
 
 export default function Admin() {
 	const [visibleTab, setVisibleTab] = useState(null);
+	const [openMenu, setOpenMenu] = useState(false);
+	const navigate = useNavigate();
+
+	const handleOpenMenu = () => setOpenMenu(true);
+	const handleCloseMenu = () => setOpenMenu(false);
+
+	const handleNavigateToSection = (section) => {
+		setOpenMenu(false);
+		if (!section) return;
+		// if it's a route path, navigate; otherwise try to scroll to an id
+		if (section.startsWith('/')) {
+			navigate(section);
+			return;
+		}
+		const el = document.getElementById(section);
+		if (el) el.scrollIntoView({ behavior: 'smooth' });
+	};
 
   const currentTab = () => {
     switch (visibleTab) {
@@ -19,7 +38,7 @@ export default function Admin() {
           <div className="admin-placeholder">
             <div className="text-center py-12">
               <div className="w-24 h-24 bg-[#102E50] rounded-full flex items-center justify-center mx-auto mb-4">
-                <img src="../picture/logo/logoNoBG.png" alt="Logo" className="w-22 h-22" />
+                <img src="/picture/logo/logoNoBG.png" alt="Logo" className="w-22 h-22" />
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to Admin Dashboard</h2>
               <p className="text-gray-600 max-w-md mx-auto">
@@ -33,6 +52,14 @@ export default function Admin() {
 
 	return (
 		<div className='admin-container'>
+      {/* Top navigation + menu */}
+      <NavigationBar openMenu={openMenu} handleOpenMenu={handleOpenMenu} />
+      <MenuOverlay
+        isOpen={openMenu}
+        onClose={handleCloseMenu}
+        onNavigate={handleNavigateToSection}
+      />
+
 			{/* ===== FIXED TOP NAVBAR ===== */}
 			<div className='w-full h-17 fixed flex items-center justify-between px-8 py-2 bg-[#102E50] text-white z-10 shadow-md'>
 				<h1 className='text-xl font-semibold tracking-wide'>Admin Dashboard</h1>
@@ -42,7 +69,7 @@ export default function Admin() {
 			</div>
 
       {/* ===== MAIN CONTENT WRAPPER ===== */}
-      <div className="admin-main pt-20">
+      <div className="admin-main pt-20 flex">
         {/* Sidebar */}
         <aside className="admin-sidebar">
           <button
@@ -59,12 +86,11 @@ export default function Admin() {
           </button>
         </aside>
 
-				{/* Content */}
-				<main className='admin-content'>
-					<div className='content-card'>{currentTab()}</div>
-				</main>
-			</div>
-
+        {/* Content */}
+        <main className='admin-content flex-1'>
+          <div className='content-card'>{currentTab()}</div>
+        </main>
+      </div>
     </div>
   );
 }

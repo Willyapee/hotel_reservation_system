@@ -299,7 +299,7 @@ const RoomManagement = () => {
                   </button>
                   <button
                     onClick={() => handleDelete(room.roomId)}
-                    className="flex-1 bg-red-600 text-white py-2 px-3 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-1 text-sm"
+                    className="flex-1 bg-red-700 text-white py-2 px-3 rounded-lg hover:bg-red-800 transition-colors flex items-center justify-center gap-1 text-sm"
                   >
                     <Trash2 className="w-3 h-3" />
                     Delete
@@ -324,161 +324,151 @@ const RoomManagement = () => {
 
       {/* Add/Edit Room Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl overflow-y-auto max-h-[90vh]">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-xl font-semibold text-gray-800">
-                {editingRoom ? 'Edit Room' : 'Add New Room'}
+                {editingRoom ? `Edit Room — ID: ${editingRoom.roomId}` : "Add New Room"}
               </h3>
               <button
-                onClick={() => {
-                  setShowModal(false);
+                onClick={() => { 
+                  setShowModal(false); 
+                  setEditingRoom(null); 
+                  setErrors({}); 
                   resetForm();
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="p-2 rounded hover:bg-gray-100"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-gray-600" />
               </button>
             </div>
 
-            <form onSubmit={editingRoom ? handleUpdate : handleCreate} className="p-6">
-              <div className="space-y-4">
-                {/* Room Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Room Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="roomName"
-                    value={formData.roomName}
-                    onChange={handleInputChange}
-                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent ${
-                      errors.roomName ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="e.g., Stellar Suite, Orion Suite"
-                  />
-                  {errors.roomName && (
-                    <p className="text-red-500 text-sm mt-1">{errors.roomName}</p>
-                  )}
-                </div>
+            <form onSubmit={editingRoom ? handleUpdate : handleCreate} className="p-6 space-y-4">
+              {/* Room Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Room Name *</label>
+                <input
+                  name="roomName"
+                  value={formData.roomName}
+                  onChange={handleInputChange}
+                  className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b] ${errors.roomName ? "border-red-500" : "border-gray-300"}`}
+                  placeholder="e.g., Stellar Suite"
+                />
+                {errors.roomName && <p className="text-red-500 text-sm mt-1">{errors.roomName}</p>}
+              </div>
 
-                {/* Room Bed Info */}
+              {/* Bed Info and Price (side-by-side) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Room Bed Info *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700">Bed Info *</label>
                   <input
-                    type="text"
                     name="roomBed"
                     value={formData.roomBed}
                     onChange={handleInputChange}
-                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent ${
-                      errors.roomBed ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="e.g., King Bed • 40m², King Bed • Living Area • 50m²"
+                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b] ${errors.roomBed ? "border-red-500" : "border-gray-300"}`}
+                    placeholder="King Bed • 40m²"
                   />
-                  {errors.roomBed && (
-                    <p className="text-red-500 text-sm mt-1">{errors.roomBed}</p>
-                  )}
+                  {errors.roomBed && <p className="text-red-500 text-sm mt-1">{errors.roomBed}</p>}
                 </div>
 
-                {/* Price */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Price per Night ($) *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700">Price per Night ($) *</label>
                   <input
-                    type="number"
                     name="roomPrice"
+                    type="number"
+                    min="0"
                     value={formData.roomPrice}
                     onChange={handleInputChange}
-                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent ${
-                      errors.roomPrice ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b] ${errors.roomPrice ? "border-red-500" : "border-gray-300"}`}
                     placeholder="200"
-                    min="0"
                   />
-                  {errors.roomPrice && (
-                    <p className="text-red-500 text-sm mt-1">{errors.roomPrice}</p>
-                  )}
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description *
-                  </label>
-                  <textarea
-                    name="roomDesc"
-                    value={formData.roomDesc}
-                    onChange={handleInputChange}
-                    rows="3"
-                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent ${
-                      errors.roomDesc ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Describe the room features and view..."
-                  />
-                  {errors.roomDesc && (
-                    <p className="text-red-500 text-sm mt-1">{errors.roomDesc}</p>
-                  )}
-                </div>
-
-                {/* Image URL */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Room Image URL *
-                  </label>
-                  <input
-                    type="text"
-                    name="roomImage"
-                    value={formData.roomImage}
-                    onChange={handleInputChange}
-                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent ${
-                      errors.roomImage ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="e.g., ../public/room/room1.jpg"
-                  />
-                  {errors.roomImage && (
-                    <p className="text-red-500 text-sm mt-1">{errors.roomImage}</p>
-                  )}
-                </div>
-
-                {/* Status */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
-                  </label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:border-transparent"
-                  >
-                    <option value="available">Available</option>
-                    <option value="occupied">Occupied</option>
-                    <option value="maintenance">Maintenance</option>
-                  </select>
+                  {errors.roomPrice && <p className="text-red-500 text-sm mt-1">{errors.roomPrice}</p>}
                 </div>
               </div>
 
-              {/* Form Actions */}
-              <div className="flex gap-3 mt-6">
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description *</label>
+                <textarea
+                  name="roomDesc"
+                  value={formData.roomDesc}
+                  onChange={handleInputChange}
+                  rows="3"
+                  className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b] ${errors.roomDesc ? "border-red-500" : "border-gray-300"}`}
+                  placeholder="Describe the room features..."
+                />
+                {errors.roomDesc && <p className="text-red-500 text-sm mt-1">{errors.roomDesc}</p>}
+              </div>
+
+              {/* Image URL + preview */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">Image URL *</label>
+                  <input
+                    name="roomImage"
+                    value={formData.roomImage}
+                    onChange={handleInputChange}
+                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b] ${errors.roomImage ? "border-red-500" : "border-gray-300"}`}
+                    placeholder="e.g., https://example.com/room1.jpg"
+                  />
+                  {errors.roomImage && <p className="text-red-500 text-sm mt-1">{errors.roomImage}</p>}
+                </div>
+
+                <div className="flex items-center justify-center">
+                  <div className="w-full h-32 border border-gray-200 rounded-lg overflow-hidden">
+                    {formData.roomImage ? (
+                      <img 
+                        src={formData.roomImage} 
+                        alt="preview" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjEwMCIgeT0iNjAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RmFpbGVkIHRvIGxvYWQ8L3RleHQ+PC9zdmc+';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
+                        Preview
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b]"
+                >
+                  <option value="available">Available</option>
+                  <option value="occupied">Occupied</option>
+                  <option value="maintenance">Maintenance</option>
+                </select>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-end">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowModal(false);
+                  onClick={() => { 
+                    setShowModal(false); 
+                    setEditingRoom(null); 
+                    setErrors({}); 
                     resetForm();
                   }}
-                  className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+                  className="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
                 >
                   Cancel
                 </button>
+
                 <button
                   type="submit"
-                  className="flex-1 bg-[#102E50] text-white py-3 px-4 rounded-lg hover:bg-[#1a3a5f] transition-colors"
+                  className="bg-[#102E50] text-white py-2 px-4 rounded-lg hover:bg-[#0e2944]"
                 >
-                  {editingRoom ? 'Update Room' : 'Create Room'}
+                  {editingRoom ? "Update Room" : "Create Room"}
                 </button>
               </div>
             </form>

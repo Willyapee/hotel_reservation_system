@@ -12,5 +12,5 @@
 .marquee-track {
   display: flex;
   width: 200%;              /* two copies side by side */
-  animation: marquee 30s linear infinite;
+  animation: marquee 50s linear infinite;
 }
