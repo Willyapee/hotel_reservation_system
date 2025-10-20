@@ -1,8 +1,6 @@
-// msServices.js - ✅ BENAR
 import { DataTypes } from 'sequelize';
 import db from '../config/db.js';
 
-//Create Services Model
 const MsServices = db.define('ms_services', {
     id_service: {
         type: DataTypes.INTEGER,
@@ -25,7 +23,7 @@ const MsServices = db.define('ms_services', {
         type: DataTypes.ENUM('per_booking', 'per_person'),
         allowNull: false,
     },
-}, {  // ← ✅ TAMBAH PARAMETER OPTIONS DI SINI!
+}, {  
     freezeTableName: true,
     timestamps: true,
 });
