@@ -647,7 +647,7 @@ const RoomManagement = () => {
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleEditRoom(room)}
-                            className="text-[#c19a6b] hover:text-[#a67c52] px-3 py-1 border border-[#c19a6b] rounded hover:bg-[#c19a6b] hover:text-white transition-colors"
+                            className="text-[#c19a6b] hover:text-[#a67c52] px-3 py-1 border border-[#c19a6b] rounded hover:bg-[#c19a6b] transition-colors"
                           >
                             Edit
                           </button>
