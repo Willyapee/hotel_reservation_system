@@ -1,12 +1,28 @@
-import React, { useState } from 'react';
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
 
 const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
   const [user, setUser] = useState({
-    name: 'John Doe',
-    initials: 'JD',
-    isLoggedIn: true
+    name: '',
+    initials: '',
+    isLoggedIn: false,
+    role: 'user'
   });
+
+  // Ambil data user dari localStorage saat komponen mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('role');
+    const userName = localStorage.getItem('username') || 'User';
+    
+    if (token) {
+      setUser({
+        name: userName,
+        initials: userName.split(' ').map(n => n[0]).join('').toUpperCase(),
+        isLoggedIn: true,
+        role: userRole || 'user'
+      });
+    }
+  }, []);
 
   const menuItems = [
     {
@@ -31,32 +47,52 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
     }
   ];
 
+  // Tambahkan item menu Admin hanya jika user adalah admin
+  if (user.isLoggedIn && user.role === 'admin') {
+    menuItems.push({
+      id: 'admin',
+      label: 'Admin Dashboard',
+      path: '/admin'
+    });
+  }
+
   const handleMenuClick = (item) => {
     if (item.section) {
       onNavigate(item.section);
       onClose();
     } else if (item.path) {
-      window.location.href = item.path;
+      if (item.path === '/admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = item.path;
+      }
     }
   };
 
   const handleUserAction = () => {
     if (user.isLoggedIn) {
-      // Navigate to user profile
       window.location.href = '/profile';
     } else {
-      // Navigate to sign in
-      window.location.href = '/register';
+      window.location.href = '/login';
     }
   };
 
   const handleSignOut = (e) => {
     e.stopPropagation();
-    console.log('Sign Out');
-    setUser(prev => ({
-      ...prev,
-      isLoggedIn: false
-    }));
+    // Clear localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('username');
+    
+    setUser({
+      name: '',
+      initials: '',
+      isLoggedIn: false,
+      role: 'user'
+    });
+    
+    // Redirect to home
+    window.location.href = '/';
   };
 
   return (
@@ -92,9 +128,18 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
             <li key={item.id} className="my-6">
               <button
                 onClick={() => handleMenuClick(item)}
-                className="overlay-menu-item text-lg font-medium text-white w-full text-left bg-none border-none cursor-pointer py-2 px-1"
+                className={`overlay-menu-item text-lg font-medium w-full text-left bg-none border-none cursor-pointer py-2 px-1 transition-all duration-300 ${
+                  item.id === 'admin' 
+                    ? 'text-[#c19a6b] hover:text-[#f0a500] border-l-2 border-[#c19a6b] pl-3' 
+                    : 'text-white hover:text-[#f0a500]'
+                }`}
               >
                 {item.label}
+                {item.id === 'admin' && (
+                  <span className="ml-2 text-xs bg-[#c19a6b] text-white px-2 py-1 rounded-full">
+                    Admin
+                  </span>
+                )}
               </button>
             </li>
           ))}
@@ -109,12 +154,21 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
                   onClick={handleUserAction}
                   className="w-full flex items-center gap-3 text-white hover:text-[#f0a500] transition-all duration-300 bg-none border-none cursor-pointer group mb-2"
                 >
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#c19a6b] to-[#a67c52] flex items-center justify-center text-white font-bold text-sm group-hover:scale-105 transition-transform">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm group-hover:scale-105 transition-transform relative ${
+                    user.role === 'admin' 
+                      ? 'bg-gradient-to-br from-[#102E50] to-[#1a3a5f]' 
+                      : 'bg-gradient-to-br from-[#c19a6b] to-[#a67c52]'
+                  }`}>
                     {user.initials}
+                    {user.role === 'admin' && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0a1e34]"></span>
+                    )}
                   </div>
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-gray-400 group-hover:text-gray-300">View Profile</p>
+                    <p className="text-xs text-gray-400 group-hover:text-gray-300">
+                      {user.role === 'admin' ? 'Administrator' : 'View Profile'}
+                    </p>
                   </div>
                   <i className="fa-solid fa-chevron-right text-gray-400 group-hover:text-gray-300 text-xs"></i>
                 </button>

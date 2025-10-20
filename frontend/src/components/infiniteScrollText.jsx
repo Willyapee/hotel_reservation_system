@@ -3,12 +3,12 @@ import "../css/infiniteScrollText.css";
 
 export default function InfiniteScrollText() {
   const textItems = [
-  "Nyx Hotel",
-  "“Where nights turn into memories.”",
-  "Nyx Hotel",
-  "“Elegance woven into every stay.”",
-  "Nyx Hotel",
-  "“Experience the quiet luxury of space.”",
+  "NYX HOTEL",
+  "NYX HOTEL",
+  "NYX HOTEL",
+  "NYX HOTEL",
+  "NYX HOTEL",
+  "NYX HOTEL",
 ];
 
   return (
