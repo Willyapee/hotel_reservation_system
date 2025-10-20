@@ -1,39 +1,51 @@
-//FILE PERCOBAANNYA WILLY GA NGARUH SAMA PROJEK KELEN
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
+import SuccessPopup from "../components/SuccessPopup"; // Sesuaikan path
 
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+    const [popupMessage, setPopupMessage] = useState("");
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
-		e.preventDefault();
-		try {
-			const res = await axios.post('http://localhost:3000/auth/login', {
-				email,
-				password,
-			});
+        e.preventDefault();
+        try {
+            const res = await axios.post('http://localhost:3000/auth/login', {
+                email,
+                password,
+            });
 
-			console.log('Response:', res.data);
+            console.log('Response:', res.data);
 
-			if (res.data.token) {
-				localStorage.setItem('token', res.data.token);
-				localStorage.setItem('role', res.data.role);
-				if (res.data.role === 'admin') {
-					navigate('/admin');
-				} else {
-					navigate('/');
-				}
-			}
-		} catch (err) {
-			console.error(err.response ? err.response.data : err.message);
-			alert(err.response?.data?.message || 'Login failed');
-		}
-	};
+            if (res.data.token) {
+                localStorage.setItem('token', res.data.token);
+                localStorage.setItem('role', res.data.role);
+                
+                // Tampilkan popup sukses
+                setPopupMessage("Login successful! Welcome back to Nyx Hotel.");
+                setShowSuccessPopup(true);
+            }
+        } catch (err) {
+            console.error(err.response ? err.response.data : err.message);
+            alert(err.response?.data?.message || 'Login failed');
+        }
+    };
+
+    const handlePopupClose = () => {
+        setShowSuccessPopup(false);
+        // Redirect berdasarkan role setelah popup ditutup
+        const role = localStorage.getItem('role');
+        if (role === 'admin') {
+            navigate('/admin');
+        } else {
+            navigate('/');
+        }
+    };
 
     const handleBackToHome = () => {
         navigate('/');
@@ -75,7 +87,7 @@ const Login = () => {
 
                 <div className="p-8">
                     <form onSubmit={handleLogin} className="space-y-3">
-                        {/* Email Field */}
+                        {/* Form fields tetap sama */}
                         <div className="relative">
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                                 Email Address
@@ -94,7 +106,6 @@ const Login = () => {
                             </div>
                         </div>
 
-                        {/* Password Field */}
                         <div className="relative">
                             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                                 Password
@@ -120,8 +131,6 @@ const Login = () => {
                             </div>
                         </div>
 
-
-                        {/* Submit Button */}
                         <button
                             type="submit"
                             className="w-full bg-gradient-to-r from-[#c19a6b] to-[#a67c52] text-white font-semibold mt-5 py-3 px-4 rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-[#c19a6b] focus:ring-offset-2"
@@ -141,10 +150,16 @@ const Login = () => {
                             </Link>
                         </p>
                     </div>
-
-                    
                 </div>
             </div>
+
+            {/* Success Popup */}
+            {showSuccessPopup && (
+                <SuccessPopup 
+                    message={popupMessage} 
+                    onClose={handlePopupClose}
+                />
+            )}
         </div>
     );
 };

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../css/admin.css';
 import Log from '../components/log';
+import RoomManagement from '../components/roomManagement';
 
 export default function Admin() {
   const [visibleTab, setVisibleTab] = useState(null);
@@ -10,10 +11,20 @@ export default function Admin() {
     switch (visibleTab) {
       case 'log':
         return <Log />;
+      case 'room':
+        return <RoomManagement />;
       default:
         return (
           <div className="admin-placeholder">
-            Select a section from the sidebar to view details.
+            <div className="text-center py-12">
+              <div className="w-24 h-24 bg-[#102E50] rounded-full flex items-center justify-center mx-auto mb-4">
+                <img src="../picture/logo/logoNoBG.png" alt="Logo" className="w-22 h-22" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to Admin Dashboard</h2>
+              <p className="text-gray-600 max-w-md mx-auto">
+                Select a section from the sidebar to manage your hotel operations.
+              </p>
+            </div>
           </div>
         );
     }
@@ -29,21 +40,21 @@ export default function Admin() {
         </Link>
       </div>
 
-      {/* ===== MAIN CONTENT WRAPPER (add padding-top to avoid overlap) ===== */}
+      {/* ===== MAIN CONTENT WRAPPER ===== */}
       <div className="admin-main pt-20">
         {/* Sidebar */}
         <aside className="admin-sidebar">
           <button
-            onClick={() => setVisibleTab('log')}
-            className={`sidebar-btn ${visibleTab === 'log' ? 'active' : ''}`}
-          >
-            Log
-          </button>
-          <button
             onClick={() => setVisibleTab('room')}
             className={`sidebar-btn ${visibleTab === 'room' ? 'active' : ''}`}
           >
-            Room
+            Room Management
+          </button>
+          <button
+            onClick={() => setVisibleTab('log')}
+            className={`sidebar-btn ${visibleTab === 'log' ? 'active' : ''}`}
+          >
+            Activity Log
           </button>
         </aside>
 
@@ -53,9 +64,6 @@ export default function Admin() {
         </main>
       </div>
 
-      <footer className="admin-footer">
-        © 2025 Cheval Blanc Admin Panel — All Rights Reserved.
-      </footer>
     </div>
   );
 }
