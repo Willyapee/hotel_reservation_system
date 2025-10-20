@@ -56,7 +56,7 @@ const Login = () => {
             {/* Video Background */}
             <div className="absolute inset-0 w-full h-full">
                 <video
-                    src="public/video/ChevalBlanc.mp4"
+                    src="/video/ChevalBlanc.mp4"
                     className="h-full w-full object-cover"
                     autoPlay
                     loop

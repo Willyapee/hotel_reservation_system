@@ -56,7 +56,7 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute inset-0 w-full h-full">
         <video
-          src="public/video/ChevalBlanc.mp4"
+          src="/video/ChevalBlanc.mp4"
           className="h-full w-full object-cover"
           autoPlay
           loop
