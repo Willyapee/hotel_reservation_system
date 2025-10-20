@@ -56,7 +56,7 @@ export default function HomePage() {
       <section className="w-full bg-[#fbfaf9] py-16">
         <div className="w-[90%] h-[35rem] relative overflow-hidden justify-center items-center mx-auto rounded-xl shadow-lg">
           <video
-            src="public/video/ChevalBlanc.mp4"
+            src="/video/ChevalBlanc.mp4"
             className="h-full w-full object-cover"
             autoPlay
             loop

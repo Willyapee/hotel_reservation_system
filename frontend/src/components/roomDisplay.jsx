@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import RoomList from '../../../backend/data/roomList.json'; 
+import RoomList from '../data/roomList.json'; 
 import '../css/roomDisplay.css';
 
 const augmentedRoomList = RoomList.map((room, index) => ({
