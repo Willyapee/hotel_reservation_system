@@ -9,7 +9,6 @@ import "../css/book.css";
 import RoomList from "../../../backend/data/roomList.json";
 import { useNavigate } from "react-router-dom";
 
-import Cards from "../../../backend/data/dineList.json";
 import { Link } from "react-router-dom";
 import { ShoppingCart, X, Loader, ArrowLeft} from "lucide-react";
 
@@ -535,35 +534,39 @@ const updateRoomChildren = (roomId, value) => {
           )}
         </AnimatePresence>
 
-        {/* SUITE / KATALOG */}
+        {/* ROOM CATALOG SECTION - CHANGED FROM DINE TO ROOMS */}
         {!openSearchResult ? (
           <section className="w-full max-w-6xl mx-auto mt-20 flex flex-col gap-16 pb-20">
-            {Cards.map((item, index) => (
+            {RoomList.map((room, index) => (
               <div
-                key={index}
+                key={room.roomId}
                 className={`flex flex-col md:flex-row ${
                   index % 2 === 1 ? "md:flex-row-reverse" : ""
-                } bg-white rounded-2xl shadow-lg overflow-hidden`}
+                } bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300`}
               >
                 <div className="md:w-1/2 w-full">
                   <img
-                    src={item.img}
-                    alt={item.title}
-                    className="w-full h-80 object-cover"
+                    src={room.roomImage}
+                    alt={room.roomName}
+                    className="w-full h-80 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="md:w-1/2 w-full p-8 flex flex-col justify-center">
                   <h3 className="text-2xl font-semibold text-[#c19a6b] mb-3 uppercase">
-                    {item.title}
+                    {room.roomName}
                   </h3>
-                  <p className="text-[#3a2f2a] text-sm mb-4 leading-relaxed">
-                    {item.content}
+                  <p className="text-gray-600 text-sm mb-2 font-medium">
+                    {room.roomBed}
                   </p>
-                  {item.description && (
-                    <p className="text-gray-500 text-sm italic">
-                      {item.description}
-                    </p>
-                  )}
+                  <p className="text-[#3a2f2a] text-sm mb-4 leading-relaxed">
+                    {room.roomDesc}
+                  </p>
+                  <div className="flex justify-between items-center mt-4">
+                    <span className="text-2xl font-bold text-[#102E50]">
+                      ${room.roomPrice}/night
+                    </span>
+                    
+                  </div>
                 </div>
               </div>
             ))}

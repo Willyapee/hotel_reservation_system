@@ -9,14 +9,13 @@ Repository: [Your GitHub repository link here]
 LOGIN CREDENTIALS:
 ------------------
 Admin Account:
-- Email: admin@gmail.com
+- Email: admin@admin.admin
 - Password: admin
-- Access:
-
+- Access: 
 
 Guest (demo) Account:
-- Email: guest@gmail.com
-- Password: guest123
+- Email: guest@guest.guest
+- Password: guest
 - Access: Basic user privileges
 
 GROUP MEMBERS:
@@ -46,7 +45,7 @@ TECHNICAL STACK:
 ----------------
 Frontend: React.js, Tailwind CSS, Framer Motion
 Backend: Node.js, Express.js
-Database: MongoDB/MySQL
+Database: MySQL
 Authentication: JWT/Session-based
 Deployment: [Netlify/Vercel/Other]
 
@@ -57,7 +56,9 @@ PROJECT FEATURES:
 ✓ User Registration & Authentication
 ✓ Room Availability Check
 ✓ Admin Dashboard
-✓ Payment Integration
+✓ Room Management
+✓ Activity Log 
+✓ 
 
 ADDITIONAL INFORMATION:
 -----------------------
