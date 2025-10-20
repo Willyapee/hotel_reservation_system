@@ -12,114 +12,6 @@ import RoomReservations from '../models//RoomReservations.js';
 //Import Libraries
 import { where } from 'sequelize';
 
-//Room Type Management
-//Create New Room Type
-export const createRoomType = async (req, res) => {
-	try {
-		const newRoomType = await MsRoomType.create(req.body);
-		res.status(201).json({ message: 'Room type created successfully', roomType: newRoomType });
-	} catch (error) {
-		res.status(500).json({ message: 'Error Creating New Room Type', error: error.message });
-	}
-};
-
-//Read Room Types
-export const readRoomTypes = async (req, res) => {
-	try {
-		const roomType = await MsRoomType.findAll();
-		res.status(200).json(roomType);
-	} catch (error) {
-		res.status(500).json({ message: 'Error reading room types', error: error.message });
-	}
-};
-
-//Update Room Type
-export const updateRoomType = async (req, res) => {
-	try {
-		const { id } = req.params;
-		const [updated] = await MsRoomType.update(req.body, { where: { id_room_type: id } });
-		if (updated) {
-			const updatedRoomType = await MsRoomType.findByPk(id);
-			res
-				.status(200)
-				.json({ message: 'Room type updated successfully', roomType: updatedRoomType });
-		} else {
-			res.status(404).json({ message: 'Room type not found' });
-		}
-	} catch (error) {
-		res.status(500).json({ message: 'Error updating room type', error: error.message });
-	}
-};
-
-//Delete Room Type
-export const deleteRoomType = async (req, res) => {
-	try {
-		const { id } = req.params;
-		const deleted = await MsRoomType.destroy({ where: { id_room_type: id } });
-		if (deleted) {
-			res.status(200).json({ message: 'Room type deleted successfully' });
-		} else {
-			res.status(404).json({ message: 'Room type not found' });
-		}
-	} catch (error) {
-		res.status(500).json({ message: 'Error deleting room type', error: error.message });
-	}
-};
-
-//Room Management
-//Create New Room
-export const createRoom = async (req, res) => {
-	try {
-		const newRoom = await Rooms.create(req.body);
-		res.status(201).json({ message: 'Room created successfully', room: newRoom });
-	} catch (error) {
-		res.status(500).json({ message: 'Error Creating New Room', error: error.message });
-	}
-};
-
-//Read Rooms
-export const readRooms = async (req, res) => {
-	try {
-		const rooms = await Rooms.findAll({
-			include: [{ model: MsRoomType, as: 'room_type' }],
-		});
-		res.status(200).json(rooms);
-	} catch (error) {
-		res.status(500).json({ message: 'Error reading rooms', error: error.message });
-	}
-};
-
-//Update Room
-export const updateRoom = async (req, res) => {
-	try {
-		const { id } = req.params;
-		const [updated] = await Rooms.update(req.body, { where: { id_room: id } });
-		if (updated) {
-			const updatedRoom = await Rooms.findByPk(id);
-			res.status(200).json({ message: 'Room updated successfully', room: updatedRoom });
-		} else {
-			res.status(404).json({ message: 'Room not found' });
-		}
-	} catch (error) {
-		res.status(500).json({ message: 'Error updating room', error: error.message });
-	}
-};
-
-//Delete Room
-export const deleteRoom = async (req, res) => {
-	try {
-		const { id } = req.params;
-		const deleted = await Rooms.destroy({ where: { id_room: id } });
-		if (deleted) {
-			res.status(200).json({ message: 'Room deleted successfully' });
-		} else {
-			res.status(404).json({ message: 'Room not found' });
-		}
-	} catch (error) {
-		res.status(500).json({ message: 'Error deleting room', error: error.message });
-	}
-};
-
 //Services Management
 //Create New Service
 export const createService = async (req, res) => {
@@ -130,7 +22,6 @@ export const createService = async (req, res) => {
 		res.status(500).json({ message: 'Error Creating New Service', error: error.message });
 	}
 };
-
 //Read Services
 export const readServices = async (req, res) => {
 	try {
@@ -140,7 +31,6 @@ export const readServices = async (req, res) => {
 		res.status(500).json({ message: 'Error reading services', error: error.message });
 	}
 };
-
 //Update Service
 export const updateService = async (req, res) => {
 	try {
@@ -150,7 +40,6 @@ export const updateService = async (req, res) => {
 		res.status(500).json({ message: 'Error updating service', error: error.message });
 	}
 };
-
 //Delete Service
 export const deleteService = async (req, res) => {
 	try {

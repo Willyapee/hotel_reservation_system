@@ -5,9 +5,8 @@ import Log from '../components/log.jsx';
 import RoomManagement from '../components/roomManagement.jsx';
 import NavigationBar from "../components/navigationBar.jsx";
 import MenuOverlay from "../components/menuOverlay.jsx";
-// HAPUS import jsPDF dari sini
 
-export default function Admin() { // HAPUS props logsFromServer
+export default function Admin() { 
 	const [visibleTab, setVisibleTab] = useState(null);
 	const [openMenu, setOpenMenu] = useState(false);
 	const navigate = useNavigate();
@@ -25,8 +24,6 @@ export default function Admin() { // HAPUS props logsFromServer
 		const el = document.getElementById(section);
 		if (el) el.scrollIntoView({ behavior: 'smooth' });
 	};
-
-	// HAPUS SELURUH function generateActivityLogPDF dari sini
 
 	const currentTab = () => {
 		switch (visibleTab) {

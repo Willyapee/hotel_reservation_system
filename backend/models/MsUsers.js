@@ -1,10 +1,6 @@
-//Import Libraries
 import { DataTypes } from 'sequelize';
-
-//Import Database
 import db from '../config/db.js';
 
-//Create User Model
 const MsUser = db.define('ms_user', {
 	id_user: {
 		type: DataTypes.INTEGER,

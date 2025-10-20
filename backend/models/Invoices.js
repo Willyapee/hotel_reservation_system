@@ -1,17 +1,13 @@
-//Import Libraries
 import { DataTypes } from 'sequelize';
-
-//Import Database
 import db from '../config/db.js';
 
-//Create Invoice Model
 const Invoices = db.define('invoice', {
 	id_invoice: {
 		type: DataTypes.INTEGER,
 		primaryKey: true,
 		autoIncrement: true,
 	},
-	id_reservation: {  // ← ✅ TAMBAH FOREIGN KEY INI
+	id_reservation: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },

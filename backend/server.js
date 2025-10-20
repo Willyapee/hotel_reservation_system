@@ -73,7 +73,7 @@ if (process.env.NODE_ENV === "production") {
 		defineRelationships();
 		console.log("🔗 Relationships defined");
 
-		await db.sync({ alter: true });
+		// await db.sync({ alter: true });
 		console.log("📦 All models synchronized successfully");
 
 		app.listen(PORT, () => {

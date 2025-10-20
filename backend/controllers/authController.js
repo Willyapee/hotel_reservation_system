@@ -10,10 +10,10 @@ export const registerUser = async (req, res) => {
 		//Express menangkap axios.post via req.bodu
 
 		/* 
-    User itu model Sequelize yang mewakili tabel user di MySQL.
-    findOne = ambil satu baris data dari database.
-    { where: { email } } = kondisi query → ambil user dengan kolom email sama dengan nilai email yang dikirim dari frontend.
-    */
+		User itu model Sequelize yang mewakili tabel user di MySQL.
+		findOne = ambil satu baris data dari database.
+		{ where: { email } } = kondisi query → ambil user dengan kolom email sama dengan nilai email yang dikirim dari frontend.
+		*/
 		const existingUser = await MsUser.findOne({ where: { email } });
 		if (existingUser) {
 			//status 400 = User exist already
@@ -70,7 +70,6 @@ export const loginUser = async (req, res) => {
 			maxAge: 60 * 60 * 1000, // 1 jam
 		});
 
-		//respons ke frontend
 		res.status(200).json({
 			message: 'Login successful',
 			token: token,
@@ -93,7 +92,7 @@ export const getMe = async (req, res) => {
 
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 		const user = await MsUser.findByPk(decoded.id, {
-			attributes: ['id_user', 'username', 'email'], // exclude password
+			attributes: ['id_user', 'username', 'email'], 
 		});
 		if (!user) return res.status(404).json({ message: 'User not found' });
 

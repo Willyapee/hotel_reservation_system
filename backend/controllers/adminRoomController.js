@@ -2,12 +2,11 @@ import MsRoomType from '../models/msRoomTypes.js';
 import Rooms from '../models/Rooms.js';
 import { Op } from 'sequelize';
 
-// === ROOM TYPE CONTROLLERS ===
+//ROOM TYPE CONTROLLERS
 export const createRoomType = async (req, res) => {
   try {
     const { name, capacity, price_per_night, description, room_bed, max_stay_duration, image_url } = req.body;
 
-    // Validation
     if (!name || !name.trim()) {
       return res.status(400).json({ message: 'Room type name is required' });
     }
@@ -27,7 +26,6 @@ export const createRoomType = async (req, res) => {
       return res.status(400).json({ message: 'Valid max stay duration is required' });
     }
 
-    // Check if room type name already exists
     const existingRoomType = await MsRoomType.findOne({ 
       where: { name: name.trim() } 
     });
@@ -84,7 +82,6 @@ export const updateRoomType = async (req, res) => {
       return res.status(404).json({ message: 'Room type not found' });
     }
 
-    // Validation
     if (!name || !name.trim()) {
       return res.status(400).json({ message: 'Room type name is required' });
     }
@@ -104,7 +101,6 @@ export const updateRoomType = async (req, res) => {
       return res.status(400).json({ message: 'Valid max stay duration is required' });
     }
 
-    // Check if room type name already exists (excluding current room type)
     const duplicateRoomType = await MsRoomType.findOne({ 
       where: { 
         name: name.trim(),
@@ -184,12 +180,11 @@ export const deleteRoomType = async (req, res) => {
   }
 };
 
-// === ROOM CONTROLLERS ===
+//ROOM CONTROLLERS
 export const createRoom = async (req, res) => {
   try {
     const { id_room_type, room_number } = req.body;
 
-    // Validation
     if (!id_room_type) {
       return res.status(400).json({ message: 'Room type is required' });
     }
@@ -197,13 +192,11 @@ export const createRoom = async (req, res) => {
       return res.status(400).json({ message: 'Room number is required' });
     }
 
-    // Check if room type exists
     const roomType = await MsRoomType.findByPk(id_room_type);
     if (!roomType) {
       return res.status(400).json({ message: 'Selected room type does not exist' });
     }
 
-    // Check if room number already exists
     const existingRoom = await Rooms.findOne({ 
       where: { room_number: room_number.trim() } 
     });
@@ -216,7 +209,6 @@ export const createRoom = async (req, res) => {
       room_number: room_number.trim()
     });
 
-    // Include room type information in response
     const roomWithType = await Rooms.findByPk(newRoom.id_room, {
       include: [{ model: MsRoomType, as: 'room_type' }]
     });
@@ -261,7 +253,6 @@ export const updateRoom = async (req, res) => {
       return res.status(404).json({ message: 'Room not found' });
     }
 
-    // Validation
     if (!id_room_type) {
       return res.status(400).json({ message: 'Room type is required' });
     }
@@ -269,13 +260,11 @@ export const updateRoom = async (req, res) => {
       return res.status(400).json({ message: 'Room number is required' });
     }
 
-    // Check if room type exists
     const roomType = await MsRoomType.findByPk(id_room_type);
     if (!roomType) {
       return res.status(400).json({ message: 'Selected room type does not exist' });
     }
 
-    // Check if room number already exists (excluding current room)
     const duplicateRoom = await Rooms.findOne({ 
       where: { 
         room_number: room_number.trim(),
@@ -317,22 +306,11 @@ export const deleteRoom = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if room exists
     const room = await Rooms.findByPk(id);
     if (!room) {
       return res.status(404).json({ message: 'Room not found' });
-    }
-
-    // Check if room has active reservations (you might want to add this later)
-    // const activeReservations = await RoomReservations.count({
-    //   where: { id_room: id, status: 'active' }
-    // });
-    // if (activeReservations > 0) {
-    //   return res.status(400).json({ 
-    //     message: 'Cannot delete room with active reservations' 
-    //   });
-    // }
-
+      }
+      
     const deleted = await Rooms.destroy({ 
       where: { id_room: id } 
     });
