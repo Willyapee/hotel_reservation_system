@@ -54,7 +54,7 @@ export default function Admin() {
       </div>
 
       <footer className="admin-footer">
-        © 2025 Cheval Blanc Admin Panel — All Rights Reserved.
+        © 2025 Nyx Hotel Admin Panel — All Rights Reserved.
       </footer>
     </div>
   );
