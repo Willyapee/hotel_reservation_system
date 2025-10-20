@@ -16,14 +16,7 @@ const db = new Sequelize(
 	//addition
 	{
 		host: process.env.DB_HOST,
-		port: process.env.DB_PORT,
 		dialect: 'mysql', //jenis database engine yg dipake sequelize
-		dialectOptions: {
-			//Wajib utk AIVEN
-			ssl: {
-				rejectUnauthorized: true,
-			}
-		}
 	}
 );
 
