@@ -1,4 +1,3 @@
-// backend/routes/adminRoutes.js
 import express from 'express';
 import {
 	createRoom,
@@ -9,17 +8,17 @@ import {
 	readRoomTypes,
 	updateRoomType,
 	deleteRoomType,
-} from '../controllers/adminRoomController.js'; // ← UBAH IMPORT INI
+} from '../controllers/adminRoomController.js';
 
 const router = express.Router();
 
-// === Room Management (CRUD untuk Rooms) ===
+//CRUD untuk Rooms
 router.get('/rooms', readRooms);
 router.post('/rooms', createRoom);
 router.put('/rooms/:id', updateRoom);
 router.delete('/rooms/:id', deleteRoom);
 
-// === Room Type Management (CRUD untuk Room Types) ===
+//CRUD untuk Room Types
 router.get('/room-types', readRoomTypes);
 router.post('/room-types', createRoomType);
 router.put('/room-types/:id', updateRoomType);

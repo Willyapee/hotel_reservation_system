@@ -1,8 +1,6 @@
-// ServiceReservations.js - ✅ BENAR
 import { DataTypes } from 'sequelize';
 import db from '../config/db.js';
 
-//Create Service Reservations Model
 const ServiceReservations = db.define('service_reservations', {
     id_service_reservation: {
         type: DataTypes.INTEGER,

@@ -1,11 +1,10 @@
-// Relationship.js - ✅ BENAR
 import MsUser from './MsUsers.js';
-import MsServices from './msServices.js'; // ← FILE BENAR
+import MsServices from './msServices.js'; 
 import ServiceReservations from './ServiceReservations.js';
 import MsRoomType from './msRoomTypes.js';
 import Rooms from './Rooms.js';
-import Invoices from './Invoices.js'; // ← VARIABLE BENAR
-import Payments from './Payments.js'; // ← VARIABLE BENAR
+import Invoices from './Invoices.js'; 
+import Payments from './Payments.js'; 
 import Reservations from './Reservations.js';
 import RoomReservations from './RoomReservations.js';
 
@@ -22,24 +21,20 @@ const defineRelationships = () => {
 
 	// 2. RESERVATION - INVOICE (One-to-One)
 	Reservations.hasOne(Invoices, {
-		// ← KOREKSI: Invoices
 		foreignKey: 'id_reservation',
 		as: 'invoice',
 	});
 	Invoices.belongsTo(Reservations, {
-		// ← KOREKSI: Invoices
 		foreignKey: 'id_reservation',
 		as: 'reservation',
 	});
 
 	// 3. INVOICE - PAYMENT (One-to-One)
 	Invoices.hasOne(Payments, {
-		// ← KOREKSI: Invoices & Payments
 		foreignKey: 'id_invoice',
 		as: 'payment',
 	});
 	Payments.belongsTo(Invoices, {
-		// ← KOREKSI: Invoices & Payments
 		foreignKey: 'id_invoice',
 		as: 'invoice',
 	});
