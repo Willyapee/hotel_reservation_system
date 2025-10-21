@@ -76,7 +76,5 @@ PROJECT FEATURES:
 
 ADDITIONAL INFORMATION:
 -----------------------
-[Any special instructions, API keys information, environment variables, or additional notes about the project]
-
 OUR POWERPOINT
 https://www.canva.com/design/DAG2Wp6Fj4g/ryjmWy-weQJuz0QDAZwKJw/edit?utm_content=DAG2Wp6Fj4g&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
