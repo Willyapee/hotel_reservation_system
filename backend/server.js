@@ -54,8 +54,8 @@ app.use('/invoices', invoiceRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/users', userRoutes);
 
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(_filename);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === 'production') {
 	const buildPath = path.join(__dirname, '../client/dist');
