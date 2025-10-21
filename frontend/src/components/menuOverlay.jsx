@@ -47,7 +47,7 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
     {
       id: 'contact',
       label: 'Contact',
-      path: '/contact'
+      section: 'contact'
     }
   ];
 
