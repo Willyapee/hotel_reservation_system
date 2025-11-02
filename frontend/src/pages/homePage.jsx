@@ -25,6 +25,10 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    // Hide scrollbar on component mount
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
     const handleScroll = () => {
       const footer = document.querySelector("footer");
       if (footer) {
@@ -33,12 +37,19 @@ export default function HomePage() {
         setShowFloating(footerTop > windowHeight);
       }
     };
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    
+    // Cleanup function
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      document.documentElement.style.overflow = 'auto';
+      document.body.style.overflow = 'auto';
+    };
   }, []);
 
   return (
-    <div className="w-full h-auto overflow-x-hidden">
+    <div className="w-full h-screen overflow-hidden">
       <NavigationBar openMenu={openMenu} handleOpenMenu={handleOpenMenu} />
       
       {/* Menu Overlay */}
@@ -48,50 +59,56 @@ export default function HomePage() {
         onNavigate={handleNavigateToSection}
       />
 
-      <section id="introduction">
-        <Introduction />
-      </section>
-      
+      {/* Scrollable content container */}
+      <div className="h-screen overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <section id="introduction">
+          <Introduction />
+        </section>
+        
+        <section className="w-full bg-[#fbfaf9] py-16">
+          <div className="w-[90%] h-[35rem] relative overflow-hidden justify-center items-center mx-auto rounded-xl shadow-lg">
+            <video
+              src="/video/ChevalBlanc.mp4"
+              className="h-full w-full object-cover"
+              autoPlay
+              loop
+              muted
+              playsInline
+            ></video>
+          </div>
+        </section>
 
-      <section className="w-full bg-[#fbfaf9] py-16">
-        <div className="w-[90%] h-[35rem] relative overflow-hidden justify-center items-center mx-auto rounded-xl shadow-lg">
-          <video
-            src="/video/ChevalBlanc.mp4"
-            className="h-full w-full object-cover"
-            autoPlay
-            loop
-            muted
-            playsInline
-          ></video>
-        </div>
-      </section>
+        <section id="facilities">
+          <Facility />
+        </section>
 
-      <section id="facilities">
-        <Facility />
-      </section>
-
-      <InfiniteScrollText />
-      
-      <section id="rooms" className="bg-[#fbfaf9] px-0 py-20">
-        <h2 className="text-center text-4xl font-bold text-[#333] mb-4">
-          Rooms & Suites
-        </h2>
-        <h3 className="text-center text-xl text-[#666] mb-10">
-          A range of accommodations from intimate suites to private penthouses.
-          Each room carefully designed for comfort and alpine views.
-        </h3>
-        <RoomDisplay />
-      </section>
-
-      <div id="dine" className="px-8 py-20 bg-[#fbfaf9]">
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold text-[#333] mb-4">Dine With Us</h2>
-          <h3 className="text-xl text-[#666]">
-            Experience culinary excellence at our on-site restaurants and bars,
-            offering a variety of gourmet dishes and drinks.
+        <InfiniteScrollText />
+        
+        <section id="rooms" className="bg-[#fbfaf9] px-0 py-20">
+          <h2 className="text-center text-4xl font-bold text-[#333] mb-4">
+            Rooms & Suites
+          </h2>
+          <h3 className="text-center text-xl text-[#666] mb-10">
+            A range of accommodations from intimate suites to private penthouses.
+            Each room carefully designed for comfort and alpine views.
           </h3>
+          <RoomDisplay />
+        </section>
+
+        <div id="dine" className="px-8 py-20 bg-[#fbfaf9]">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold text-[#333] mb-4">Dine With Us</h2>
+            <h3 className="text-xl text-[#666]">
+              Experience culinary excellence at our on-site restaurants and bars,
+              offering a variety of gourmet dishes and drinks.
+            </h3>
+          </div>
+          <Carousel />
         </div>
-        <Carousel />
+
+        <Parallax />
+
+        <Footer />
       </div>
 
       {showFloating && (
@@ -104,10 +121,6 @@ export default function HomePage() {
           </Link>
         </div>
       )}
-
-      <Parallax />
-
-      <Footer />
     </div>
   );
 }

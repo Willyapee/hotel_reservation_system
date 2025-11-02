@@ -273,57 +273,79 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-[#fbfaf9]">
-      {/* Header */}
-      <div className="bg-[#102E50] p-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back to Home</span>
+      {/* Header - Updated to match navigationBar.jsx exactly */}
+      <div className='w-full h-fit fixed flex items-center gap-x-10 px-4 py-2 bg-[#102E50] z-40'>
+        <div className='flex items-center gap-x-8'>
+          <img src='../picture/logo/logo.png' className='w-13 h-fit' alt="Nyx Hotel" />
+          <button 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-x-2 text-white hover:text-gray-300 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className='text-sm'>Back to Home</span>
+          </button>
+        </div>
+
+        <div className="flex-grow flex justify-end items-center gap-x-6">
+          {user.name ? (
+            <button className="flex items-center gap-x-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#c19a6b] to-[#a67c52] flex items-center justify-center text-white font-bold text-sm cursor-pointer hover:opacity-90 transition-opacity duration-300">
+                {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+              </div>
+              <div className="text-right hidden sm:block">
+                <p className="text-white text-sm font-medium">{user.name}</p>
+              </div>
             </button>
-            <img src="../picture/logo/logoNoBG.png" className="w-10 h-auto" alt="Nyx Hotel" />
-          </div>
-          <h1 className="text-xl font-bold text-white">My Profile</h1>
+          ) : (
+            <div className="flex items-center gap-x-3 right-0">
+              <button 
+                onClick={() => navigate('/login')}
+                className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-4 py-2 rounded-lg transition-all duration-300 ease-in-out text-sm hover:scale-105 z-10"
+              >
+                Sign In
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-6">
-              <nav className="space-y-2">
-                {tabItems.map(tab => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                        activeTab === tab.id
-                          ? "bg-[#c19a6b]"
-                          : "hover:bg-gray-100"
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 ${activeTab === tab.id ? "text-white" : "text-gray-600"}`} />
-                      <span className={activeTab === tab.id ? "text-white" : "text-gray-600"}>
-                        {tab.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </nav>
+      {/* Add padding to account for fixed header */}
+      <div className="pt-16">
+        <div className="max-w-6xl mx-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Sidebar Navigation */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-6">
+                <nav className="space-y-2">
+                  {tabItems.map(tab => {
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                          activeTab === tab.id
+                            ? "bg-[#c19a6b]"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <Icon className={`w-5 h-5 ${activeTab === tab.id ? "text-white" : "text-gray-600"}`} />
+                        <span className={activeTab === tab.id ? "text-white" : "text-gray-600"}>
+                          {tab.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
             </div>
-          </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-              {activeTab === "profile" && <ProfileInfo />}
-              {activeTab === "bookings" && <BookingHistory />}
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                {activeTab === "profile" && <ProfileInfo />}
+                {activeTab === "bookings" && <BookingHistory />}
+              </div>
             </div>
           </div>
         </div>
