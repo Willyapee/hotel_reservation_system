@@ -25,7 +25,10 @@ import adminRoutes from './routes/adminRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import userRoutes from '../backend/routes/userRoutes.js';
+
+/*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
 const allowedOrigins = [process.env.CLIENT_URL || 'http://localhost:5173'];
+/*=============================================================================== */
 
 app.use(
 	cors({
@@ -54,17 +57,19 @@ app.use('/invoices', invoiceRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/users', userRoutes);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+/*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
+// const __filename = fileURLToPath(import.meta.url);
+// const _dirname = path.dirname(_filename);
 
-if (process.env.NODE_ENV === 'production') {
-	const buildPath = path.join(__dirname, '../client/dist');
-	app.use(express.static(buildPath));
+// if (process.env.NODE_ENV === 'production') {
+// 	const buildPath = path.join(__dirname, '../client/dist');
+// 	app.use(express.static(buildPath));
 
-	app.get('(.*)', (req, res) => {
-		res.sendFile(path.join(buildPath, 'index.html'));
-	});
-}
+// 	app.get('*', (req, res) => {
+// 		res.sendFile(path.join(buildPath, 'index.html'));
+// 	});
+// }
+/*=============================================================================== */
 
 (async () => {
 	try {
