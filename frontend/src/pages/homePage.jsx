@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import NavigationBar from "../components/navigationBar.jsx";
-import Introduction from "../components/introduction.jsx";  
-import RoomDisplay from "../components/roomDisplay.jsx";
-import Carousel from "../components/carousel.jsx";
-import Facility from "../components/facility.jsx";
-import InfiniteScrollText from "../components/infiniteScrollText.jsx";
-import Parallax from "../components/parralax.jsx";
-import Footer from "../components/footer.jsx";
-import MenuOverlay from "../components/menuOverlay.jsx";
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import NavigationBar from '../components/navigationBar.jsx';
+import Introduction from '../components/introduction.jsx';
+import RoomDisplay from '../components/roomDisplay.jsx';
+import Carousel from '../components/carousel.jsx';
+import Facility from '../components/facility.jsx';
+import InfiniteScrollText from '../components/infiniteScrollText.jsx';
+import Parallax from '../components/parralax.jsx';
+import Footer from '../components/footer.jsx';
+import MenuOverlay from '../components/menuOverlay.jsx';
 
 export default function HomePage() {
-  const [openMenu, setOpenMenu] = useState(false);
-  const [showFloating, setShowFloating] = useState(true);
+	const [openMenu, setOpenMenu] = useState(false);
+	const [showFloating, setShowFloating] = useState(true);
 
-  const handleOpenMenu = () => setOpenMenu(!openMenu);
-  const handleCloseMenu = () => setOpenMenu(false);
+	const handleOpenMenu = () => setOpenMenu(!openMenu);
+	const handleCloseMenu = () => setOpenMenu(false);
 
-  const handleNavigateToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+	const handleNavigateToSection = (sectionId) => {
+		const element = document.getElementById(sectionId);
+		if (element) {
+			element.scrollIntoView({ behavior: 'smooth' });
+		}
+	};
 
   useEffect(() => {
     // Hide scrollbar on component mount
