@@ -55,6 +55,10 @@ export const searchAvailableRooms = async (req, res) => {
                     where: { id_room_type: roomType.id_room_type }
                 });
 
+                if (allRooms.length === 0) {
+                    return null; // Skip room types tanpa actual rooms
+                }
+
                 // Cari kamar yang sudah direservasi pada periode tersebut
                 const bookedRooms = await RoomReservations.findAll({
                     where: {
@@ -71,28 +75,39 @@ export const searchAvailableRooms = async (req, res) => {
                 });
 
                 const bookedRoomIds = bookedRooms.map(room => room.id_room);
-                const availableRoomCount = allRooms.filter(room => 
+                const availableRoomsOfType = allRooms.filter(room => 
                     !bookedRoomIds.includes(room.id_room)
-                ).length;
+                );
 
-                return {
-                    roomId: roomType.id_room_type, // Using room type ID as identifier
+                // ✅ FIX: RETURN ACTUAL ROOMS BUKAN ROOM TYPES
+                return availableRoomsOfType.map(room => ({
+                    roomId: room.id_room, // ✅ GUNAKAN id_room BUKAN id_room_type
                     roomName: roomType.name,
                     roomBed: roomType.room_bed,
                     roomDesc: roomType.description,
                     roomImage: roomType.image_url || '/default-room.jpg',
                     roomPrice: parseFloat(roomType.price_per_night),
-                    availableRooms: availableRoomCount,
+                    roomNumber: room.room_number, // ✅ TAMBAHKAN ROOM NUMBER
+                    availableRooms: availableRoomsOfType.length,
                     capacity: roomType.capacity,
                     maxStayDuration: roomType.max_stay_duration,
                     totalPrice: parseFloat(roomType.price_per_night) * duration,
                     duration: duration
-                };
+                }));
             })
         );
 
-        // Filter hanya room type yang punya kamar available
-        const filteredRooms = availableRooms.filter(room => room.availableRooms > 0);
+        // Flatten array dan filter null values
+        const flattenedRooms = availableRooms.flat().filter(room => room !== null);
+        
+        // Filter hanya rooms yang available
+        const filteredRooms = flattenedRooms.filter(room => room.availableRooms > 0);
+
+        console.log('🔍 Available rooms found:', filteredRooms.map(r => ({
+            roomId: r.roomId,
+            roomName: r.roomName,
+            roomNumber: r.roomNumber
+        })));
 
         res.json({
             success: true,

@@ -178,6 +178,50 @@ const updateRoomChildren = (roomId, value) => {
     }
   };
 
+  // Di Book.jsx - addToCart function
+const addToCart = async (room) => {
+  try {
+    const cartData = {
+      roomId: room.roomId,
+      checkIn: format(date[0].startDate, 'yyyy-MM-dd'),
+      checkOut: format(date[0].endDate, 'yyyy-MM-dd'),
+      guests: {
+        totalAdults,
+        totalChildren
+      },
+      rooms: rooms
+    };
+
+    console.log('Sending cart data:', cartData);
+
+    const response = await fetch('http://localhost:3000/api/cart/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(cartData)
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // ✅ SIMPAN CART ID KE LOCALSTORAGE SEBAGAI FALLBACK
+      if (result.cartId) {
+        localStorage.setItem('cartId', result.cartId);
+      }
+      
+      alert('Room added to cart successfully!');
+      navigate('/cart');
+    } else {
+      alert(result.message || 'Failed to add to cart');
+    }
+  } catch (error) {
+    console.error('Add to cart error:', error);
+    alert('Failed to add room to cart');
+  }
+};
+
   // Handle search button click
   const handleSearch = () => {
     setOpenCalendar(false);
@@ -601,13 +645,13 @@ const updateRoomChildren = (roomId, value) => {
                   <p className="text-[#102E50] font-semibold text-lg">${room.roomPrice} / night</p>
                 </div>
 
-                {/* Book Now di pojok kanan bawah */}
-                <Link
-                  to="/cart"
-                  className="absolute bottom-4 right-4 bg-[#c19a6b] hover:bg-[#a67c52] text-white px-4 py-2 rounded-lg"
+                {/* ✅ UPDATED: Ganti Link dengan Button Add to Cart */}
+                <button
+                  onClick={() => addToCart(room)}
+                  className="absolute bottom-4 right-4 bg-[#c19a6b] hover:bg-[#a67c52] text-white px-4 py-2 rounded-lg transition-colors duration-300"
                 >
-                  Book Now
-                </Link>
+                  Add to Cart
+                </button>
 
                 {/* POPUP DETAIL */}
                 <AnimatePresence>

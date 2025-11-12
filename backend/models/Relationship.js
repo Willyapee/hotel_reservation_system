@@ -7,6 +7,8 @@ import Invoices from './Invoices.js';
 import Payments from './Payments.js'; 
 import Reservations from './Reservations.js';
 import RoomReservations from './RoomReservations.js';
+import Cart from './Cart.js'; 
+import CartItem from './CartItemm.js'; // ✅ TAMBAHKAN IMPORT INI
 
 const defineRelationships = () => {
 	// 1. USER - RESERVATION (One-to-Many)
@@ -90,6 +92,36 @@ const defineRelationships = () => {
 	});
 	ServiceReservations.belongsTo(MsServices, {
 		foreignKey: 'id_service',
+	});
+	
+	// User - Cart (One-to-Many)
+	MsUser.hasMany(Cart, {
+		foreignKey: 'id_user',
+		as: 'carts',
+	});
+	Cart.belongsTo(MsUser, {
+		foreignKey: 'id_user',
+		as: 'user',
+	});
+
+	// Cart - CartItem (One-to-Many)
+	Cart.hasMany(CartItem, {
+		foreignKey: 'id_cart',
+		as: 'cart_items',
+	});
+	CartItem.belongsTo(Cart, {
+		foreignKey: 'id_cart',
+		as: 'cart',
+	});
+
+	// Room - CartItem (One-to-Many)
+	Rooms.hasMany(CartItem, {
+		foreignKey: 'id_room',
+		as: 'cart_items',
+	});
+	CartItem.belongsTo(Rooms, {
+		foreignKey: 'id_room',
+		as: 'room',
 	});
 };
 
