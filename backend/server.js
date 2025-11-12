@@ -25,6 +25,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import userRoutes from '../backend/routes/userRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
 const allowedOrigins = [process.env.CLIENT_URL || 'http://localhost:5173'];
@@ -56,6 +57,7 @@ app.use('/admin', adminRoutes);
 app.use('/invoices', invoiceRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/users', userRoutes);
+app.use('/api/cart', cartRoutes);
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
 // const __filename = fileURLToPath(import.meta.url);
