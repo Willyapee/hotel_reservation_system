@@ -1,161 +1,263 @@
 // controllers/cartController.js
 import Cart from '../models/Cart.js';
 import CartItem from '../models/CartItemm.js';
-import Rooms from '../models/Rooms.js'; // Import model Rooms
+import Rooms from '../models/Rooms.js';
+import MsRoomType from '../models/msRoomTypes.js';
 
 // Generate unique cart session ID
 const generateCartId = () => `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-// Get or create cart session
+// ✅ FIX: GLOBAL CART ID VARIABLE (fallback jika session tidak work)
+let globalCartId = null;
+
+// Get or create cart session - ✅ FIX CART CONSISTENCY
 const getOrCreateCart = async (req) => {
-  let cartId = req.session.cartId;
+  let cartId;
   
-  if (!cartId) {
+  // ✅ PRIORITIZE SESSION, THEN GLOBAL, THEN CREATE NEW
+  if (req.session?.cartId) {
+    cartId = req.session.cartId;
+    console.log('📦 Existing session cart:', cartId);
+  } else if (globalCartId) {
+    cartId = globalCartId;
+    console.log('📦 Existing global cart:', cartId);
+  } else {
     cartId = generateCartId();
-    req.session.cartId = cartId;
-    
-    // Simpan cart ke database
-    const cart = await Cart.create({
-      cart_session_id: cartId,
-      id_user: req.user?.id || null,
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 jam
-    });
-    
-    return cart;
+    globalCartId = cartId; // ✅ SET GLOBAL FALLBACK
+    if (req.session) {
+      req.session.cartId = cartId;
+    }
+    console.log('🆕 New cart created:', cartId);
   }
   
-  // Cari cart existing
-  const cart = await Cart.findOne({
-    where: { cart_session_id: cartId },
-    include: [{ model: CartItem, as: 'cart_items' }]
+  // Cari cart di database
+  let cart = await Cart.findOne({
+    where: { session_id: cartId }
   });
+  
+  if (!cart) {
+    cart = await Cart.create({
+      session_id: cartId,
+      user_id: req.user?.id || null,
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    });
+    console.log('📝 Cart created in DB:', cart.cart_id);
+  }
   
   return cart;
 };
 
-// ADD TO CART
+// ADD TO CART - ✅ FIX TIMEZONE ISSUE
 export const addToCart = async (req, res) => {
   try {
     const { roomId, checkIn, checkOut, guests, rooms } = req.body;
     
+    console.log('🛒 Add to cart request:', { roomId, checkIn, checkOut, guests });
+
     // Validasi data
     if (!roomId || !checkIn || !checkOut) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: roomId, checkIn, checkOut'
+        message: 'Missing required fields'
       });
     }
 
+    // ✅ FIX: CONVERT DATE TO UTC TO AVOID TIMEZONE ISSUES
+    const utcCheckIn = new Date(checkIn + 'T00:00:00Z');
+    const utcCheckOut = new Date(checkOut + 'T00:00:00Z');
+    
+    console.log('📅 Date conversion:', {
+      original: { checkIn, checkOut },
+      utc: { utcCheckIn, utcCheckOut }
+    });
+
     // Get or create cart
     const cart = await getOrCreateCart(req);
+    console.log('📦 Cart ID:', cart.cart_id);
     
-    // Cek apakah room sudah ada di cart
+    // Cek duplikat - ✅ GUNAKAN UTC DATES
     const existingItem = await CartItem.findOne({
       where: { 
-        id_cart: cart.id_cart,
-        id_room: roomId,
-        check_in_date: checkIn,
-        check_out_date: checkOut
+        cart_id: cart.cart_id,
+        room_id: roomId,
+        check_in: utcCheckIn,
+        check_out: utcCheckOut
       }
     });
 
     if (existingItem) {
       return res.status(400).json({
         success: false,
-        message: 'Room already in cart for these dates'
+        message: 'Room already in cart'
       });
     }
 
-    // ✅ AMBIL DATA ROOM - GANTI DENGAN MODEL ROOMS ANDA
-    const room = await Rooms.findByPk(roomId);
-    if (!room) {
+    // Ambil data room & room type
+    const room = await Rooms.findByPk(roomId, {
+      include: [{
+        model: MsRoomType,
+        as: 'room_type',
+        attributes: ['name', 'price_per_night', 'description', 'room_bed', 'image_url', 'capacity']
+      }]
+    });
+    
+    if (!room || !room.room_type) {
       return res.status(404).json({
         success: false,
         message: 'Room not found'
       });
     }
 
-    // Hitung total nights dan price
-    const nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
-    const totalPrice = room.room_price * nights; // Sesuaikan field price
+    const roomType = room.room_type;
 
-    // Simpan ke cart items
+    // Hitung harga - ✅ GUNAKAN UTC DATES
+    const nights = Math.ceil((utcCheckOut - utcCheckIn) / (1000 * 60 * 60 * 24));
+    const totalPrice = roomType.price_per_night * nights;
+
+    console.log('💰 Price calculation:', { 
+      nights, 
+      roomPrice: roomType.price_per_night, 
+      totalPrice,
+      roomName: roomType.name
+    });
+
+    // Simpan ke cart - ✅ GUNAKAN UTC DATES
     const cartItem = await CartItem.create({
-      id_cart: cart.id_cart,
-      id_room: roomId,
-      check_in_date: checkIn,
-      check_out_date: checkOut,
+      cart_id: cart.cart_id,
+      room_id: roomId,
+      check_in: utcCheckIn,
+      check_out: utcCheckOut,
       adults: guests.totalAdults,
-      children: guests.totalChildren,
-      child_ages: rooms.flatMap(room => room.childAges),
+      children: guests.totalChildren || 0,
+      child_ages: rooms ? rooms.flatMap(r => r.childAges || []) : [],
       room_data: {
-        name: room.room_name, // Sesuaikan field
-        type: room.room_type, // Sesuaikan field  
-        price: room.room_price, // Sesuaikan field
-        image: room.room_image, // Sesuaikan field
-        description: room.room_description, // Sesuaikan field
-        bed_type: room.bed_type // Sesuaikan field
+        name: roomType.name,
+        type: roomType.name,
+        price: roomType.price_per_night,
+        image: roomType.image_url,
+        description: roomType.description,
+        bed_type: roomType.room_bed,
+        capacity: roomType.capacity,
+        room_number: room.room_number
       },
-      total_nights: nights,
+      nights: nights,
       total_price: totalPrice
     });
+
+    console.log('✅ Cart item created successfully, ID:', cartItem.cart_item_id);
+    console.log('💾 Saved to database with cart_id:', cart.cart_id);
 
     res.json({
       success: true,
       message: 'Room added to cart successfully',
       cartItem: {
-        id: cartItem.id_cart_item,
+        id: cartItem.cart_item_id,
         room: cartItem.room_data,
-        checkIn: cartItem.check_in_date,
-        checkOut: cartItem.check_out_date,
-        nights: cartItem.total_nights,
+        checkIn: cartItem.check_in,
+        checkOut: cartItem.check_out,
+        nights: cartItem.nights,
         guests: {
           adults: cartItem.adults,
           children: cartItem.children
         },
         totalPrice: cartItem.total_price
-      }
+      },
+      cartId: cart.session_id // ✅ KIRIM CART ID KE CLIENT
     });
 
   } catch (error) {
-    console.error('Add to cart error:', error);
+    console.error('❌ Add to cart error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to add room to cart'
+      message: 'Failed to add room to cart',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
 
-// GET CART ITEMS
+// GET CART ITEMS - ✅ FIX: ENSURE room_data IS PROPERLY PARSED AND SENT
 export const getCart = async (req, res) => {
   try {
     const cart = await getOrCreateCart(req);
+    console.log('🛍️ Getting cart items for cart ID:', cart.cart_id);
     
     const cartItems = await CartItem.findAll({
-      where: { id_cart: cart.id_cart },
+      where: { cart_id: cart.cart_id },
       order: [['createdAt', 'DESC']]
     });
 
-    const formattedCart = cartItems.map(item => ({
-      id: item.id_cart_item,
-      room: {
-        ...item.room_data,
-        total: item.total_price
-      },
-      checkIn: item.check_in_date,
-      checkOut: item.check_out_date,
-      nights: item.total_nights,
-      guests: {
-        adults: item.adults,
-        children: item.children
-      },
-      totalPrice: item.total_price
-    }));
+    console.log('📋 Found cart items:', cartItems.length);
+    
+    // ✅ FIX: PROPERLY HANDLE room_data PARSING
+    const formattedCart = cartItems.map(item => {
+      console.log('🛒 Processing cart item:', {
+        id: item.cart_item_id,
+        room_data: item.room_data,
+        room_data_type: typeof item.room_data
+      });
+
+      // ✅ FIX: PARSE room_data DENGAN BENAR
+      let roomData = {};
+      try {
+        // Handle both string JSON and object
+        if (typeof item.room_data === 'string') {
+          roomData = JSON.parse(item.room_data);
+          console.log('✅ Successfully parsed room_data string');
+        } else if (typeof item.room_data === 'object') {
+          roomData = item.room_data;
+          console.log('✅ room_data is already object');
+        }
+      } catch (error) {
+        console.error('❌ Error parsing room_data:', error);
+        // Fallback room data
+        roomData = {
+          name: "Room",
+          price: 0,
+          image: "/default-room.jpg",
+          description: "Room description",
+          bed_type: "No bed information",
+          room_number: "-"
+        };
+      }
+
+      // ✅ FIX: ENSURE ALL REQUIRED FIELDS EXIST
+      const finalRoomData = {
+        name: roomData.name || "Room",
+        type: roomData.type || roomData.name || "Standard Room",
+        price: roomData.price || roomData.price_per_night || 0,
+        image: roomData.image || roomData.image_url || "/default-room.jpg",
+        description: roomData.description || "Room description",
+        bed_type: roomData.bed_type || roomData.room_bed || "No bed information",
+        capacity: roomData.capacity || 2,
+        room_number: roomData.room_number || "-"
+      };
+
+      console.log('🎯 Final room data for frontend:', finalRoomData);
+
+      return {
+        id: item.cart_item_id,
+        // ✅ SEND BOTH room AND room_data FOR COMPATIBILITY
+        room: finalRoomData,
+        room_data: finalRoomData,
+        checkIn: item.check_in,
+        checkOut: item.check_out,
+        nights: item.nights,
+        adults: item.adults, // ✅ DIRECT PROPERTIES
+        children: item.children, // ✅ DIRECT PROPERTIES
+        guests: {
+          adults: item.adults,
+          children: item.children
+        },
+        totalPrice: item.total_price
+      };
+    });
+
+    console.log('📦 Sending formatted cart to frontend:', formattedCart.length, 'items');
 
     res.json({
       success: true,
       cart: formattedCart,
-      cartId: cart.cart_session_id
+      cartId: cart.session_id
     });
 
   } catch (error) {
@@ -176,8 +278,8 @@ export const removeFromCart = async (req, res) => {
     
     const deleted = await CartItem.destroy({
       where: { 
-        id_cart_item: itemId,
-        id_cart: cart.id_cart 
+        cart_item_id: itemId,
+        cart_id: cart.cart_id
       }
     });
 
@@ -208,7 +310,7 @@ export const clearCart = async (req, res) => {
     const cart = await getOrCreateCart(req);
     
     await CartItem.destroy({
-      where: { id_cart: cart.id_cart }
+      where: { cart_id: cart.cart_id }
     });
 
     res.json({

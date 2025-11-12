@@ -9,25 +9,49 @@ function Cart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load cart data from backend API
   useEffect(() => {
     const fetchCart = async () => {
       try {
         setLoading(true);
+        setError(null);
+        console.log('🛒 Fetching cart data...');
+        
         const response = await fetch('http://localhost:3000/api/cart', {
           credentials: 'include'
         });
         
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const result = await response.json();
+        console.log('🔍 FULL CART RESPONSE:', result);
+        
+        // ✅ DEBUG DETAIL: Lihat structure sebenarnya
+        if (result.success && Array.isArray(result.cart)) {
+          console.log('📦 CART ITEMS ANALYSIS:');
+          result.cart.forEach((item, index) => {
+            console.log(`--- Item ${index} ---`);
+            console.log('ID:', item.id);
+            console.log('Room property:', item.room);
+            console.log('Room type:', typeof item.room);
+            console.log('Room_data property:', item.room_data);
+            console.log('CheckIn:', item.checkIn);
+            console.log('CheckOut:', item.checkOut);
+            console.log('Guests:', item.guests);
+            console.log('TotalPrice:', item.totalPrice);
+            console.log('All properties:', Object.keys(item));
+          });
+        }
         
         if (result.success) {
-          setCartData(result.cart);
+          setCartData(Array.isArray(result.cart) ? result.cart : []);
         } else {
           setError(result.message || 'Failed to load cart');
         }
       } catch (error) {
-        console.error('Failed to fetch cart:', error);
-        setError('Failed to load cart items');
+        console.error('❌ Failed to fetch cart:', error);
+        setError(`Failed to load cart: ${error.message}`);
       } finally {
         setLoading(false);
       }
@@ -39,15 +63,16 @@ function Cart() {
   // Remove item from cart
   const handleRemove = async (itemId) => {
     try {
+      console.log('🗑️ Removing item:', itemId);
       const response = await fetch(`http://localhost:3000/api/cart/${itemId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
       
       const result = await response.json();
+      console.log('Delete response:', result);
       
       if (result.success) {
-        // Remove from local state
         setCartData(prev => prev.filter(item => item.id !== itemId));
       } else {
         alert(result.message || 'Failed to remove item');
@@ -58,52 +83,109 @@ function Cart() {
     }
   };
 
-  // Clear entire cart
-  const handleClearCart = async () => {
-    if (!window.confirm('Are you sure you want to clear your cart?')) return;
-    
-    try {
-      const response = await fetch('http://localhost:3000/api/cart', {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        setCartData([]);
-      } else {
-        alert(result.message || 'Failed to clear cart');
-      }
-    } catch (error) {
-      console.error('Failed to clear cart:', error);
-      alert('Failed to clear cart');
-    }
-  };
-
   // Calculate total price
   const totalPrice = cartData.reduce(
-    (sum, item) => sum + (item.totalPrice || 0),
+    (sum, item) => sum + (parseFloat(item.totalPrice) || 0),
     0
   );
 
-  // Proceed to checkout
-  const handleProceed = () => {
-    if (cartData.length === 0) return;
-    
-    // Save cart data to localStorage for checkout page (optional)
-    localStorage.setItem('cartData', JSON.stringify(cartData));
-    navigate("/checkout");
-  };
-
   // Format date for display
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    try {
+      if (!dateString) return 'Invalid date';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return 'Invalid date';
+    }
   };
+
+  // ✅ FIXED: SIMPLE ROOM DATA EXTRACTION
+  const getRoomData = (cartItem) => {
+    console.log('🔄 Processing cart item:', cartItem);
+    
+    // Coba 1: Langsung dari room property
+    if (cartItem.room && typeof cartItem.room === 'object') {
+      console.log('✅ Found room object:', cartItem.room);
+      return cartItem.room;
+    }
+    
+    // Coba 2: Dari room_data (string JSON)
+    if (cartItem.room_data) {
+      console.log('📦 Found room_data:', cartItem.room_data);
+      try {
+        const roomData = typeof cartItem.room_data === 'string' 
+          ? JSON.parse(cartItem.room_data) 
+          : cartItem.room_data;
+        console.log('✅ Parsed room_data:', roomData);
+        return roomData;
+      } catch (error) {
+        console.error('❌ Failed to parse room_data:', error);
+      }
+    }
+    
+    // Coba 3: Cek jika room adalah string JSON
+    if (cartItem.room && typeof cartItem.room === 'string') {
+      try {
+        console.log('📦 Found room string, parsing...');
+        const roomData = JSON.parse(cartItem.room);
+        console.log('✅ Parsed room string:', roomData);
+        return roomData;
+      } catch (error) {
+        console.error('❌ Failed to parse room string:', error);
+      }
+    }
+    
+    // Fallback: Data default
+    console.log('⚠️ Using fallback room data');
+    return {
+      name: "Room",
+      price: 0,
+      image: '/default-room.jpg',
+      description: "Room description",
+      bed_type: "No bed information",
+      room_number: "-"
+    };
+  };
+
+  // Get guests data
+  const getGuestsData = (cartItem) => {
+    return cartItem.guests || {
+      adults: cartItem.adults || 0,
+      children: cartItem.children || 0
+    };
+  };
+
+  // Error Boundary Component
+  if (error) {
+    return (
+      <div className="w-full min-h-screen bg-[#fbfaf9] flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
+          <h2 className="text-2xl text-red-600 mb-4">Error Loading Cart</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <div className="space-y-2">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-[#c19a6b] hover:bg-[#a67c52] text-white px-6 py-3 rounded-lg transition-colors duration-300"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => navigate("/booking")}
+              className="w-full bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors duration-300"
+            >
+              Back to Booking
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen bg-[#fbfaf9] font-[Times_New_Roman]">
@@ -139,24 +221,6 @@ function Cart() {
           </motion.div>
         )}
 
-        {/* Error State */}
-        {error && !loading && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="bg-white shadow-lg rounded-2xl p-10 text-center"
-          >
-            <p className="text-red-600 text-lg mb-6">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-6 py-3 rounded-lg transition-colors duration-300"
-            >
-              Try Again
-            </button>
-          </motion.div>
-        )}
-
         {/* Empty Cart */}
         {!loading && !error && cartData.length === 0 && (
           <motion.div
@@ -185,91 +249,103 @@ function Cart() {
             transition={{ duration: 0.5 }}
             className="space-y-6"
           >
-            {/* Clear Cart Button */}
-            <div className="text-right">
-              <button
-                onClick={handleClearCart}
-                className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors duration-300"
-              >
-                Clear Entire Cart
-              </button>
-            </div>
-
             {/* LIST ROOM */}
-            {cartData.map((cartItem, index) => (
-              <div
-                key={cartItem.id || index}
-                className="flex flex-col md:flex-row items-center bg-white rounded-xl shadow-md p-6 gap-6 relative"
-              >
-                <img
-                  src={cartItem.room?.image || '/default-room.jpg'}
-                  alt={cartItem.room?.name || 'Room'}
-                  className="w-full md:w-48 h-40 object-cover rounded-lg"
-                />
-                <div className="flex-1 w-full">
-                  <h3 className="text-2xl font-semibold text-[#c19a6b] mb-2">
-                    {cartItem.room?.name || "Room"}
-                  </h3>
-                  <p className="text-gray-600 mb-1">
-                    Type: {cartItem.room?.type || "-"}
-                  </p>
-                  <p className="text-gray-600 mb-1">
-                    Guests: {cartItem.guests?.adults || 0} Adults,{" "}
-                    {cartItem.guests?.children || 0} Children
-                  </p>
-                  <p className="text-gray-600 mb-1">
-                    Check-in: {formatDate(cartItem.checkIn)}
-                  </p>
-                  <p className="text-gray-600 mb-1">
-                    Check-out: {formatDate(cartItem.checkOut)}
-                  </p>
-                  <p className="text-gray-600 mb-1">
-                    Stay: {cartItem.nights || 0} night{cartItem.nights !== 1 ? 's' : ''}
-                  </p>
-                  <p className="text-[#102E50] font-bold text-lg">
-                    ${cartItem.room?.price || 0} / night
-                  </p>
-                  <p className="text-lg font-semibold text-[#c19a6b] mt-2">
-                    Total: ${cartItem.totalPrice?.toFixed(2) || '0.00'}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleRemove(cartItem.id)}
-                  className="text-red-600 hover:text-red-800 transition-colors duration-300 absolute top-4 right-4"
-                  title="Remove from cart"
+            {cartData.map((cartItem, index) => {
+              const room = getRoomData(cartItem);
+              const guests = getGuestsData(cartItem);
+              const itemId = cartItem.id;
+              
+              console.log(`🎯 Final display data for item ${index}:`, {
+                room,
+                guests,
+                itemId,
+                totalPrice: cartItem.totalPrice
+              });
+
+              // ✅ FIX IMAGE PATH - remove /public prefix
+              const roomImage = room.image ? 
+                room.image.replace('/public/', '/') : 
+                '/default-room.jpg';
+
+              return (
+                <div
+                  key={itemId}
+                  className="flex flex-col md:flex-row items-start bg-white rounded-xl shadow-lg p-6 gap-6 relative border border-gray-200"
                 >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-            ))}
+                  {/* ROOM IMAGE */}
+                  <div className="w-full md:w-80 flex-shrink-0">
+                    <img
+                      src={roomImage}
+                      alt={room.name}
+                      className="w-full h-64 object-cover rounded-xl shadow-md"
+                      onError={(e) => {
+                        console.log('❌ Image failed to load, using fallback');
+                        e.target.src = '/default-room.jpg';
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="flex-1 w-full min-w-0">
+                    <h3 className="text-2xl font-bold text-[#c19a6b] mb-2">
+                      {room.name || "Room"}
+                    </h3>
+                    
+                    {/* BED TYPE */}
+                    <p className="text-gray-500 text-sm mb-1">
+                      {room.bed_type || "No bed information"}
+                    </p>
+                    
+                    {/* DESCRIPTION */}
+                    {room.description && (
+                      <p className="text-gray-600 text-sm mb-3">
+                        {room.description}
+                      </p>
+                    )}
+                    
+                    <div className="space-y-2 text-gray-600">
+                      <p>
+                        <span className="font-medium">Room Number:</span> {room.room_number || "-"}
+                      </p>
+                      <p>
+                        <span className="font-medium">Guests:</span> {guests.adults} Adults,{" "}
+                        {guests.children} Children
+                      </p>
+                      <p>
+                        <span className="font-medium">Check-in:</span> {formatDate(cartItem.checkIn)}
+                      </p>
+                      <p>
+                        <span className="font-medium">Check-out:</span> {formatDate(cartItem.checkOut)}
+                      </p>
+                      <p>
+                        <span className="font-medium">Stay:</span> {cartItem.nights || 0} night{cartItem.nights !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    
+                    <div className="mt-4 space-y-2">
+                      <p className="text-[#102E50] font-bold text-xl">
+                        ${parseFloat(room.price || 0).toFixed(2)} / night
+                      </p>
+                      <p className="text-2xl font-bold text-[#c19a6b]">
+                        Total: ${parseFloat(cartItem.totalPrice || 0).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => handleRemove(itemId)}
+                    className="text-red-600 hover:text-red-800 transition-colors duration-300 absolute top-4 right-4 bg-white p-2 rounded-full shadow-lg hover:scale-110"
+                    title="Remove from cart"
+                  >
+                    <Trash2 className="w-6 h-6" />
+                  </button>
+                </div>
+              );
+            })}
 
             {/* SUMMARY */}
             <div className="mt-10 bg-[#102E50] text-white p-8 rounded-xl shadow-xl space-y-4">
               <h3 className="text-2xl font-bold text-center mb-4">Order Summary</h3>
               
-              {cartData.length === 1 ? (
-                <>
-                  <div className="flex justify-between">
-                    <span>Check-in:</span>
-                    <span>{formatDate(cartData[0].checkIn)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Check-out:</span>
-                    <span>{formatDate(cartData[0].checkOut)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Total Nights:</span>
-                    <span>{cartData[0].nights}</span>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center">
-                  <p className="text-gray-200">
-                    {cartData.length} room{cartData.length !== 1 ? 's' : ''} selected
-                  </p>
-                </div>
-              )}
-
               <div className="border-t border-gray-600 pt-4 mt-4">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-medium">Total Price:</span>
@@ -281,7 +357,7 @@ function Cart() {
 
               <div className="text-center mt-6">
                 <button
-                  onClick={handleProceed}
+                  onClick={() => navigate("/checkout")}
                   className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-300 shadow-lg hover:scale-105"
                 >
                   Proceed to Checkout

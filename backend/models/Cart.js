@@ -21,7 +21,7 @@ const Cart = db.define('cart', {
     allowNull: false,
   }
 }, {
-  tableName: 'carts', // ✅ explicit table name
+  tableName: 'carts',
   timestamps: true,
 });
 
