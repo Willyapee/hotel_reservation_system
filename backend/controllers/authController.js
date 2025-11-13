@@ -1,8 +1,13 @@
 import MsUser from '../models/MsUsers.js';
+import Cart from '../models/Cart.js'; // ✅ IMPORT CART MODEL
+import CartItem from '../models/CartItemm.js'; // ✅ IMPORT CART ITEM MODEL
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 const salt = 10;
+
+// ✅ NEW: GENERATE CART ID FUNCTION
+const generateCartId = () => `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 export const registerUser = async (req, res) => {
 	const { username, email, password } = req.body;
@@ -27,6 +32,14 @@ export const registerUser = async (req, res) => {
 			email,
 			password: hashedPassword,
 		});
+
+		// ✅ NEW: CREATE CART FOR NEW USER
+		await Cart.create({
+			session_id: generateCartId(),
+			user_id: newUser.id_user,
+			expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+		});
+		console.log('🆕 Cart created for new user:', newUser.id_user);
 
 		res.status(201).json({
 			message: 'User registered successfully',
@@ -58,6 +71,46 @@ export const loginUser = async (req, res) => {
 		const isMatch = await bcrypt.compare(password, user.password); //compare(plainText, hashed)
 		if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
 
+		// ✅ NEW: CART TRANSFER LOGIC - TRANSFER GUEST CART TO USER CART
+		console.log('🔄 Checking for guest cart transfer...');
+		if (req.session?.cartId) {
+			const guestCart = await Cart.findOne({
+				where: { session_id: req.session.cartId }
+			});
+			
+			if (guestCart && guestCart.user_id === null) {
+				// Cari atau buat user cart
+				let userCart = await Cart.findOne({
+					where: { user_id: user.id_user }
+				});
+				
+				if (!userCart) {
+					userCart = await Cart.create({
+						session_id: generateCartId(),
+						user_id: user.id_user,
+						expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+					});
+					console.log('🆕 User cart created during login:', userCart.cart_id);
+				}
+				
+				// Transfer cart items dari guest cart ke user cart
+				const transferredItems = await CartItem.update(
+					{ cart_id: userCart.cart_id },
+					{ where: { cart_id: guestCart.cart_id } }
+				);
+				
+				// Hapus guest cart
+				await Cart.destroy({ where: { cart_id: guestCart.cart_id } });
+				
+				// Update session ke user cart
+				req.session.cartId = userCart.session_id;
+				
+				console.log(`✅ Transferred ${transferredItems[0]} items from guest cart to user cart`);
+			}
+		} else {
+			console.log('ℹ️ No guest cart to transfer');
+		}
+
 		//generate token
 		const token = jwt.sign({ id: user.id_user, email: user.email, role: user.role }, process.env.JWT_SECRET, {
 			expiresIn: '1h',
@@ -76,7 +129,7 @@ export const loginUser = async (req, res) => {
 			role: user.role,
 		});
 	} catch (error) {
-		console.log(error);
+		console.log('❌ Login error:', error);
 		res.status(500).json({ message: 'Server error' });
 	}
 };
@@ -104,5 +157,22 @@ export const getMe = async (req, res) => {
 	} catch (error) {
 		console.log(error);
 		res.status(401).json({ message: 'Invalid token' });
+	}
+};
+
+// ✅ NEW: LOGOUT - JANGAN CLEAR CART
+export const logoutUser = (req, res) => {
+	try {
+		// ❌ JANGAN clear session cartId, biarkan cart tetap ada
+		// req.session.cartId = null;
+		
+		res.clearCookie('token');
+		res.json({
+			success: true,
+			message: 'Logout successful'
+		});
+	} catch (error) {
+		console.error('Logout error:', error);
+		res.status(500).json({ success: false, message: 'Logout failed' });
 	}
 };

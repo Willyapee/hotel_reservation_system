@@ -7,52 +7,76 @@ import MsRoomType from '../models/msRoomTypes.js';
 // Generate unique cart session ID
 const generateCartId = () => `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-// ✅ FIX: GLOBAL CART ID VARIABLE (fallback jika session tidak work)
-let globalCartId = null;
-
-// Get or create cart session - ✅ FIX CART CONSISTENCY
 const getOrCreateCart = async (req) => {
-  let cartId;
-  
-  // ✅ PRIORITIZE SESSION, THEN GLOBAL, THEN CREATE NEW
-  if (req.session?.cartId) {
-    cartId = req.session.cartId;
-    console.log('📦 Existing session cart:', cartId);
-  } else if (globalCartId) {
-    cartId = globalCartId;
-    console.log('📦 Existing global cart:', cartId);
-  } else {
-    cartId = generateCartId();
-    globalCartId = cartId; // ✅ SET GLOBAL FALLBACK
-    if (req.session) {
-      req.session.cartId = cartId;
-    }
-    console.log('🆕 New cart created:', cartId);
+  console.log('🔍 CART DEBUG - User:', req.user?.id, 'Session:', req.sessionID);
+
+  if (!req.user?.id) {
+    console.log('❌ NO USER ID - User must be logged in to use cart');
+    throw new Error('Authentication required. Please login to use cart.');
   }
+
+  console.log('👤 User logged in, finding user cart for ID:', req.user.id);
   
-  // Cari cart di database
-  let cart = await Cart.findOne({
-    where: { session_id: cartId }
+  let userCart = await Cart.findOne({
+    where: { user_id: req.user.id }
   });
   
-  if (!cart) {
-    cart = await Cart.create({
-      session_id: cartId,
-      user_id: req.user?.id || null,
+  if (userCart) {
+    console.log('📦 Existing user cart found:', userCart.cart_id, 'for user:', userCart.user_id);
+    return userCart;
+  } else {
+    // Buat cart baru untuk user
+    userCart = await Cart.create({
+      session_id: generateCartId(),
+      user_id: req.user.id,
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
     });
-    console.log('📝 Cart created in DB:', cart.cart_id);
+    console.log('🆕 New user cart created:', userCart.cart_id, 'for user:', userCart.user_id);
+    return userCart;
   }
-  
-  return cart;
 };
 
-// ADD TO CART - ✅ FIX TIMEZONE ISSUE
+export const authorizeCart = async (req, res, next) => {
+  try {
+    console.log('🔐 CART AUTH - Checking user:', req.user?.id);
+    
+    if (!req.user?.id) {
+      console.log('❌ No user ID - verifyToken middleware mungkin tidak bekerja');
+      return res.status(401).json({
+        success: false,
+        message: 'Please login to access cart'
+      });
+    }
+
+    const cart = await getOrCreateCart(req);
+    
+    console.log('🔐 CART AUTH - User:', req.user.id, 'Cart User:', cart.user_id);
+    
+    if (cart.user_id !== req.user.id) {
+      console.log('❌ Cart authorization failed: User mismatch');
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: This cart belongs to another user'
+      });
+    }
+    
+    req.cart = cart; // Attach cart ke request
+    next();
+  } catch (error) {
+    console.error('Cart auth error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Cart authorization failed: ' + error.message
+    });
+  }
+};
+
+// ADD TO CART - pakai cart dari middleware
 export const addToCart = async (req, res) => {
   try {
     const { roomId, checkIn, checkOut, guests, rooms } = req.body;
     
-    console.log('🛒 Add to cart request:', { roomId, checkIn, checkOut, guests });
+    console.log('🛒 Add to cart - User:', req.user.id, 'Cart:', req.cart.cart_id);
 
     // Validasi data
     if (!roomId || !checkIn || !checkOut) {
@@ -62,23 +86,13 @@ export const addToCart = async (req, res) => {
       });
     }
 
-    // ✅ FIX: CONVERT DATE TO UTC TO AVOID TIMEZONE ISSUES
     const utcCheckIn = new Date(checkIn + 'T00:00:00Z');
     const utcCheckOut = new Date(checkOut + 'T00:00:00Z');
-    
-    console.log('📅 Date conversion:', {
-      original: { checkIn, checkOut },
-      utc: { utcCheckIn, utcCheckOut }
-    });
 
-    // Get or create cart
-    const cart = await getOrCreateCart(req);
-    console.log('📦 Cart ID:', cart.cart_id);
-    
-    // Cek duplikat - ✅ GUNAKAN UTC DATES
+    // Cek duplikat di cart
     const existingItem = await CartItem.findOne({
       where: { 
-        cart_id: cart.cart_id,
+        cart_id: req.cart.cart_id,
         room_id: roomId,
         check_in: utcCheckIn,
         check_out: utcCheckOut
@@ -92,7 +106,7 @@ export const addToCart = async (req, res) => {
       });
     }
 
-    // Ambil data room & room type
+    // Ambil data room
     const room = await Rooms.findByPk(roomId, {
       include: [{
         model: MsRoomType,
@@ -109,21 +123,11 @@ export const addToCart = async (req, res) => {
     }
 
     const roomType = room.room_type;
-
-    // Hitung harga - ✅ GUNAKAN UTC DATES
     const nights = Math.ceil((utcCheckOut - utcCheckIn) / (1000 * 60 * 60 * 24));
     const totalPrice = roomType.price_per_night * nights;
 
-    console.log('💰 Price calculation:', { 
-      nights, 
-      roomPrice: roomType.price_per_night, 
-      totalPrice,
-      roomName: roomType.name
-    });
-
-    // Simpan ke cart - ✅ GUNAKAN UTC DATES
     const cartItem = await CartItem.create({
-      cart_id: cart.cart_id,
+      cart_id: req.cart.cart_id,
       room_id: roomId,
       check_in: utcCheckIn,
       check_out: utcCheckOut,
@@ -144,8 +148,7 @@ export const addToCart = async (req, res) => {
       total_price: totalPrice
     });
 
-    console.log('✅ Cart item created successfully, ID:', cartItem.cart_item_id);
-    console.log('💾 Saved to database with cart_id:', cart.cart_id);
+    console.log('✅ Cart item created for user:', req.user.id);
 
     res.json({
       success: true,
@@ -161,55 +164,37 @@ export const addToCart = async (req, res) => {
           children: cartItem.children
         },
         totalPrice: cartItem.total_price
-      },
-      cartId: cart.session_id // ✅ KIRIM CART ID KE CLIENT
+      }
     });
 
   } catch (error) {
     console.error('❌ Add to cart error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to add room to cart',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: 'Failed to add room to cart'
     });
   }
 };
 
-// GET CART ITEMS - ✅ FIX: ENSURE room_data IS PROPERLY PARSED AND SENT
+// GET CART - pakai cart dari middleware
 export const getCart = async (req, res) => {
   try {
-    const cart = await getOrCreateCart(req);
-    console.log('🛍️ Getting cart items for cart ID:', cart.cart_id);
+    console.log('🛍️ Getting cart for user:', req.user.id, 'cart:', req.cart.cart_id);
     
     const cartItems = await CartItem.findAll({
-      where: { cart_id: cart.cart_id },
+      where: { cart_id: req.cart.cart_id },
       order: [['createdAt', 'DESC']]
     });
 
-    console.log('📋 Found cart items:', cartItems.length);
-    
-    // ✅ FIX: PROPERLY HANDLE room_data PARSING
-    const formattedCart = cartItems.map(item => {
-      console.log('🛒 Processing cart item:', {
-        id: item.cart_item_id,
-        room_data: item.room_data,
-        room_data_type: typeof item.room_data
-      });
+    console.log('📋 Found cart items:', cartItems.length, 'for user:', req.user.id);
 
-      // ✅ FIX: PARSE room_data DENGAN BENAR
+    const formattedCart = cartItems.map(item => {
       let roomData = {};
       try {
-        // Handle both string JSON and object
-        if (typeof item.room_data === 'string') {
-          roomData = JSON.parse(item.room_data);
-          console.log('✅ Successfully parsed room_data string');
-        } else if (typeof item.room_data === 'object') {
-          roomData = item.room_data;
-          console.log('✅ room_data is already object');
-        }
+        roomData = typeof item.room_data === 'string' 
+          ? JSON.parse(item.room_data) 
+          : item.room_data;
       } catch (error) {
-        console.error('❌ Error parsing room_data:', error);
-        // Fallback room data
         roomData = {
           name: "Room",
           price: 0,
@@ -220,30 +205,14 @@ export const getCart = async (req, res) => {
         };
       }
 
-      // ✅ FIX: ENSURE ALL REQUIRED FIELDS EXIST
-      const finalRoomData = {
-        name: roomData.name || "Room",
-        type: roomData.type || roomData.name || "Standard Room",
-        price: roomData.price || roomData.price_per_night || 0,
-        image: roomData.image || roomData.image_url || "/default-room.jpg",
-        description: roomData.description || "Room description",
-        bed_type: roomData.bed_type || roomData.room_bed || "No bed information",
-        capacity: roomData.capacity || 2,
-        room_number: roomData.room_number || "-"
-      };
-
-      console.log('🎯 Final room data for frontend:', finalRoomData);
-
       return {
         id: item.cart_item_id,
-        // ✅ SEND BOTH room AND room_data FOR COMPATIBILITY
-        room: finalRoomData,
-        room_data: finalRoomData,
+        room: roomData,
         checkIn: item.check_in,
         checkOut: item.check_out,
         nights: item.nights,
-        adults: item.adults, // ✅ DIRECT PROPERTIES
-        children: item.children, // ✅ DIRECT PROPERTIES
+        adults: item.adults,
+        children: item.children, 
         guests: {
           adults: item.adults,
           children: item.children
@@ -252,12 +221,9 @@ export const getCart = async (req, res) => {
       };
     });
 
-    console.log('📦 Sending formatted cart to frontend:', formattedCart.length, 'items');
-
     res.json({
       success: true,
-      cart: formattedCart,
-      cartId: cart.session_id
+      cart: formattedCart
     });
 
   } catch (error) {
@@ -269,17 +235,17 @@ export const getCart = async (req, res) => {
   }
 };
 
-// REMOVE FROM CART
+// REMOVE FROM CART - pakai cart dari middleware
 export const removeFromCart = async (req, res) => {
   try {
     const { itemId } = req.params;
     
-    const cart = await getOrCreateCart(req);
-    
+    console.log('🗑️ Removing item:', itemId, 'from cart:', req.cart.cart_id, 'user:', req.user.id);
+
     const deleted = await CartItem.destroy({
       where: { 
         cart_item_id: itemId,
-        cart_id: cart.cart_id
+        cart_id: req.cart.cart_id
       }
     });
 
@@ -304,13 +270,13 @@ export const removeFromCart = async (req, res) => {
   }
 };
 
-// CLEAR CART
+// CLEAR CART - pakai cart dari middleware
 export const clearCart = async (req, res) => {
   try {
-    const cart = await getOrCreateCart(req);
+    console.log('🧹 Clearing cart:', req.cart.cart_id, 'for user:', req.user.id);
     
     await CartItem.destroy({
-      where: { cart_id: cart.cart_id }
+      where: { cart_id: req.cart.cart_id }
     });
 
     res.json({
@@ -326,3 +292,8 @@ export const clearCart = async (req, res) => {
     });
   }
 };
+
+// TRANSFER FUNCTION - HAPUS, SUDAH TIDAK DIPERLUKAN
+// export const transferGuestCartToUser = async (req, res, next) => {
+//   // Hapus function ini karena tidak ada guest cart lagi
+// };

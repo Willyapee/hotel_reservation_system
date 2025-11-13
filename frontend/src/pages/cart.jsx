@@ -27,7 +27,6 @@ function Cart() {
         const result = await response.json();
         console.log('🔍 FULL CART RESPONSE:', result);
         
-        // ✅ DEBUG DETAIL: Lihat structure sebenarnya
         if (result.success && Array.isArray(result.cart)) {
           console.log('📦 CART ITEMS ANALYSIS:');
           result.cart.forEach((item, index) => {
@@ -105,7 +104,6 @@ function Cart() {
     }
   };
 
-  // ✅ FIXED: SIMPLE ROOM DATA EXTRACTION
   const getRoomData = (cartItem) => {
     console.log('🔄 Processing cart item:', cartItem);
     
@@ -262,7 +260,6 @@ function Cart() {
                 totalPrice: cartItem.totalPrice
               });
 
-              // ✅ FIX IMAGE PATH - remove /public prefix
               const roomImage = room.image ? 
                 room.image.replace('/public/', '/') : 
                 '/default-room.jpg';

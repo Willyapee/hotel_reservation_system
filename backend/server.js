@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import session from 'express-session'; // ✅ IMPORT SESSION
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -28,7 +29,10 @@ import userRoutes from '../backend/routes/userRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
-const allowedOrigins = [process.env.CLIENT_URL || 'http://localhost:5173'];
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:5173',
+  'http://localhost:5174' // ✅ BACKUP PORT
+];
 /*=============================================================================== */
 
 app.use(
@@ -45,6 +49,18 @@ app.use(
 );
 
 app.use(cookieParser());
+
+// ✅ SESSION MIDDLEWARE (PENTING UNTUK CART SYSTEM)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'fallback-secret-key-for-development',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { 
+    secure: false, // true jika pakai HTTPS
+    maxAge: 24 * 60 * 60 * 1000 // 24 jam
+  }
+}));
+
 app.use(express.json());
 
 app.use('/auth', authRoutes);
@@ -81,8 +97,15 @@ app.use('/api/cart', cartRoutes);
 		defineRelationships();
 		console.log('🔗 Relationships defined');
 
-		await db.sync({ alter: true });
-		console.log('📦 All models synchronized successfully');
+		// ✅ FIXED: SAFE DATABASE SYNC - NO MORE DUPLICATE INDEXES
+		if (process.env.NODE_ENV === 'production') {
+			await db.sync({ alter: true });
+			console.log('📦 Production: All models synchronized with alter');
+		} else {
+			// Development: Safe sync without alter to prevent duplicate indexes
+			await db.sync({ force: false, alter: false });
+			console.log('📦 Development: All models synchronized safely (no alter)');
+		}
 
 		try {
 			const adminEmail = 'admin@admin.admin';
