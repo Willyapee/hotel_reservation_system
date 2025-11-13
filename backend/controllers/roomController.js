@@ -79,15 +79,14 @@ export const searchAvailableRooms = async (req, res) => {
                     !bookedRoomIds.includes(room.id_room)
                 );
 
-                // ✅ FIX: RETURN ACTUAL ROOMS BUKAN ROOM TYPES
                 return availableRoomsOfType.map(room => ({
-                    roomId: room.id_room, // ✅ GUNAKAN id_room BUKAN id_room_type
+                    roomId: room.id_room,
                     roomName: roomType.name,
                     roomBed: roomType.room_bed,
                     roomDesc: roomType.description,
                     roomImage: roomType.image_url || '/default-room.jpg',
                     roomPrice: parseFloat(roomType.price_per_night),
-                    roomNumber: room.room_number, // ✅ TAMBAHKAN ROOM NUMBER
+                    roomNumber: room.room_number,
                     availableRooms: availableRoomsOfType.length,
                     capacity: roomType.capacity,
                     maxStayDuration: roomType.max_stay_duration,

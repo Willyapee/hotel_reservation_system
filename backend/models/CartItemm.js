@@ -7,11 +7,11 @@ const CartItem = db.define('cart_item', {
     primaryKey: true,
     autoIncrement: true,
   },
-  cart_id: { // ✅ GUNAKAN cart_id BUKAN id_cart
+  cart_id: { 
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  room_id: { // ✅ GUNAKAN room_id BUKAN id_room  
+  room_id: { 
     type: DataTypes.INTEGER,
     allowNull: false,
   },
