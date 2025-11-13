@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import session from 'express-session'; // ✅ IMPORT SESSION
+import session from 'express-session';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -31,7 +31,7 @@ import cartRoutes from './routes/cartRoutes.js';
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173',
-  'http://localhost:5174' // ✅ BACKUP PORT
+  'http://localhost:5174' // BACKUP PORT
 ];
 /*=============================================================================== */
 

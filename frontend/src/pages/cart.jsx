@@ -107,13 +107,11 @@ function Cart() {
   const getRoomData = (cartItem) => {
     console.log('🔄 Processing cart item:', cartItem);
     
-    // Coba 1: Langsung dari room property
     if (cartItem.room && typeof cartItem.room === 'object') {
       console.log('✅ Found room object:', cartItem.room);
       return cartItem.room;
     }
     
-    // Coba 2: Dari room_data (string JSON)
     if (cartItem.room_data) {
       console.log('📦 Found room_data:', cartItem.room_data);
       try {
@@ -127,7 +125,6 @@ function Cart() {
       }
     }
     
-    // Coba 3: Cek jika room adalah string JSON
     if (cartItem.room && typeof cartItem.room === 'string') {
       try {
         console.log('📦 Found room string, parsing...');

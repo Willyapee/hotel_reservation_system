@@ -1,12 +1,11 @@
 import MsUser from '../models/MsUsers.js';
-import Cart from '../models/Cart.js'; // ✅ IMPORT CART MODEL
-import CartItem from '../models/CartItemm.js'; // ✅ IMPORT CART ITEM MODEL
+import Cart from '../models/Cart.js'; 
+import CartItem from '../models/CartItemm.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 const salt = 10;
 
-// ✅ NEW: GENERATE CART ID FUNCTION
 const generateCartId = () => `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 export const registerUser = async (req, res) => {
@@ -33,7 +32,6 @@ export const registerUser = async (req, res) => {
 			password: hashedPassword,
 		});
 
-		// ✅ NEW: CREATE CART FOR NEW USER
 		await Cart.create({
 			session_id: generateCartId(),
 			user_id: newUser.id_user,
@@ -71,7 +69,6 @@ export const loginUser = async (req, res) => {
 		const isMatch = await bcrypt.compare(password, user.password); //compare(plainText, hashed)
 		if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
 
-		// ✅ NEW: CART TRANSFER LOGIC - TRANSFER GUEST CART TO USER CART
 		console.log('🔄 Checking for guest cart transfer...');
 		if (req.session?.cartId) {
 			const guestCart = await Cart.findOne({
@@ -160,7 +157,6 @@ export const getMe = async (req, res) => {
 	}
 };
 
-// ✅ NEW: LOGOUT - JANGAN CLEAR CART
 export const logoutUser = (req, res) => {
 	try {
 		// ❌ JANGAN clear session cartId, biarkan cart tetap ada
