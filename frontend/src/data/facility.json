@@ -2,21 +2,25 @@
   {
     "name": "The Grand Atrium",
     "desc": "Step into a world bathed in golden light, where marble floors meet soaring ceilings. The Grand Atrium is more than a lobby — it is the beginning of an unforgettable journey, where elegance greets you at every corner.",
-    "img": "/lobby/lobby2.jpg"
+    "img": "/public/lobby/lobby2.jpg",
+    "facPrice": 0
   },
   {
     "name": "The Summit Lounge",
     "desc": "Perched above the city, this exclusive lounge welcomes you with refined elegance, curated spirits, and discreet luxury.",
-    "img": "/fac/fac2.jpg"
+    "img": "/public/fac/fac2.jpg",
+    "facPrice": 25
   },
   {
-      "name": "The Serenity Spa",
-      "desc": "A sanctuary of tranquility, where every detail is designed to soothe the senses and rejuvenate the spirit. The Serenity Spa offers a haven of peace amidst the bustle of city life.",
-      "img": "/fac/fac3.jpg"
+    "name": "The Serenity Spa",
+    "desc": "A sanctuary of tranquility, where every detail is designed to soothe the senses and rejuvenate the spirit. The Serenity Spa offers a haven of peace amidst the bustle of city life.",
+    "img": "/public/fac/fac3.jpg",
+    "facPrice": 80
   },
   {
-      "name": "The Infinity Pool",
-      "desc": "Dive into a world where the sky meets the water. The Infinity Pool offers a breathtaking view of the city skyline, creating a seamless blend of luxury and nature.",
-      "img": "/fac/fac4.jpg"
+    "name": "The Infinity Pool",
+    "desc": "Dive into a world where the sky meets the water. The Infinity Pool offers a breathtaking view of the city skyline, creating a seamless blend of luxury and nature.",
+    "img": "/public/fac/fac4.jpg",
+    "facPrice": 15
   }
 ]

@@ -8,7 +8,8 @@ import Payments from './Payments.js';
 import Reservations from './Reservations.js';
 import RoomReservations from './RoomReservations.js';
 import Cart from './Cart.js'; 
-import CartItem from './CartItemm.js'; // ✅ TAMBAHKAN IMPORT INI
+import CartItem from './CartItemm.js';
+import CartItemService from './CartItemmService.js';
 
 const defineRelationships = () => {
 	// 1. USER - RESERVATION (One-to-Many)
@@ -122,6 +123,32 @@ const defineRelationships = () => {
 	CartItem.belongsTo(Rooms, {
 		foreignKey: 'id_room',
 		as: 'room',
+	});
+
+	// CARTITEM - SERVICE (Many-to-Many)
+	CartItem.belongsToMany(MsServices, {
+		through: CartItemService,
+		foreignKey: 'cart_item_id',
+		otherKey: 'service_id',
+		as: 'services',
+	});
+
+	MsServices.belongsToMany(CartItem, {
+		through: CartItemService,
+		foreignKey: 'service_id',
+		otherKey: 'cart_item_id',
+		as: 'cart_items',
+	});
+
+	// DIRECT RELATIONS UNTUK JUNCTION TABLE
+	CartItemService.belongsTo(CartItem, {
+		foreignKey: 'cart_item_id',
+		as: 'cart_item',
+	});
+
+	CartItemService.belongsTo(MsServices, {
+		foreignKey: 'service_id',
+		as: 'service',
 	});
 };
 
