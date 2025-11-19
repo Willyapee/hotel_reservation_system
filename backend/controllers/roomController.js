@@ -1,4 +1,3 @@
-// controllers/roomController.js
 import { Op } from 'sequelize';
 import MsRoomType from '../models/msRoomTypes.js';
 import Rooms from '../models/Rooms.js';

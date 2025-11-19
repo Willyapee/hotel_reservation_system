@@ -1,8 +1,9 @@
-// controllers/cartController.js
 import Cart from '../models/Cart.js';
 import CartItem from '../models/CartItemm.js';
+import CartItemService from '../models/CartItemmService.js';
 import Rooms from '../models/Rooms.js';
 import MsRoomType from '../models/msRoomTypes.js';
+import MsServices from '../models/msServices.js';
 
 // Generate unique cart session ID
 const generateCartId = () => `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -71,6 +72,39 @@ export const authorizeCart = async (req, res, next) => {
   }
 };
 
+const updateCartItemTotalPrice = async (cartItemId) => {
+  try {
+    const cartItem = await CartItem.findByPk(cartItemId, {
+      include: [{
+        model: MsServices,
+        as: 'services',
+        through: { attributes: ['total_price'] }
+      }]
+    });
+
+    if (!cartItem) return;
+
+    // Calculate room total (base price)
+    const roomTotal = parseFloat(cartItem.room_data?.price || 0) * cartItem.nights;
+    
+    // Calculate services total
+    const servicesTotal = cartItem.services.reduce((sum, service) => {
+      return sum + parseFloat(service.CartItemService.total_price || 0);
+    }, 0);
+
+    // Update cart item total
+    const newTotalPrice = roomTotal + servicesTotal;
+    await cartItem.update({
+      total_price: newTotalPrice
+    });
+
+    console.log('💰 Updated cart item total:', newTotalPrice);
+    
+  } catch (error) {
+    console.error('Update cart item price error:', error);
+  }
+};
+
 // ADD TO CART - pakai cart dari middleware
 export const addToCart = async (req, res) => {
   try {
@@ -124,7 +158,7 @@ export const addToCart = async (req, res) => {
 
     const roomType = room.room_type;
     const nights = Math.ceil((utcCheckOut - utcCheckIn) / (1000 * 60 * 60 * 24));
-    const totalPrice = roomType.price_per_night * nights;
+    const roomTotalPrice = roomType.price_per_night * nights;
 
     const cartItem = await CartItem.create({
       cart_id: req.cart.cart_id,
@@ -145,7 +179,7 @@ export const addToCart = async (req, res) => {
         room_number: room.room_number
       },
       nights: nights,
-      total_price: totalPrice
+      total_price: roomTotalPrice // Hanya room price dulu
     });
 
     console.log('✅ Cart item created for user:', req.user.id);
@@ -163,7 +197,8 @@ export const addToCart = async (req, res) => {
           adults: cartItem.adults,
           children: cartItem.children
         },
-        totalPrice: cartItem.total_price
+        totalPrice: cartItem.total_price,
+        services: [] // Empty services array
       }
     });
 
@@ -176,13 +211,163 @@ export const addToCart = async (req, res) => {
   }
 };
 
-// GET CART - pakai cart dari middleware
+// ✅ ADD SERVICE TO CART ITEM
+export const addServiceToCartItem = async (req, res) => {
+  try {
+    const { cartItemId } = req.params;
+    const { serviceId, quantity = 1 } = req.body;
+    
+    console.log('🛍️ Adding service to cart item:', { cartItemId, serviceId, quantity });
+
+    // Validasi cart item milik user
+    const cartItem = await CartItem.findOne({
+      where: { 
+        cart_item_id: cartItemId,
+        '$cart.user_id$': req.user.id // Pastikan cart milik user
+      },
+      include: [{
+        model: Cart,
+        as: 'cart',
+        attributes: ['user_id']
+      }]
+    });
+
+    if (!cartItem) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cart item not found'
+      });
+    }
+
+    // Get service data
+    const service = await MsServices.findByPk(serviceId);
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: 'Service not found'
+      });
+    }
+
+    // Cek apakah service sudah ada di cart item
+    const existingService = await CartItemService.findOne({
+      where: {
+        cart_item_id: cartItemId,
+        service_id: serviceId
+      }
+    });
+
+    if (existingService) {
+      return res.status(400).json({
+        success: false,
+        message: 'Service already added to this cart item'
+      });
+    }
+
+    // Calculate price based on unit type
+    let totalPrice = 0;
+    if (service.unit === 'per_booking') {
+      totalPrice = parseFloat(service.service_price) * quantity;
+    } else if (service.unit === 'per_person') {
+      // Hitung berdasarkan total guests di cart item
+      const totalGuests = cartItem.adults + cartItem.children;
+      totalPrice = parseFloat(service.service_price) * totalGuests * quantity;
+    }
+
+    // Add service to cart item
+    const cartItemService = await CartItemService.create({
+      cart_item_id: cartItemId,
+      service_id: serviceId,
+      quantity: quantity,
+      total_price: totalPrice
+    });
+
+    // Update cart item total price
+    await updateCartItemTotalPrice(cartItemId);
+
+    // Get updated service data dengan include service details
+    const updatedService = await CartItemService.findByPk(cartItemService.cart_item_service_id, {
+      include: [{
+        model: MsServices,
+        as: 'service'
+      }]
+    });
+
+    res.json({
+      success: true,
+      message: 'Service added to cart item successfully',
+      service: {
+        id: updatedService.cart_item_service_id,
+        service: updatedService.service,
+        quantity: updatedService.quantity,
+        totalPrice: updatedService.total_price
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Add service error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add service to cart item'
+    });
+  }
+};
+
+// ✅ REMOVE SERVICE FROM CART ITEM
+export const removeServiceFromCartItem = async (req, res) => {
+  try {
+    const { cartItemServiceId } = req.params;
+
+    // Cari service untuk dapat cart_item_id
+    const cartItemService = await CartItemService.findByPk(cartItemServiceId);
+    if (!cartItemService) {
+      return res.status(404).json({
+        success: false,
+        message: 'Service not found in cart'
+      });
+    }
+
+    const deleted = await CartItemService.destroy({
+      where: { 
+        cart_item_service_id: cartItemServiceId 
+      }
+    });
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: 'Service not found in cart'
+      });
+    }
+
+    // Update cart item total price
+    await updateCartItemTotalPrice(cartItemService.cart_item_id);
+
+    res.json({
+      success: true,
+      message: 'Service removed from cart item successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Remove service error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove service from cart item'
+    });
+  }
+};
+
+// GET CART - UPDATED UNTUK INCLUDE SERVICES
 export const getCart = async (req, res) => {
   try {
     console.log('🛍️ Getting cart for user:', req.user.id, 'cart:', req.cart.cart_id);
     
     const cartItems = await CartItem.findAll({
       where: { cart_id: req.cart.cart_id },
+      include: [{
+        model: MsServices,
+        as: 'services',
+        through: { attributes: ['cart_item_service_id', 'quantity', 'total_price'] }
+      }],
       order: [['createdAt', 'DESC']]
     });
 
@@ -205,6 +390,20 @@ export const getCart = async (req, res) => {
         };
       }
 
+      // Format services
+      const formattedServices = item.services.map(service => ({
+        id: service.CartItemService.cart_item_service_id,
+        service: {
+          id: service.id_service,
+          name: service.name,
+          desc: service.desc,
+          service_price: service.service_price,
+          unit: service.unit
+        },
+        quantity: service.CartItemService.quantity,
+        totalPrice: service.CartItemService.total_price
+      }));
+
       return {
         id: item.cart_item_id,
         room: roomData,
@@ -217,6 +416,7 @@ export const getCart = async (req, res) => {
           adults: item.adults,
           children: item.children
         },
+        services: formattedServices,
         totalPrice: item.total_price
       };
     });
@@ -242,6 +442,12 @@ export const removeFromCart = async (req, res) => {
     
     console.log('🗑️ Removing item:', itemId, 'from cart:', req.cart.cart_id, 'user:', req.user.id);
 
+    // Hapus services terlebih dahulu (untuk maintain referential integrity)
+    await CartItemService.destroy({
+      where: { cart_item_id: itemId }
+    });
+
+    // Hapus cart item
     const deleted = await CartItem.destroy({
       where: { 
         cart_item_id: itemId,
@@ -275,6 +481,17 @@ export const clearCart = async (req, res) => {
   try {
     console.log('🧹 Clearing cart:', req.cart.cart_id, 'for user:', req.user.id);
     
+    // Hapus semua cart items dan services terkait
+    await CartItemService.destroy({
+      where: {
+        '$cart_item.cart_id$': req.cart.cart_id
+      },
+      include: [{
+        model: CartItem,
+        as: 'cart_item'
+      }]
+    });
+
     await CartItem.destroy({
       where: { cart_id: req.cart.cart_id }
     });
@@ -292,8 +509,3 @@ export const clearCart = async (req, res) => {
     });
   }
 };
-
-// TRANSFER FUNCTION - HAPUS, SUDAH TIDAK DIPERLUKAN
-// export const transferGuestCartToUser = async (req, res, next) => {
-//   // Hapus function ini karena tidak ada guest cart lagi
-// };
