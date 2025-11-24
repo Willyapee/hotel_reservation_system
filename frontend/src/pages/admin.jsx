@@ -3,10 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import '../css/admin.css';
 import Log from '../components/log.jsx';
 import RoomManagement from '../components/roomManagement.jsx';
-import NavigationBar from "../components/navigationBar.jsx";
-import MenuOverlay from "../components/menuOverlay.jsx";
+import Services from '../components/services.jsx';
+import NavigationBar from '../components/navigationBar.jsx';
+import MenuOverlay from '../components/menuOverlay.jsx';
 
-export default function Admin() { 
+export default function Admin() {
 	const [visibleTab, setVisibleTab] = useState(null);
 	const [openMenu, setOpenMenu] = useState(false);
 	const navigate = useNavigate();
@@ -29,21 +30,23 @@ export default function Admin() {
 		switch (visibleTab) {
 			case 'log':
 				return (
-					<div className="flex flex-col relative">
+					<div className='flex flex-col relative'>
 						<Log /> {/* HAPUS props logs={activityLogs} */}
 					</div>
 				);
 			case 'room':
 				return <RoomManagement />;
+			case 'services':
+				return <Services />;
 			default:
 				return (
-					<div className="admin-placeholder">
-						<div className="text-center py-12">
-							<div className="w-24 h-24 bg-[#102E50] rounded-full flex items-center justify-center mx-auto mb-4">
-								<img src="/picture/logo/logoNoBG.png" alt="Logo" className="w-22 h-22" />
+					<div className='admin-placeholder'>
+						<div className='text-center py-12'>
+							<div className='w-24 h-24 bg-[#102E50] rounded-full flex items-center justify-center mx-auto mb-4'>
+								<img src='/picture/logo/logoNoBG.png' alt='Logo' className='w-22 h-22' />
 							</div>
-							<h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to Admin Dashboard</h2>
-							<p className="text-gray-600 max-w-md mx-auto">
+							<h2 className='text-2xl font-bold text-gray-800 mb-2'>Welcome to Admin Dashboard</h2>
+							<p className='text-gray-600 max-w-md mx-auto'>
 								Select a section from the sidebar to manage your hotel operations.
 							</p>
 						</div>
@@ -68,19 +71,22 @@ export default function Admin() {
 				</Link>
 			</div>
 
-			<div className="admin-main pt-20 flex">
-				<aside className="admin-sidebar">
+			<div className='admin-main pt-20 flex'>
+				<aside className='admin-sidebar'>
 					<button
 						onClick={() => setVisibleTab('room')}
-						className={`sidebar-btn ${visibleTab === 'room' ? 'active' : ''}`}
-					>
+						className={`sidebar-btn ${visibleTab === 'room' ? 'active' : ''}`}>
 						Room Management
 					</button>
 					<button
 						onClick={() => setVisibleTab('log')}
-						className={`sidebar-btn ${visibleTab === 'log' ? 'active' : ''}`}
-					>
+						className={`sidebar-btn ${visibleTab === 'log' ? 'active' : ''}`}>
 						Activity Log
+					</button>
+					<button
+						onClick={() => setVisibleTab('services')}
+						className={`sidebar-btn ${visibleTab === 'services' ? 'active' : ''}`}>
+						Services
 					</button>
 				</aside>
 

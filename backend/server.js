@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import bcrypt from 'bcrypt';
 import MsUser from './models/MsUsers.js';
 import MsRoomType from './models/msRoomTypes.js';
+import MsServices from './models/msServices.js';
 
 dotenv.config();
 const app = express();
@@ -30,8 +31,8 @@ import cartRoutes from './routes/cartRoutes.js';
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
 const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
-  'http://localhost:5174' // BACKUP PORT
+	process.env.CLIENT_URL || 'http://localhost:5173',
+	'http://localhost:5174', // BACKUP PORT
 ];
 /*=============================================================================== */
 
@@ -51,15 +52,17 @@ app.use(
 app.use(cookieParser());
 
 // ✅ SESSION MIDDLEWARE (PENTING UNTUK CART SYSTEM)
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback-secret-key-for-development',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { 
-    secure: false, // true jika pakai HTTPS
-    maxAge: 24 * 60 * 60 * 1000 // 24 jam
-  }
-}));
+app.use(
+	session({
+		secret: process.env.SESSION_SECRET || 'fallback-secret-key-for-development',
+		resave: false,
+		saveUninitialized: false,
+		cookie: {
+			secure: false, // true jika pakai HTTPS
+			maxAge: 24 * 60 * 60 * 1000, // 24 jam
+		},
+	})
+);
 
 app.use(express.json());
 
@@ -125,6 +128,21 @@ app.use('/api/cart', cartRoutes);
 			}
 		} catch (error) {
 			console.error('❌ Failed to create default admin:', error);
+		}
+
+		try {
+			const existingServices = await MsServices.findOne({ where: { name: 'Spa' } });
+			const defaultServices = [
+				{ name: 'Spa', desc: 'Dipijit', service_price: 67.0, unit: 'per_person' },
+			];
+			if (!existingServices) {
+				await MsServices.bulkCreate(defaultServices);
+				console.log('✅ Default services successfully created');
+			} else {
+				console.log('ℹ️ Default services already exists');
+			}
+		} catch (error) {
+			console.error('❌ Failed to create default services:', error);
 		}
 
 		try {

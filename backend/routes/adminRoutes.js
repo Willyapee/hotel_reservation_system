@@ -8,7 +8,11 @@ import {
 	readRoomTypes,
 	updateRoomType,
 	deleteRoomType,
-} from '../controllers/adminRoomController.js';
+	readServices,
+	createService,
+	updateService,
+	deleteServices,
+} from '../controllers/adminController.js';
 
 const router = express.Router();
 
@@ -24,5 +28,10 @@ router.post('/room-types', createRoomType);
 router.put('/room-types/:id', updateRoomType);
 router.delete('/room-types/:id', deleteRoomType);
 
-export default router;
+//CRUD untuk Services
+router.get('/services', readServices);
+router.post('/services', createService);
+router.put('/services/:id', updateService);
+router.delete('/services/:id', deleteServices);
 
+export default router;
