@@ -51,7 +51,6 @@ app.use(
 
 app.use(cookieParser());
 
-// ✅ SESSION MIDDLEWARE (PENTING UNTUK CART SYSTEM)
 app.use(
 	session({
 		secret: process.env.SESSION_SECRET || 'fallback-secret-key-for-development',
@@ -100,7 +99,6 @@ app.use('/api/cart', cartRoutes);
 		defineRelationships();
 		console.log('🔗 Relationships defined');
 
-		// ✅ FIXED: SAFE DATABASE SYNC - NO MORE DUPLICATE INDEXES
 		if (process.env.NODE_ENV === 'production') {
 			await db.sync({ alter: true });
 			console.log('📦 Production: All models synchronized with alter');
@@ -131,10 +129,15 @@ app.use('/api/cart', cartRoutes);
 		}
 
 		try {
-			const existingServices = await MsServices.findOne({ where: { name: 'Spa' } });
+			const existingServices = await MsServices.findOne({ where: { name: 'Breakfast' } });
 			const defaultServices = [
-				{ name: 'Spa', desc: 'Dipijit', service_price: 67.0, unit: 'per_person' },
+				{ name: 'Breakfast', desc: 'Premium buffet breakfast with international cuisine', service_price: 35.0, unit: 'per_person' },
+				{ name: 'Business Center', desc: 'Executive business facilities with meeting rooms', service_price: 50.0, unit: 'per_booking' },
+				{ name: 'Rooftop Beach Club', desc: 'Exclusive rooftop beach club with pool and bar', service_price: 75.0, unit: 'per_person' },
+				{ name: 'Spa', desc: 'Luxury spa treatments and massages', service_price: 89.0, unit: 'per_person' },
+				{ name: 'Butler Service', desc: 'Personal butler service for premium guests', service_price: 120.0, unit: 'per_booking' },
 			];
+			
 			if (!existingServices) {
 				await MsServices.bulkCreate(defaultServices);
 				console.log('✅ Default services successfully created');
