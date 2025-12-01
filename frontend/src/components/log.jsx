@@ -56,7 +56,7 @@ export default function Log() {
 
 		const doc = new jsPDF();
 		const logoImg = new Image();
-		logoImg.src = '/picture/logo/logo.png';
+		logoImg.src = '/picture/logo/logoNoBG.png';
 		await new Promise((resolve, reject) => {
 			logoImg.onload = resolve;
 			logoImg.onerror = reject;

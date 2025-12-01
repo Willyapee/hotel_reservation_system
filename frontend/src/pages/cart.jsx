@@ -14,7 +14,7 @@ function Cart() {
   const [showServicesModal, setShowServicesModal] = useState(false);
   const [servicesLoading, setServicesLoading] = useState(false);
 
-  // ✅ FETCH CART DATA
+  // FETCH CART DATA
   const fetchCart = async () => {
     try {
       setLoading(true);
@@ -31,6 +31,7 @@ function Cart() {
       const result = await response.json();
       
       if (result.success && Array.isArray(result.cart)) {
+        console.log('🛒 Cart Data Received:', result.cart);
         setCartData(result.cart);
       } else {
         setCartData([]);
@@ -44,58 +45,34 @@ function Cart() {
     }
   };
 
-  // ✅ HARDCODE FACILITIES DATA - PASTI BERHASIL
+  // FETCH SERVICES FROM BACKEND
   const fetchServices = async () => {
     try {
       setServicesLoading(true);
-      console.log('🔄 Loading facilities data...');
+      console.log('🔄 Loading services from backend...');
       
-      // Langsung gunakan data facilities yang Anda berikan
-      const facilitiesData = [
-        {
-          "name": "The Grand Atrium",
-          "desc": "Step into a world bathed in golden light, where marble floors meet soaring ceilings. The Grand Atrium is more than a lobby — it is the beginning of an unforgettable journey, where elegance greets you at every corner.",
-          "img": "/public/lobby/lobby2.jpg",
-          "facPrice": 0
-        },
-        {
-          "name": "The Summit Lounge",
-          "desc": "Perched above the city, this exclusive lounge welcomes you with refined elegance, curated spirits, and discreet luxury.",
-          "img": "/public/fac/fac2.jpg",
-          "facPrice": 25
-        },
-        {
-          "name": "The Serenity Spa",
-          "desc": "A sanctuary of tranquility, where every detail is designed to soothe the senses and rejuvenate the spirit. The Serenity Spa offers a haven of peace amidst the bustle of city life.",
-          "img": "/public/fac/fac3.jpg",
-          "facPrice": 80
-        },
-        {
-          "name": "The Infinity Pool",
-          "desc": "Dive into a world where the sky meets the water. The Infinity Pool offers a breathtaking view of the city skyline, creating a seamless blend of luxury and nature.",
-          "img": "/public/fac/fac4.jpg", 
-          "facPrice": 15
-        }
-      ];
+      const response = await fetch('http://localhost:3000/admin/services');
       
-      console.log('✅ Facilities data loaded:', facilitiesData);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
-      // Transform ke format yang diharapkan
-      const transformedFacilities = facilitiesData.map((facility, index) => ({
-        id_service: index + 1,
-        name: facility.name,
-        desc: facility.desc,
-        service_price: facility.facPrice,
-        unit: "per_booking",
-        image: facility.img
-      }));
+      const servicesData = await response.json();
+      console.log('✅ Services data loaded:', servicesData);
       
-      console.log('✅ Transformed facilities:', transformedFacilities);
-      setServices(transformedFacilities);
+      setServices(servicesData);
       
     } catch (error) {
-      console.error('Failed to load facilities:', error);
-      setServices([]);
+      console.error('Failed to load services:', error);
+      // Fallback ke default services jika backend error
+      const defaultServices = [
+        { id_service: 1, name: "Breakfast", desc: "Premium buffet breakfast with international cuisine", service_price: "35.00", unit: "per_person" },
+        { id_service: 2, name: "Business Center", desc: "Executive business facilities with meeting rooms", service_price: "50.00", unit: "per_booking" },
+        { id_service: 3, name: "Rooftop Beach Club", desc: "Exclusive rooftop beach club with pool and bar", service_price: "75.00", unit: "per_person" },
+        { id_service: 4, name: "Spa", desc: "Luxury spa treatments and massages", service_price: "89.00", unit: "per_person" },
+        { id_service: 5, name: "Butler Service", desc: "Personal butler service for premium guests", service_price: "120.00", unit: "per_booking" }
+      ];
+      setServices(defaultServices);
     } finally {
       setServicesLoading(false);
     }
@@ -105,7 +82,32 @@ function Cart() {
     fetchCart();
   }, []);
 
-  // ✅ REMOVE ITEM FROM CART
+  // DEBUG: Log cart data changes
+  useEffect(() => {
+    console.log('🔄 Cart Data Updated:', cartData);
+    if (cartData && cartData.length > 0) {
+      cartData.forEach((item, index) => {
+        console.log(`📦 Cart Item ${index}:`, {
+          id: item.id,
+          cart_item_id: item.cart_item_id,
+          services: item.services,
+          servicesCount: item.services?.length || 0
+        });
+        
+        if (item.services && item.services.length > 0) {
+          item.services.forEach((service, serviceIndex) => {
+            console.log(`   🛍️ Service ${serviceIndex}:`, {
+              id: service.id,
+              cart_item_service_id: service.cart_item_service_id,
+              service: service.service
+            });
+          });
+        }
+      });
+    }
+  }, [cartData]);
+
+  // REMOVE ITEM FROM CART
   const handleRemove = async (itemId) => {
     try {
       const response = await fetch(`http://localhost:3000/api/cart/${itemId}`, {
@@ -116,108 +118,102 @@ function Cart() {
       const result = await response.json();
       
       if (result.success) {
-        setCartData(prev => prev.filter(item => item.id !== itemId));
+        // Refresh cart data setelah remove
+        await fetchCart();
       }
     } catch (error) {
       console.error('Failed to remove item:', error);
+      alert('❌ Failed to remove item from cart');
     }
   };
 
-  // ✅ SIMULASI: ADD FACILITY TO CART (FRONTEND ONLY)
-  const handleAddService = async (serviceId) => {
-    if (!selectedCartItem) return;
+ // ADD SERVICE TO CART ITEM - BACKEND CALL
+const handleAddService = async (serviceId) => {
+  if (!selectedCartItem) return;
+  
+  try {
+    console.log('➕ [FRONTEND] Adding service:', { 
+      cartItemId: selectedCartItem.id, 
+      serviceId 
+    });
     
+    const response = await fetch(`http://localhost:3000/api/cart/${selectedCartItem.id}/services`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        serviceId: serviceId,
+        quantity: 1
+      })
+    });
+    
+    console.log('📨 Response status:', response.status);
+    const result = await response.json();
+    console.log('📨 Response data:', result);
+    
+    if (!response.ok) {
+      const errorMsg = result.message || `HTTP error! status: ${response.status}`;
+      throw new Error(errorMsg);
+    }
+    
+    if (result.success) {
+      // Refresh cart data
+      await fetchCart();
+      
+      const selectedService = services.find(service => service.id_service == serviceId);
+      const guests = getGuestsData(selectedCartItem);
+      const totalGuests = guests.adults + guests.children;
+      
+      const priceInfo = selectedService.unit === 'per_person' 
+        ? `$${selectedService.service_price} × ${totalGuests} guests = $${result.service.totalPrice}`
+        : `$${selectedService.service_price} per booking`;
+        
+      alert(`✅ "${selectedService.name}" added to your booking!\n\n${priceInfo}`);
+      
+      // Tutup modal
+      setShowServicesModal(false);
+    } else {
+      throw new Error(result.message || 'Failed to add service');
+    }
+    
+  } catch (error) {
+    console.error('❌ Add service error:', error);
+    alert(`❌ Failed to add service: ${error.message}`);
+  }
+};
+
+  // REMOVE SERVICE FROM CART ITEM - BACKEND CALL
+  const handleRemoveService = async (serviceItemId) => {
     try {
-      console.log('➕ Adding facility to cart item:', { 
-        cartItemId: selectedCartItem.id, 
-        serviceId: serviceId 
+      console.log('🗑️ Removing service:', serviceItemId);
+      
+      // BACKEND CALL - Gunakan endpoint yang benar
+      const response = await fetch(`http://localhost:3000/api/cart/services/${serviceItemId}`, {
+        method: 'DELETE',
+        credentials: 'include'
       });
       
-      // Cari facility yang dipilih
-      const selectedFacility = services.find(service => service.id_service === serviceId);
+      const result = await response.json();
       
-      if (selectedFacility) {
-        console.log('✅ Selected facility:', selectedFacility);
-        
-        // ✅ SIMULASI: Update cart data di frontend
-        const updatedCartData = cartData.map(item => {
-          if (item.id === selectedCartItem.id) {
-            // Buat service item baru
-            const newService = {
-              id: Date.now(), // ID sementara
-              service: {
-                name: selectedFacility.name,
-                unit: selectedFacility.unit,
-                price: selectedFacility.service_price
-              },
-              quantity: 1,
-              totalPrice: selectedFacility.service_price
-            };
-            
-            // Tambahkan ke services array
-            const existingServices = item.services || [];
-            return {
-              ...item,
-              services: [...existingServices, newService],
-              totalPrice: (parseFloat(item.totalPrice) + parseFloat(selectedFacility.service_price)).toFixed(2)
-            };
-          }
-          return item;
-        });
-        
-        setCartData(updatedCartData);
-        
-        // Tampilkan alert konfirmasi
-        alert(`✅ "${selectedFacility.name}" added to your booking!\n\nPrice: $${selectedFacility.service_price === 0 ? 'FREE' : selectedFacility.service_price}`);
-        
-        // Tutup modal
-        setShowServicesModal(false);
-        
-      } else {
-        console.error('❌ Facility not found with id:', serviceId);
-        alert('❌ Failed to add facility. Please try again.');
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to remove service');
+      }
+      
+      if (result.success) {
+        // Refresh cart data
+        await fetchCart();
+        alert('✅ Service removed successfully!');
       }
       
     } catch (error) {
-      console.error('Add facility error:', error);
-      alert('❌ Failed to add facility. Please try again.');
+      console.error('Remove service error:', error);
+      alert(`❌ Failed to remove service: ${error.message}`);
     }
   };
 
-  // ✅ REMOVE FACILITY FROM CART ITEM
-  const handleRemoveService = async (serviceItemId) => {
-    try {
-      console.log('🗑️ Removing facility:', serviceItemId);
-      
-      // Simulasi remove dari frontend
-      const updatedCartData = cartData.map(item => {
-        // Cari item yang memiliki service ini
-        const updatedServices = item.services?.filter(service => service.id !== serviceItemId) || [];
-        
-        // Hitung ulang total price
-        const servicesTotal = updatedServices.reduce((sum, service) => sum + parseFloat(service.totalPrice || 0), 0);
-        const roomPrice = parseFloat(getRoomData(item).price || 0) * item.nights;
-        const newTotalPrice = roomPrice + servicesTotal;
-        
-        return {
-          ...item,
-          services: updatedServices,
-          totalPrice: newTotalPrice.toFixed(2)
-        };
-      });
-      
-      setCartData(updatedCartData);
-      
-      // Tampilkan konfirmasi
-      alert('✅ Facility removed successfully!');
-      
-    } catch (error) {
-      console.error('Remove facility error:', error);
-      alert('❌ Failed to remove facility. Please try again.');
-    }
-  };
-
-  // ✅ OPEN FACILITIES MODAL
+  // OPEN SERVICES MODAL
   const openServicesModal = async (cartItem) => {
     setSelectedCartItem(cartItem);
     setShowServicesModal(true);
@@ -234,12 +230,12 @@ function Cart() {
     setSelectedCartItem(null);
   };
 
-  // ✅ CALCULATE TOTAL PRICE
+  // CALCULATE TOTAL PRICE
   const totalPrice = Array.isArray(cartData) 
     ? cartData.reduce((sum, item) => sum + (parseFloat(item?.totalPrice) || 0), 0)
     : 0;
 
-  // ✅ FORMAT DATE
+  // FORMAT DATE
   const formatDate = (dateString) => {
     try {
       if (!dateString) return 'Invalid date';
@@ -254,7 +250,7 @@ function Cart() {
     }
   };
 
-  // ✅ GET ROOM DATA
+  // GET ROOM DATA
   const getRoomData = (cartItem) => {
     if (!cartItem) return { name: "Room", price: 0, image: '/default-room.jpg' };
     
@@ -282,7 +278,7 @@ function Cart() {
     };
   };
 
-  // ✅ GET GUESTS DATA
+  // GET GUESTS DATA
   const getGuestsData = (cartItem) => {
     if (!cartItem) return { adults: 0, children: 0 };
     return cartItem.guests || {
@@ -291,13 +287,41 @@ function Cart() {
     };
   };
 
-  // ✅ CALCULATE SERVICES TOTAL
+  // CALCULATE SERVICES TOTAL
   const calculateServicesTotal = (cartItem) => {
     if (!cartItem.services || !Array.isArray(cartItem.services)) return 0;
     
     return cartItem.services.reduce((sum, service) => {
       return sum + parseFloat(service.totalPrice || 0);
     }, 0);
+  };
+
+  // GET SERVICE ICON BASED ON NAME
+  const getServiceIcon = (serviceName) => {
+    const name = serviceName.toLowerCase();
+    if (name.includes('breakfast')) return '🍽️';
+    if (name.includes('business')) return '💼';
+    if (name.includes('spa')) return '💆';
+    if (name.includes('beach') || name.includes('pool')) return '🏖️';
+    if (name.includes('butler')) return '👔';
+    if (name.includes('laundry')) return '🧺';
+    if (name.includes('parking')) return '🅿️';
+    if (name.includes('wifi')) return '📶';
+    return '⭐';
+  };
+
+  // GET CORRECT SERVICE ID - Handle field name mismatch
+  const getServiceId = (serviceItem) => {
+    // Coba berbagai kemungkinan field names
+    return serviceItem.id || 
+           serviceItem.cart_item_service_id || 
+           serviceItem.service_id ||
+           serviceItem.serviceId;
+  };
+
+  // GET CORRECT CART ITEM ID - Handle field name mismatch
+  const getCartItemId = (cartItem) => {
+    return cartItem.id || cartItem.cart_item_id;
   };
 
   // Error State
@@ -318,7 +342,7 @@ function Cart() {
     );
   }
 
-  // ✅ RENDER COMPONENT
+  // RENDER COMPONENT
   return (
     <div className="w-full min-h-screen bg-[#fbfaf9] font-[Times_New_Roman]">
       {/* HEADER */}
@@ -382,9 +406,12 @@ function Cart() {
             {cartData.map((cartItem) => {
               const room = getRoomData(cartItem);
               const guests = getGuestsData(cartItem);
-              const itemId = cartItem?.id;
+              const itemId = getCartItemId(cartItem);
               
-              if (!itemId) return null;
+              if (!itemId) {
+                console.warn('❌ Cart item missing ID:', cartItem);
+                return null;
+              }
 
               const roomImage = room?.image ? room.image.replace('/public/', '/') : '/default-room.jpg';
               const hasServices = Array.isArray(cartItem.services) && cartItem.services.length > 0;
@@ -440,64 +467,70 @@ function Cart() {
                       </p>
                     </div>
 
-                    {/* FACILITIES SECTION */}
+                    {/* SERVICES SECTION */}
                     <div className="mt-4">
                       <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-semibold text-[#102E50]">Additional Facilities:</h4>
+                        <h4 className="font-semibold text-[#102E50]">Additional Services:</h4>
                         <button
                           onClick={() => openServicesModal(cartItem)}
                           className="flex items-center gap-1 bg-[#102E50] hover:bg-[#0a1f3a] text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
                         >
                           <Plus className="w-4 h-4" />
-                          Add Facility
+                          Add Service
                         </button>
                       </div>
 
                       {hasServices ? (
                         <div className="space-y-3">
-                          {cartItem.services.map((serviceItem) => (
-                            <div key={serviceItem.id} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-[#102E50] rounded-lg flex items-center justify-center">
-                                    <span className="text-white font-bold text-sm">
-                                      {serviceItem.service?.name?.charAt(0) || 'F'}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold text-gray-900">{serviceItem.service?.name}</p>
-                                    <p className="text-sm text-gray-600">
-                                      {serviceItem.service?.unit === 'per_person' 
-                                        ? `Per person × ${guests.adults + guests.children} guests`
-                                        : 'Per booking'
-                                      } • Qty: {serviceItem.quantity}
-                                    </p>
+                          {cartItem.services.map((serviceItem) => {
+                            const serviceId = getServiceId(serviceItem);
+                            console.log('🛍️ Rendering Service:', { serviceItem, serviceId });
+                            
+                            return (
+                              <div key={serviceId} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-[#102E50] rounded-lg flex items-center justify-center text-white text-lg">
+                                      {getServiceIcon(serviceItem.service?.name)}
+                                    </div>
+                                    <div>
+                                      <p className="font-semibold text-gray-900">{serviceItem.service?.name}</p>
+                                      <p className="text-sm text-gray-600">
+                                        {serviceItem.service?.unit === 'per_person' 
+                                          ? `Per person × ${serviceItem.quantity} guests`
+                                          : 'Per booking'
+                                        } • ${serviceItem.service?.price} {serviceItem.service?.unit === 'per_person' ? 'per person' : 'per booking'}
+                                      </p>
+                                      {serviceItem.service?.desc && (
+                                        <p className="text-xs text-gray-500 mt-1">{serviceItem.service.desc}</p>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
+                                <div className="flex items-center gap-4">
+                                  <span className="font-bold text-lg text-[#c19a6b]">
+                                    ${parseFloat(serviceItem.totalPrice || 0).toFixed(2)}
+                                  </span>
+                                  <button
+                                    onClick={() => handleRemoveService(serviceId)}
+                                    className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300"
+                                    title="Remove service"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    Remove
+                                  </button>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-4">
-                                <span className="font-bold text-lg text-[#c19a6b]">
-                                  ${parseFloat(serviceItem.totalPrice || 0).toFixed(2)}
-                                </span>
-                                <button
-                                  onClick={() => handleRemoveService(serviceItem.id)}
-                                  className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300"
-                                  title="Remove facility"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                  Remove
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                           <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                           </svg>
-                          <p className="text-gray-500 text-sm">No facilities added yet</p>
-                          <p className="text-gray-400 text-xs mt-1">Click "Add Facility" to enhance your stay</p>
+                          <p className="text-gray-500 text-sm">No services added yet</p>
+                          <p className="text-gray-400 text-xs mt-1">Click "Add Service" to enhance your stay</p>
                         </div>
                       )}
                     </div>
@@ -509,7 +542,7 @@ function Cart() {
                       </div>
                       {hasServices && (
                         <div className="flex justify-between text-sm text-gray-600">
-                          <span>Facilities:</span>
+                          <span>Services:</span>
                           <span>+${servicesTotal.toFixed(2)}</span>
                         </div>
                       )}
@@ -530,7 +563,7 @@ function Cart() {
               );
             })}
 
-            {/* FACILITIES POPUP */}
+            {/* SERVICES POPUP */}
             <ServicesPopup
               isOpen={showServicesModal}
               onClose={closeServicesModal}
