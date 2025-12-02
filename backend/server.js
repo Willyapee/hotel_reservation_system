@@ -26,7 +26,7 @@ import serviceReservationsRoutes from './routes/serviceReservationsRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
-import userRoutes from '../backend/routes/userRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */

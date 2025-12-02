@@ -1,6 +1,6 @@
 import MsUser from '../models/MsUsers.js';
-import Cart from '../models/Cart.js'; 
-import CartItem from '../models/CartItemm.js';
+import Cart from '../models/Cart.js';
+import CartItem from '../models/CartItem.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -35,7 +35,7 @@ export const registerUser = async (req, res) => {
 		await Cart.create({
 			session_id: generateCartId(),
 			user_id: newUser.id_user,
-			expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+			expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
 		});
 		console.log('🆕 Cart created for new user:', newUser.id_user);
 
@@ -72,36 +72,36 @@ export const loginUser = async (req, res) => {
 		console.log('🔄 Checking for guest cart transfer...');
 		if (req.session?.cartId) {
 			const guestCart = await Cart.findOne({
-				where: { session_id: req.session.cartId }
+				where: { session_id: req.session.cartId },
 			});
-			
+
 			if (guestCart && guestCart.user_id === null) {
 				// Cari atau buat user cart
 				let userCart = await Cart.findOne({
-					where: { user_id: user.id_user }
+					where: { user_id: user.id_user },
 				});
-				
+
 				if (!userCart) {
 					userCart = await Cart.create({
 						session_id: generateCartId(),
 						user_id: user.id_user,
-						expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+						expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
 					});
 					console.log('🆕 User cart created during login:', userCart.cart_id);
 				}
-				
+
 				// Transfer cart items dari guest cart ke user cart
 				const transferredItems = await CartItem.update(
 					{ cart_id: userCart.cart_id },
 					{ where: { cart_id: guestCart.cart_id } }
 				);
-				
+
 				// Hapus guest cart
 				await Cart.destroy({ where: { cart_id: guestCart.cart_id } });
-				
+
 				// Update session ke user cart
 				req.session.cartId = userCart.session_id;
-				
+
 				console.log(`✅ Transferred ${transferredItems[0]} items from guest cart to user cart`);
 			}
 		} else {
@@ -109,9 +109,13 @@ export const loginUser = async (req, res) => {
 		}
 
 		//generate token
-		const token = jwt.sign({ id: user.id_user, email: user.email, role: user.role }, process.env.JWT_SECRET, {
-			expiresIn: '1h',
-		});
+		const token = jwt.sign(
+			{ id: user.id_user, email: user.email, role: user.role },
+			process.env.JWT_SECRET,
+			{
+				expiresIn: '1h',
+			}
+		);
 
 		res.cookie('token', token, {
 			httpOnly: true, // tidak bisa diakses JS → aman dari XSS
@@ -142,7 +146,7 @@ export const getMe = async (req, res) => {
 
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 		const user = await MsUser.findByPk(decoded.id, {
-			attributes: ['id_user', 'username', 'email'], 
+			attributes: ['id_user', 'username', 'email'],
 		});
 		if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -161,11 +165,11 @@ export const logoutUser = (req, res) => {
 	try {
 		// ❌ JANGAN clear session cartId, biarkan cart tetap ada
 		// req.session.cartId = null;
-		
+
 		res.clearCookie('token');
 		res.json({
 			success: true,
-			message: 'Logout successful'
+			message: 'Logout successful',
 		});
 	} catch (error) {
 		console.error('Logout error:', error);
