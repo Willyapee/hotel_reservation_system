@@ -1,15 +1,15 @@
 import MsUser from './MsUsers.js';
-import MsServices from './msServices.js'; 
+import MsServices from './msServices.js';
 import ServiceReservations from './ServiceReservations.js';
 import MsRoomType from './msRoomTypes.js';
 import Rooms from './Rooms.js';
-import Invoices from './Invoices.js'; 
-import Payments from './Payments.js'; 
+import Invoices from './Invoices.js';
+import Payments from './Payments.js';
 import Reservations from './Reservations.js';
 import RoomReservations from './RoomReservations.js';
-import Cart from './Cart.js'; 
-import CartItem from './CartItemm.js';
-import CartItemService from './CartItemmService.js';
+import Cart from './Cart.js';
+import CartItem from './CartItem.js';
+import CartItemService from './CartItemService.js';
 
 const defineRelationships = () => {
 	// 1. USER - RESERVATION (One-to-Many)
@@ -46,7 +46,7 @@ const defineRelationships = () => {
 	MsRoomType.hasMany(Rooms, {
 		foreignKey: 'id_room_type',
 		as: 'rooms',
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	});
 	Rooms.belongsTo(MsRoomType, {
 		foreignKey: 'id_room_type',
@@ -88,13 +88,18 @@ const defineRelationships = () => {
 	});
 
 	// 8. Direct relations untuk junction table
+	RoomReservations.hasMany(ServiceReservations, {
+		foreignKey: 'id_room_reservation',
+		as: 'service_details',
+	});
 	ServiceReservations.belongsTo(RoomReservations, {
 		foreignKey: 'id_room_reservation',
 	});
+
 	ServiceReservations.belongsTo(MsServices, {
 		foreignKey: 'id_service',
+		as: 'service',
 	});
-	
 	// User - Cart (One-to-Many)
 	MsUser.hasMany(Cart, {
 		foreignKey: 'id_user',

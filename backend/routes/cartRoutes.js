@@ -7,7 +7,7 @@ import {
   authorizeCart,
   addServiceToCartItem,        
   removeServiceFromCartItem    
-} from '../controllers/cartController.js';
+} from '../controllers/CartController.js';
 import { verifyToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
