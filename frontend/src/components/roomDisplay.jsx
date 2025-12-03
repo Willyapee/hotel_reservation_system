@@ -8,7 +8,6 @@ const augmentedRoomList = RoomList.map((room, index) => ({
 }));
 
 export default function BoxDisplay() {
-    // Start with no room selected
     const [selectedRoomId, setSelectedRoomId] = useState(null);
     const scrollRef = useRef(null);
 
@@ -19,16 +18,13 @@ export default function BoxDisplay() {
 
     const handleRoomClick = (roomId) => {
         setSelectedRoomId(currentId => {
-            // If the same room is clicked again, return null to deselect everything.
             if (currentId === roomId) {
                 return null;
             }
-            // Otherwise, select the new room.
             return roomId;
         });
     };
 
-    // Effect to smooth-scroll the carousel
     useEffect(() => {
         if (scrollRef.current && selectedRoomId) {
             const selectedElement = scrollRef.current.querySelector(`.room-item[data-id="${selectedRoomId}"]`);
@@ -45,7 +41,6 @@ export default function BoxDisplay() {
         }
     }, [selectedRoomId]);
     
-    //deskripsi room
     const DetailCard = ({ room }) => (
         <div className="bg-[#102e50] text-white w-full h-full p-8 md:p-10 rounded-xl flex flex-col justify-between">
             <div>

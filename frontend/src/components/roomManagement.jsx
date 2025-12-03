@@ -13,7 +13,6 @@ const RoomManagement = () => {
   const [errors, setErrors] = useState({});
   const [activeTab, setActiveTab] = useState('roomTypes');
 
-  // Room Type Form state
   const [roomTypeForm, setRoomTypeForm] = useState({
     name: '',
     capacity: '',
@@ -24,13 +23,11 @@ const RoomManagement = () => {
     image_url: ''
   });
 
-  // Room Form state
   const [roomForm, setRoomForm] = useState({
     id_room_type: '',
     room_number: ''
   });
 
-  // Load data on component mount
   useEffect(() => {
     fetchRoomTypes();
     fetchRooms();
@@ -63,7 +60,6 @@ const RoomManagement = () => {
     }
   };
 
-  // Room Type Validation
   const validateRoomTypeForm = () => {
     const newErrors = {};
     if (!roomTypeForm.name.trim()) newErrors.name = 'Room name is required';
@@ -77,7 +73,6 @@ const RoomManagement = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Room Validation
   const validateRoomForm = () => {
     const newErrors = {};
     if (!roomForm.id_room_type) newErrors.id_room_type = 'Room type is required';
@@ -87,7 +82,6 @@ const RoomManagement = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Room Type Functions dengan confirmation
   const handleCreateRoomType = async (e) => {
     e.preventDefault();
     if (!validateRoomTypeForm()) return;
@@ -182,9 +176,8 @@ const RoomManagement = () => {
       );
       
       if (confirmed) {
-        // Switch to Rooms tab to show the rooms that need to be deleted
         setActiveTab('rooms');
-        setSearchTerm(roomTypeName); // Auto-filter to show relevant rooms
+        setSearchTerm(roomTypeName); 
       }
       return;
     }
@@ -233,7 +226,6 @@ const RoomManagement = () => {
     setShowRoomTypeModal(true);
   };
 
-  // Room Functions dengan confirmation
   const handleCreateRoom = async (e) => {
     e.preventDefault();
     if (!validateRoomForm()) return;
@@ -352,7 +344,6 @@ const RoomManagement = () => {
       
       alert('✅ ' + (data.message || 'Room deleted successfully!'));
       fetchRooms();
-      // Refresh room types count
       fetchRoomTypes();
     } catch (error) {
       console.error('Error deleting room:', error);
@@ -371,7 +362,6 @@ const RoomManagement = () => {
     setShowRoomModal(true);
   };
 
-  // Reset forms
   const resetRoomTypeForm = () => {
     setRoomTypeForm({
       name: '',
@@ -395,7 +385,6 @@ const RoomManagement = () => {
     setErrors({});
   };
 
-  // Handle input changes
   const handleRoomTypeInputChange = (e) => {
     const { name, value } = e.target;
     setRoomTypeForm(prev => ({
@@ -427,7 +416,6 @@ const RoomManagement = () => {
     }
   };
 
-  // Filter data based on search
   const filteredRoomTypes = roomTypes.filter(roomType =>
     roomType.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     roomType.room_bed?.toLowerCase().includes(searchTerm.toLowerCase()) ||

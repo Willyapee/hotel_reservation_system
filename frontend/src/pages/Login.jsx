@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import SuccessPopup from "../components/SuccessPopup";
 
@@ -12,9 +12,18 @@ const Login = () => {
     const [popupMessage, setPopupMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+
+        const redirectTo = location.state?.redirectTo || '/';
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        
+        if (!email || !password) {
+            alert('Please fill in all fields');
+            return;
+        }
+        
         setLoading(true);
         
         try {
@@ -22,28 +31,44 @@ const Login = () => {
                 email,
                 password,
             }, {
-                withCredentials: true // Tambahkan ini untuk cookie
+                withCredentials: true 
             });
 
-            console.log('Response:', res.data);
+            console.log('✅ Login Response:', res.data);
 
-            if (res.data.token) {
-                // Simpan token dan role di localStorage
-                localStorage.setItem('token', res.data.token);
-                localStorage.setItem('role', res.data.role);
-                
-                // Simpan username sementara (nanti akan di-fetch dari /auth/me)
-                // Untuk sementara, gunakan email sebagai username
-                const username = email.split('@')[0];
-                localStorage.setItem('username', username);
-                
-                // Tampilkan popup sukses
-                setPopupMessage("Login successful! Welcome back to Nyx Hotel.");
-                setShowSuccessPopup(true);
+            if (res.data.success) {
+                if (res.data.user) {
+                    const userData = {
+                        name: res.data.user.username,
+                        initials: res.data.user.username.split(' ').map(n => n[0]).join('').toUpperCase(),
+                        isLoggedIn: true,
+                        role: res.data.user.role || 'guest'
+                    };
+                    
+                    console.log('💾 Saving user data:', userData);
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    
+                    window.dispatchEvent(new Event('userLoggedIn'));
+                    
+                    const isAdmin = res.data.user.role === 'admin';
+                    
+                    if (isAdmin) {
+                        console.log('📍 Admin login, redirecting to /admin');
+                        navigate('/admin');
+                    } else {
+                        setPopupMessage(res.data.message || "Login successful!");
+                        setShowSuccessPopup(true);
+                    }
+                    
+                } else {
+                    alert(res.data.message || 'Login failed');
+                }
+            } else {
+                alert(res.data.message || 'Login failed');
             }
         } catch (err) {
-            console.error(err.response ? err.response.data : err.message);
-            alert(err.response?.data?.message || 'Login failed');
+            console.error('❌ Login error:', err.response?.data || err.message);
+            alert(err.response?.data?.message || 'Login failed. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -51,14 +76,7 @@ const Login = () => {
 
     const handlePopupClose = () => {
         setShowSuccessPopup(false);
-        // Redirect berdasarkan role setelah popup ditutup
-        const role = localStorage.getItem('role');
-        if (role === 'admin') {
-            navigate('/admin');
-        } else {
-            navigate('/');
-            window.location.reload(); // Tambahkan reload untuk update NavigationBar & MenuOverlay
-        }
+        navigate(redirectTo);
     };
 
     const handleBackToHome = () => {
@@ -100,8 +118,14 @@ const Login = () => {
                 </div>
 
                 <div className="p-8">
+                    {/* Show redirect message if any */}
+                    {location.state?.message && (
+                        <div className="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-yellow-800 text-sm">{location.state.message}</p>
+                        </div>
+                    )}
+
                     <form onSubmit={handleLogin} className="space-y-3">
-                        {/* Form fields tetap sama */}
                         <div className="relative">
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                                 Email Address
