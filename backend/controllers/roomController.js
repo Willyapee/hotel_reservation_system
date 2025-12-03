@@ -7,7 +7,6 @@ export const searchAvailableRooms = async (req, res) => {
     try {
         const { check_in, check_out, adults } = req.query;
         
-        // Validasi parameter
         if (!check_in || !check_out || !adults) {
             return res.status(400).json({
                 success: false,
@@ -19,7 +18,6 @@ export const searchAvailableRooms = async (req, res) => {
         const checkOutDate = new Date(check_out);
         const adultsCount = parseInt(adults);
 
-        // Validasi tanggal
         if (checkInDate >= checkOutDate) {
             return res.status(400).json({
                 success: false,
@@ -34,10 +32,8 @@ export const searchAvailableRooms = async (req, res) => {
             });
         }
 
-        // Hitung durasi menginap
         const duration = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
 
-        // 1. Cari semua room type yang memenuhi kapasitas
         const roomTypes = await MsRoomType.findAll({
             where: {
                 capacity: {
@@ -46,19 +42,17 @@ export const searchAvailableRooms = async (req, res) => {
             }
         });
 
-        // 2. Untuk setiap room type, hitung kamar yang available
-        const availableRooms = await Promise.all(
+        const groupedRooms = await Promise.all(
             roomTypes.map(async (roomType) => {
-                // Cari semua kamar dengan room type ini
                 const allRooms = await Rooms.findAll({
-                    where: { id_room_type: roomType.id_room_type }
+                    where: { id_room_type: roomType.id_room_type },
+                    order: [['room_number', 'ASC']]
                 });
 
                 if (allRooms.length === 0) {
-                    return null; // Skip room types tanpa actual rooms
+                    return null;
                 }
 
-                // Cari kamar yang sudah direservasi pada periode tersebut
                 const bookedRooms = await RoomReservations.findAll({
                     where: {
                         id_room: allRooms.map(room => room.id_room),
@@ -66,7 +60,7 @@ export const searchAvailableRooms = async (req, res) => {
                             {
                                 check_in_date: { [Op.lt]: checkOutDate },
                                 check_out_date: { [Op.gt]: checkInDate },
-                                status: { [Op.in]: ['reserved', 'checked_in'] }
+                                status: { [Op.in]: ['reserved', 'checked_in', 'draft'] }
                             }
                         ]
                     },
@@ -74,37 +68,41 @@ export const searchAvailableRooms = async (req, res) => {
                 });
 
                 const bookedRoomIds = bookedRooms.map(room => room.id_room);
-                const availableRoomsOfType = allRooms.filter(room => 
-                    !bookedRoomIds.includes(room.id_room)
-                );
+                
+                const availableRoomsOfType = allRooms
+                    .filter(room => !bookedRoomIds.includes(room.id_room))
+                    .map(room => ({
+                        roomId: room.id_room,
+                        roomNumber: room.room_number
+                    }));
 
-                return availableRoomsOfType.map(room => ({
-                    roomId: room.id_room,
+                if (availableRoomsOfType.length === 0) {
+                    return null;
+                }
+
+                return {
+                    roomTypeId: roomType.id_room_type,
                     roomName: roomType.name,
                     roomBed: roomType.room_bed,
                     roomDesc: roomType.description,
                     roomImage: roomType.image_url || '/default-room.jpg',
                     roomPrice: parseFloat(roomType.price_per_night),
-                    roomNumber: room.room_number,
-                    availableRooms: availableRoomsOfType.length,
                     capacity: roomType.capacity,
                     maxStayDuration: roomType.max_stay_duration,
                     totalPrice: parseFloat(roomType.price_per_night) * duration,
-                    duration: duration
-                }));
+                    duration: duration,
+                    availableRooms: availableRoomsOfType.length,
+                    availableRoomNumbers: availableRoomsOfType 
+                };
             })
         );
 
-        // Flatten array dan filter null values
-        const flattenedRooms = availableRooms.flat().filter(room => room !== null);
+        const availableRoomTypes = groupedRooms.filter(room => room !== null);
         
-        // Filter hanya rooms yang available
-        const filteredRooms = flattenedRooms.filter(room => room.availableRooms > 0);
-
-        console.log('🔍 Available rooms found:', filteredRooms.map(r => ({
-            roomId: r.roomId,
-            roomName: r.roomName,
-            roomNumber: r.roomNumber
+        console.log('🔍 Available room types:', availableRoomTypes.map(rt => ({
+            name: rt.roomName,
+            availableRooms: rt.availableRooms,
+            roomNumbers: rt.availableRoomNumbers.map(r => r.roomNumber)
         })));
 
         res.json({
@@ -115,7 +113,7 @@ export const searchAvailableRooms = async (req, res) => {
                 adults: adultsCount,
                 duration: duration
             },
-            availableRooms: filteredRooms
+            availableRooms: availableRoomTypes 
         });
 
     } catch (error) {

@@ -7,9 +7,6 @@ import Invoices from './Invoices.js';
 import Payments from './Payments.js';
 import Reservations from './Reservations.js';
 import RoomReservations from './RoomReservations.js';
-import Cart from './Cart.js';
-import CartItem from './CartItem.js';
-import CartItemService from './CartItemService.js';
 
 const defineRelationships = () => {
 	// 1. USER - RESERVATION (One-to-Many)
@@ -22,7 +19,17 @@ const defineRelationships = () => {
 		as: 'user',
 	});
 
-	// 2. RESERVATION - INVOICE (One-to-One)
+	// 2. RESERVATION - ROOM_RESERVATION (One-to-Many)
+	Reservations.hasMany(RoomReservations, {
+		foreignKey: 'id_reservation',
+		as: 'room_reservations',
+	});
+	RoomReservations.belongsTo(Reservations, {
+		foreignKey: 'id_reservation',
+		as: 'reservation',
+	});
+
+	// 3. RESERVATION - INVOICE (One-to-One)
 	Reservations.hasOne(Invoices, {
 		foreignKey: 'id_reservation',
 		as: 'invoice',
@@ -32,7 +39,7 @@ const defineRelationships = () => {
 		as: 'reservation',
 	});
 
-	// 3. INVOICE - PAYMENT (One-to-One)
+	// 4. INVOICE - PAYMENT (One-to-One)
 	Invoices.hasOne(Payments, {
 		foreignKey: 'id_invoice',
 		as: 'payment',
@@ -42,7 +49,7 @@ const defineRelationships = () => {
 		as: 'invoice',
 	});
 
-	// 4. ROOM TYPE - ROOM (One-to-Many)
+	// 5. ROOM TYPE - ROOM (One-to-Many)
 	MsRoomType.hasMany(Rooms, {
 		foreignKey: 'id_room_type',
 		as: 'rooms',
@@ -51,16 +58,6 @@ const defineRelationships = () => {
 	Rooms.belongsTo(MsRoomType, {
 		foreignKey: 'id_room_type',
 		as: 'room_type',
-	});
-
-	// 5. RESERVATION - ROOM_RESERVATION (One-to-Many)
-	Reservations.hasMany(RoomReservations, {
-		foreignKey: 'id_reservation',
-		as: 'room_reservations',
-	});
-	RoomReservations.belongsTo(Reservations, {
-		foreignKey: 'id_reservation',
-		as: 'reservation',
 	});
 
 	// 6. ROOM - ROOM_RESERVATION (One-to-Many)
@@ -73,7 +70,7 @@ const defineRelationships = () => {
 		as: 'room',
 	});
 
-	// 7. ROOM_RESERVATION - SERVICE (Many-to-Many)
+	// 7. ROOM_RESERVATION - SERVICE (Many-to-Many melalui ServiceReservations)
 	RoomReservations.belongsToMany(MsServices, {
 		through: ServiceReservations,
 		foreignKey: 'id_room_reservation',
@@ -94,65 +91,16 @@ const defineRelationships = () => {
 	});
 	ServiceReservations.belongsTo(RoomReservations, {
 		foreignKey: 'id_room_reservation',
+		as: 'room_reservation',
 	});
 
+	// 9. SERVICE - SERVICE_RESERVATIONS (One-to-Many)
+	MsServices.hasMany(ServiceReservations, {
+		foreignKey: 'id_service',
+		as: 'service_reservations',
+	});
 	ServiceReservations.belongsTo(MsServices, {
 		foreignKey: 'id_service',
-		as: 'service',
-	});
-	// User - Cart (One-to-Many)
-	MsUser.hasMany(Cart, {
-		foreignKey: 'id_user',
-		as: 'carts',
-	});
-	Cart.belongsTo(MsUser, {
-		foreignKey: 'id_user',
-		as: 'user',
-	});
-
-	// Cart - CartItem (One-to-Many)
-	Cart.hasMany(CartItem, {
-		foreignKey: 'id_cart',
-		as: 'cart_items',
-	});
-	CartItem.belongsTo(Cart, {
-		foreignKey: 'id_cart',
-		as: 'cart',
-	});
-
-	// Room - CartItem (One-to-Many)
-	Rooms.hasMany(CartItem, {
-		foreignKey: 'id_room',
-		as: 'cart_items',
-	});
-	CartItem.belongsTo(Rooms, {
-		foreignKey: 'id_room',
-		as: 'room',
-	});
-
-	// CARTITEM - SERVICE (Many-to-Many)
-	CartItem.belongsToMany(MsServices, {
-		through: CartItemService,
-		foreignKey: 'cart_item_id',
-		otherKey: 'service_id',
-		as: 'services',
-	});
-
-	MsServices.belongsToMany(CartItem, {
-		through: CartItemService,
-		foreignKey: 'service_id',
-		otherKey: 'cart_item_id',
-		as: 'cart_items',
-	});
-
-	// DIRECT RELATIONS UNTUK JUNCTION TABLE
-	CartItemService.belongsTo(CartItem, {
-		foreignKey: 'cart_item_id',
-		as: 'cart_item',
-	});
-
-	CartItemService.belongsTo(MsServices, {
-		foreignKey: 'service_id',
 		as: 'service',
 	});
 };

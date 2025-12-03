@@ -27,7 +27,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import cartRoutes from './routes/cartRoutes.js';
+import cartRoutes from './routes/cartRoutes.js'; 
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
 const allowedOrigins = [
@@ -37,16 +37,18 @@ const allowedOrigins = [
 /*=============================================================================== */
 
 app.use(
-	cors({
-		origin: function (origin, callback) {
-			if (!origin || allowedOrigins.includes(origin)) {
-				callback(null, true);
-			} else {
-				callback(new Error('Not allowed by CORS'));
-			}
-		},
-		credentials: true,
-	})
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true, 
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  })
 );
 
 app.use(cookieParser());
@@ -57,8 +59,8 @@ app.use(
 		resave: false,
 		saveUninitialized: false,
 		cookie: {
-			secure: false, // true jika pakai HTTPS
-			maxAge: 24 * 60 * 60 * 1000, // 24 jam
+			secure: false,
+			maxAge: 24 * 60 * 60 * 1000, 
 		},
 	})
 );
@@ -75,7 +77,7 @@ app.use('/admin', adminRoutes);
 app.use('/invoices', invoiceRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/users', userRoutes);
-app.use('/api/cart', cartRoutes);
+app.use('/api/cart', cartRoutes); 
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
 // const __filename = fileURLToPath(import.meta.url);
