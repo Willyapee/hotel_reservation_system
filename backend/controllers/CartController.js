@@ -1,601 +1,549 @@
-import Cart from '../models/Cart.js';
-import CartItem from '../models/CartItem.js';
-import CartItemService from '../models/CartItemService.js';
+import { Op } from 'sequelize';
+import RoomReservations from '../models/RoomReservations.js';
 import Rooms from '../models/Rooms.js';
 import MsRoomType from '../models/msRoomTypes.js';
 import MsServices from '../models/msServices.js';
+import ServiceReservations from '../models/ServiceReservations.js';
 
-// Generate unique cart session ID
-const generateCartId = () => `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-const getOrCreateCart = async (req) => {
-	console.log('🔍 CART DEBUG - User:', req.user?.id, 'Session:', req.sessionID);
-
-	if (!req.user?.id) {
-		console.log('❌ NO USER ID - User must be logged in to use cart');
-		throw new Error('Authentication required. Please login to use cart.');
-	}
-
-	console.log('👤 User logged in, finding user cart for ID:', req.user.id);
-
-	let userCart = await Cart.findOne({
-		where: { user_id: req.user.id },
-	});
-
-	if (userCart) {
-		console.log('📦 Existing user cart found:', userCart.cart_id, 'for user:', userCart.user_id);
-		return userCart;
-	} else {
-		// Buat cart baru untuk user
-		userCart = await Cart.create({
-			session_id: generateCartId(),
-			user_id: req.user.id,
-			expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
-		});
-		console.log('🆕 New user cart created:', userCart.cart_id, 'for user:', userCart.user_id);
-		return userCart;
-	}
-};
-
-export const authorizeCart = async (req, res, next) => {
-	try {
-		console.log('🔐 CART AUTH - Checking user:', req.user?.id);
-
-		if (!req.user?.id) {
-			console.log('❌ No user ID - verifyToken middleware mungkin tidak bekerja');
-			return res.status(401).json({
-				success: false,
-				message: 'Please login to access cart',
-			});
-		}
-
-		const cart = await getOrCreateCart(req);
-
-		console.log('🔐 CART AUTH - User:', req.user.id, 'Cart User:', cart.user_id);
-
-		if (cart.user_id !== req.user.id) {
-			console.log('❌ Cart authorization failed: User mismatch');
-			return res.status(403).json({
-				success: false,
-				message: 'Access denied: This cart belongs to another user',
-			});
-		}
-
-		req.cart = cart; // Attach cart ke request
-		next();
-	} catch (error) {
-		console.error('Cart auth error:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Cart authorization failed: ' + error.message,
-		});
-	}
-};
-
-const updateCartItemTotalPrice = async (cartItemId) => {
-	try {
-		// Get all services for this cart item
-		const services = await CartItemService.findAll({
-			where: { cart_item_id: cartItemId },
-		});
-
-		const cartItem = await CartItem.findByPk(cartItemId);
-		if (!cartItem) return;
-
-		// Calculate room total
-		let roomTotal = 0;
-		try {
-			const roomData =
-				typeof cartItem.room_data === 'string'
-					? JSON.parse(cartItem.room_data)
-					: cartItem.room_data;
-			roomTotal = parseFloat(roomData?.price || 0) * cartItem.nights;
-		} catch (error) {
-			roomTotal = 0;
-		}
-
-		// Calculate services total
-		const servicesTotal = services.reduce((sum, service) => {
-			return sum + parseFloat(service.total_price || 0);
-		}, 0);
-
-		const newTotalPrice = roomTotal + servicesTotal;
-
-		await cartItem.update({
-			total_price: newTotalPrice,
-		});
-
-		console.log('💰 Updated cart item total:', {
-			cartItemId,
-			roomTotal,
-			servicesTotal,
-			newTotalPrice,
-		});
-	} catch (error) {
-		console.error('Update cart item price error:', error);
-	}
-};
-
-// ADD TO CART
 export const addToCart = async (req, res) => {
-	try {
-		const { roomId, checkIn, checkOut, guests, rooms } = req.body;
+  try {
+    const { roomId, checkIn, checkOut, guests } = req.body;
 
-		console.log('🛒 Add to cart - User:', req.user.id, 'Cart:', req.cart.cart_id);
+    console.log('📥 Received cart data:', {
+      roomId,
+      checkIn,
+      checkOut,
+      guests
+    });
 
-		// Validasi data
-		if (!roomId || !checkIn || !checkOut) {
-			return res.status(400).json({
-				success: false,
-				message: 'Missing required fields',
-			});
-		}
+    const roomIdNumber = parseInt(roomId);
+    const room = await Rooms.findByPk(roomIdNumber, {
+      include: [{ 
+        model: MsRoomType, 
+        as: 'room_type'
+      }]
+    });
 
-		const utcCheckIn = new Date(checkIn + 'T00:00:00Z');
-		const utcCheckOut = new Date(checkOut + 'T00:00:00Z');
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: 'Room not found'
+      });
+    }
 
-		// Cek duplikat di cart
-		const existingItem = await CartItem.findOne({
-			where: {
-				cart_id: req.cart.cart_id,
-				room_id: roomId,
-				check_in: utcCheckIn,
-				check_out: utcCheckOut,
-			},
-		});
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    
+    if (checkInDate >= checkOutDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Check-out date must be after check-in date'
+      });
+    }
 
-		if (existingItem) {
-			return res.status(400).json({
-				success: false,
-				message: 'Room already in cart',
-			});
-		}
+    const nights = Math.max(1, Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)));
+    const roomPrice = parseFloat(room.room_type?.price_per_night || 0);
+    const subtotal = roomPrice * nights; 
+    
+    console.log('💵 Room price calculation:', {
+      roomPrice: roomPrice,
+      nights: nights,
+      subtotal: subtotal
+    });
 
-		// Ambil data room
-		const room = await Rooms.findByPk(roomId, {
-			include: [
-				{
-					model: MsRoomType,
-					as: 'room_type',
-					attributes: [
-						'name',
-						'price_per_night',
-						'description',
-						'room_bed',
-						'image_url',
-						'capacity',
-					],
-				},
-			],
-		});
+    const adults = parseInt(guests?.adults) || 1;
+    const children = parseInt(guests?.children) || 0;
+    
+    console.log('👥 Guest info to save:', { adults, children });
 
-		if (!room || !room.room_type) {
-			return res.status(404).json({
-				success: false,
-				message: 'Room not found',
-			});
-		}
+    const existingInCart = await RoomReservations.findOne({
+      where: {
+        id_room: roomIdNumber,
+        status: 'draft',
+        id_reservation: null,
+        [Op.or]: [
+          {
+            check_in_date: { [Op.lte]: checkOutDate },
+            check_out_date: { [Op.gte]: checkInDate }
+          }
+        ]
+      }
+    });
 
-		const roomType = room.room_type;
-		const nights = Math.ceil((utcCheckOut - utcCheckIn) / (1000 * 60 * 60 * 24));
-		const roomTotalPrice = roomType.price_per_night * nights;
+    if (existingInCart) {
+      return res.status(400).json({
+        success: false,
+        message: 'Room already in cart'
+      });
+    }
 
-		const cartItem = await CartItem.create({
-			cart_id: req.cart.cart_id,
-			room_id: roomId,
-			check_in: utcCheckIn,
-			check_out: utcCheckOut,
-			adults: guests.totalAdults,
-			children: guests.totalChildren || 0,
-			child_ages: rooms ? rooms.flatMap((r) => r.childAges || []) : [],
-			room_data: {
-				name: roomType.name,
-				type: roomType.name,
-				price: roomType.price_per_night,
-				image: roomType.image_url,
-				description: roomType.description,
-				bed_type: roomType.room_bed,
-				capacity: roomType.capacity,
-				room_number: room.room_number,
-			},
-			nights: nights,
-			total_price: roomTotalPrice,
-		});
+    const isAvailable = await checkRoomAvailability(roomIdNumber, checkInDate, checkOutDate);
+    if (!isAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: 'Room not available'
+      });
+    }
 
-		console.log('✅ Cart item created for user:', req.user.id);
+    const cartItem = await RoomReservations.create({
+      id_room: roomIdNumber,
+      check_in_date: checkInDate,
+      check_out_date: checkOutDate,
+      status: 'draft',
+      subtotal_price: subtotal,
+      id_reservation: null,
+      guest_adults: adults,
+      guest_children: children
+    });
 
-		res.json({
-			success: true,
-			message: 'Room added to cart successfully',
-			cartItem: {
-				id: cartItem.cart_item_id,
-				room: cartItem.room_data,
-				checkIn: cartItem.check_in,
-				checkOut: cartItem.check_out,
-				nights: cartItem.nights,
-				guests: {
-					adults: cartItem.adults,
-					children: cartItem.children,
-				},
-				totalPrice: cartItem.total_price,
-				services: [],
-			},
-		});
-	} catch (error) {
-		console.error('❌ Add to cart error:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Failed to add room to cart',
-		});
-	}
+    console.log('✅ Cart item created:', {
+      id: cartItem.id_room_reservation,
+      guest_adults: cartItem.guest_adults,
+      guest_children: cartItem.guest_children
+    });
+
+    res.json({
+      success: true,
+      message: 'Room added to cart successfully',
+      cartItem: {
+        id: cartItem.id_room_reservation,
+        roomId: cartItem.id_room,
+        nights: nights,
+        subtotal: subtotal,
+        pricePerNight: roomPrice, 
+        totalForStay: subtotal,
+        guests: { 
+          adults: cartItem.guest_adults, 
+          children: cartItem.guest_children 
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Add to cart error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add room to cart'
+    });
+  }
 };
 
-// ADD SERVICE TO CART ITEM
+const checkRoomAvailability = async (roomId, checkIn, checkOut) => {
+  try {
+    const conflictingBooking = await RoomReservations.findOne({
+      where: {
+        id_room: roomId,
+        status: { 
+          [Op.notIn]: ['draft', 'cancelled', 'checked_out'] 
+        },
+        [Op.or]: [
+          {
+            check_in_date: { [Op.lt]: checkOut },
+            check_out_date: { [Op.gt]: checkIn }
+          }
+        ]
+      }
+    });
+
+    return !conflictingBooking;
+  } catch (error) {
+    console.error('Check availability error:', error);
+    return false;
+  }
+};
+
+export const getCart = async (req, res) => {
+  try {
+    const cartItems = await RoomReservations.findAll({
+      where: {
+        status: 'draft',
+        id_reservation: null
+      },
+      include: [
+        {
+          model: Rooms,
+          as: 'room',
+          include: [{
+            model: MsRoomType,
+            as: 'room_type'
+          }]
+        },
+        {
+          model: ServiceReservations,
+          as: 'service_details',
+          include: [{
+            model: MsServices,
+            as: 'service'
+          }]
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    console.log('📦 Found cart items:', cartItems.length);
+
+    const formattedCart = cartItems.map(item => {
+      const room = item.room;
+      const roomType = room?.room_type;
+
+      const guestInfo = {
+        adults: parseInt(item.guest_adults) || 1,
+        children: parseInt(item.guest_children) || 0
+      };
+
+      console.log('👥 Guest info from database:', {
+        itemId: item.id_room_reservation,
+        guest_adults: item.guest_adults,
+        guest_children: item.guest_children,
+        guestInfo: guestInfo
+      });
+
+      const checkIn = new Date(item.check_in_date);
+      const checkOut = new Date(item.check_out_date);
+      const nights = Math.max(1, Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24)));
+      
+      const pricePerNight = parseFloat(roomType?.price_per_night || 0);
+      const roomSubtotal = pricePerNight * nights;
+      
+      let servicesTotal = 0;
+      const services = item.service_details?.map(service => {
+        const serviceData = service.service;
+        const isPerPerson = serviceData?.unit === 'per_person';
+        const unitPrice = parseFloat(serviceData?.service_price || 0);
+        
+        let subtotal = 0;
+        
+        if (isPerPerson) {
+          const adultPrice = unitPrice * guestInfo.adults;
+          const childPrice = (unitPrice * 0.5) * guestInfo.children;
+          subtotal = adultPrice + childPrice;
+        } else {
+          subtotal = parseFloat(service.subtotal_price) || unitPrice;
+        }
+        
+        servicesTotal += subtotal;
+        
+        return {
+          id: service.id_service_reservation,
+          service: {
+            id: serviceData?.id_service,
+            name: serviceData?.name,
+            price: unitPrice,
+            unit: serviceData?.unit
+          },
+          totalPrice: subtotal.toFixed(2)
+        };
+      }) || [];
+
+      const totalPrice = (roomSubtotal + servicesTotal).toFixed(2);
+
+      return {
+        id: item.id_room_reservation,
+        roomId: item.id_room,
+        checkIn: item.check_in_date,
+        checkOut: item.check_out_date,
+        nights: nights,
+        guests: guestInfo, 
+        room: {
+          id: room?.id_room,
+          name: roomType?.name || 'Unknown Room',
+          pricePerNight: pricePerNight.toFixed(2),
+          totalForStay: roomSubtotal.toFixed(2),
+          image: roomType?.image_url || '/default-room.jpg',
+          description: roomType?.description,
+          bed_type: roomType?.room_bed,
+          room_number: room?.room_number, 
+          roomNumber: room?.room_number, 
+          guests: guestInfo
+        },
+        services: services,
+        totalPrice: totalPrice,
+        subtotal: roomSubtotal.toFixed(2)
+      };
+    });
+
+    res.json({
+      success: true,
+      cart: formattedCart
+    });
+
+  } catch (error) {
+    console.error('Get cart error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch cart'
+    });
+  }
+};
+
+async function updateServiceQuantityInDatabase(serviceReservationId, correctQuantity, correctSubtotal) {
+  try {
+    await ServiceReservations.update(
+      {
+        quantity: correctQuantity,
+        subtotal_price: correctSubtotal
+      },
+      {
+        where: { id_service_reservation: serviceReservationId }
+      }
+    );
+    console.log(`✅ Fixed service ${serviceReservationId}: quantity=${correctQuantity}, subtotal=${correctSubtotal}`);
+  } catch (error) {
+    console.error(`❌ Failed to fix service ${serviceReservationId}:`, error);
+  }
+}
+
+export const removeFromCart = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+
+    const cartItem = await RoomReservations.findOne({
+      where: {
+        id_room_reservation: itemId,
+        status: 'draft'
+      }
+    });
+
+    if (!cartItem) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cart item not found'
+      });
+    }
+
+    await ServiceReservations.destroy({
+      where: { id_room_reservation: itemId }
+    });
+
+    await cartItem.destroy();
+
+    res.json({
+      success: true,
+      message: 'Item removed from cart'
+    });
+
+  } catch (error) {
+    console.error('Remove from cart error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove item from cart'
+    });
+  }
+};
+
 export const addServiceToCartItem = async (req, res) => {
-	try {
-		const { cartItemId } = req.params;
-		const { serviceId, quantity = 1 } = req.body;
+  try {
+    const { cartItemId } = req.params;
+    const { serviceId } = req.body;
 
-		console.log('🛍️ [SERVICE] Adding service:', {
-			cartItemId,
-			serviceId,
-			quantity,
-			user: req.user.id,
-		});
+    if (!serviceId) {
+      return res.status(400).json({
+        success: false,
+        message: 'serviceId is required'
+      });
+    }
 
-		const cartItem = await CartItem.findOne({
-			where: {
-				cart_item_id: cartItemId,
-			},
-		});
+    const cartItem = await RoomReservations.findByPk(cartItemId);
+    if (!cartItem) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cart item not found'
+      });
+    }
 
-		if (!cartItem) {
-			return res.status(404).json({
-				success: false,
-				message: 'Cart item not found',
-			});
-		}
+    const service = await MsServices.findByPk(serviceId);
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: 'Service not found'
+      });
+    }
 
-		const userCart = await Cart.findOne({
-			where: {
-				cart_id: cartItem.cart_id,
-				user_id: req.user.id,
-			},
-		});
+    const guestInfo = {
+      adults: parseInt(cartItem.guest_adults) || 1,
+      children: parseInt(cartItem.guest_children) || 0
+    };
 
-		if (!userCart) {
-			return res.status(403).json({
-				success: false,
-				message: 'Cart item does not belong to your cart',
-			});
-		}
+    console.log('👥 Guest info for service calculation:', guestInfo);
 
-		const service = await MsServices.findByPk(serviceId);
+    let subtotal = 0;
+    
+    const servicePrice = parseFloat(service.service_price);
+    
+    if (service.unit === 'per_person') {
+      const adultPrice = servicePrice * guestInfo.adults;
+      const childPrice = (servicePrice * 0.5) * guestInfo.children;
+      subtotal = adultPrice + childPrice;
+      
+      console.log('💰 Per Person Service Calculation:', {
+        adults: guestInfo.adults,
+        children: guestInfo.children,
+        adultPrice: adultPrice,
+        childPrice: childPrice,
+        total: subtotal
+      });
+    } else {
+      subtotal = servicePrice;
 
-		if (!service) {
-			return res.status(404).json({
-				success: false,
-				message: 'Service not found',
-			});
-		}
+      const existingService = await ServiceReservations.findOne({
+        where: {
+          id_room_reservation: cartItemId,
+          id_service: serviceId
+        }
+      });
+      
+      if (existingService) {
+        return res.status(400).json({
+          success: false,
+          message: `Service "${service.name}" already added to this booking`
+        });
+      }
+    }
 
-		console.log('🔍 Service found:', service.name);
+    const serviceReservation = await ServiceReservations.create({
+      id_room_reservation: cartItemId,
+      id_service: serviceId,
+      quantity: service.unit === 'per_person' ? (guestInfo.adults + guestInfo.children) : 1,
+      subtotal_price: subtotal
+    });
 
-		const existingService = await CartItemService.findOne({
-			where: {
-				cart_item_id: cartItemId,
-				service_id: serviceId,
-			},
-		});
+    const roomSubtotal = parseFloat(cartItem.subtotal_price || 0);
+    const newSubtotal = roomSubtotal + subtotal;
+    await cartItem.update({ subtotal_price: newSubtotal });
 
-		if (existingService) {
-			return res.status(400).json({
-				success: false,
-				message: 'Service already added to this cart item',
-			});
-		}
+    res.json({
+      success: true,
+      message: `Service "${service.name}" added successfully`,
+      service: {
+        id: serviceReservation.id_service_reservation,
+        service: {
+          id: service.id_service,
+          name: service.name,
+          price: servicePrice,
+          unit: service.unit
+        },
+        totalPrice: subtotal.toFixed(2)
+      }
+    });
 
-		let totalPrice = 0;
-		const totalGuests = cartItem.adults + cartItem.children;
-
-		if (service.unit === 'per_booking') {
-			totalPrice = parseFloat(service.service_price) * quantity;
-		} else if (service.unit === 'per_person') {
-			totalPrice = parseFloat(service.service_price) * totalGuests * quantity;
-		}
-
-		console.log('💰 Price calculation:', {
-			unit: service.unit,
-			servicePrice: service.service_price,
-			totalGuests,
-			quantity,
-			totalPrice,
-		});
-
-		const cartItemService = await CartItemService.create({
-			cart_item_id: cartItemId,
-			service_id: serviceId,
-			quantity: quantity,
-			total_price: totalPrice,
-		});
-
-		console.log('✅ CartItemService created:', {
-			id: cartItemService.cart_item_service_id,
-			cart_item_id: cartItemService.cart_item_id,
-			service_id: cartItemService.service_id,
-		});
-
-		await updateCartItemTotalPrice(cartItemId);
-
-		const updatedService = await CartItemService.findOne({
-			where: { cart_item_service_id: cartItemService.cart_item_service_id },
-			include: [
-				{
-					model: MsServices,
-					as: 'service',
-					attributes: ['id_service', 'name', 'desc', 'service_price', 'unit'],
-				},
-			],
-		});
-
-		const responseData = {
-			success: true,
-			message: 'Service added successfully',
-			service: {
-				id: updatedService.cart_item_service_id,
-				cart_item_service_id: updatedService.cart_item_service_id,
-				service_id: updatedService.service_id,
-				service: {
-					id_service: updatedService.service.id_service,
-					name: updatedService.service.name,
-					desc: updatedService.service.desc,
-					service_price: updatedService.service.service_price,
-					price: updatedService.service.service_price,
-					unit: updatedService.service.unit,
-				},
-				quantity: updatedService.quantity,
-				totalPrice: updatedService.total_price,
-				total_price: updatedService.total_price,
-			},
-		};
-
-		console.log('📦 Response ready:', responseData);
-
-		res.json(responseData);
-	} catch (error) {
-		console.error('❌ Add service error:', error);
-		console.error('❌ Error details:', error.stack);
-		res.status(500).json({
-			success: false,
-			message: 'Failed to add service: ' + error.message,
-		});
-	}
+  } catch (error) {
+    console.error('Add service error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add service to cart item'
+    });
+  }
 };
 
 export const removeServiceFromCartItem = async (req, res) => {
-	try {
-		const { cartItemServiceId } = req.params;
+  try {
+    const { cartItemServiceId } = req.params;
 
-		console.log('🗑️ Removing service ID:', cartItemServiceId);
+    const serviceReservation = await ServiceReservations.findByPk(cartItemServiceId, {
+      include: [{
+        model: MsServices,
+        as: 'service'
+      }]
+    });
 
-		const cartItemService = await CartItemService.findByPk(cartItemServiceId);
+    if (!serviceReservation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Service reservation not found'
+      });
+    }
 
-		if (!cartItemService) {
-			return res.status(404).json({
-				success: false,
-				message: 'Service not found in cart',
-			});
-		}
+    console.log('🗑️ Removing service:', {
+      id: serviceReservation.id_service_reservation,
+      name: serviceReservation.service?.name,
+      unit: serviceReservation.service?.unit,
+      quantity: serviceReservation.quantity,
+      subtotal: serviceReservation.subtotal_price
+    });
+    
+    await serviceReservation.destroy();
+    console.log('✅ Service removed from database');
 
-		const cartItem = await CartItem.findByPk(cartItemService.cart_item_id);
+    res.json({
+      success: true,
+      message: 'Service removed from cart item',
+      removedService: {
+        id: serviceReservation.id_service_reservation,
+        name: serviceReservation.service?.name,
+        amountRemoved: serviceReservation.subtotal_price
+      }
+    });
 
-		if (!cartItem) {
-			return res.status(404).json({
-				success: false,
-				message: 'Cart item not found',
-			});
-		}
-
-		const userCart = await Cart.findOne({
-			where: {
-				cart_id: cartItem.cart_id,
-				user_id: req.user.id,
-			},
-		});
-
-		if (!userCart) {
-			return res.status(403).json({
-				success: false,
-				message: 'Service does not belong to your cart',
-			});
-		}
-
-		const cartItemId = cartItemService.cart_item_id;
-
-		await cartItemService.destroy();
-
-		await updateCartItemTotalPrice(cartItemId);
-
-		res.json({
-			success: true,
-			message: 'Service removed successfully',
-		});
-	} catch (error) {
-		console.error('❌ Remove service error:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Failed to remove service: ' + error.message,
-		});
-	}
+  } catch (error) {
+    console.error('Remove service error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove service from cart item'
+    });
+  }
 };
 
-// GET CART
-export const getCart = async (req, res) => {
-	try {
-		console.log('🛍️ Getting cart for user:', req.user.id);
-
-		// Query cart items
-		const cartItems = await CartItem.findAll({
-			where: { cart_id: req.cart.cart_id },
-			order: [['createdAt', 'DESC']],
-		});
-
-		console.log('📋 Found cart items:', cartItems.length);
-
-		// Get services untuk setiap cart item
-		const cartItemsWithServices = await Promise.all(
-			cartItems.map(async (item) => {
-				// Query services
-				const cartItemServices = await CartItemService.findAll({
-					where: { cart_item_id: item.cart_item_id },
-					include: [
-						{
-							model: MsServices,
-							as: 'service',
-						},
-					],
-				});
-
-				// Format services
-				const formattedServices = cartItemServices.map((cis) => ({
-					id: cis.cart_item_service_id,
-					cart_item_service_id: cis.cart_item_service_id,
-					service: {
-						id_service: cis.service?.id_service,
-						name: cis.service?.name,
-						desc: cis.service?.desc,
-						service_price: cis.service?.service_price,
-						price: cis.service?.service_price,
-						unit: cis.service?.unit,
-					},
-					quantity: cis.quantity,
-					totalPrice: cis.total_price,
-				}));
-
-				console.log(`🛍️ Cart item ${item.cart_item_id} has ${formattedServices.length} services`);
-
-				// Parse room data
-				let roomData = {};
-				try {
-					roomData =
-						typeof item.room_data === 'string' ? JSON.parse(item.room_data) : item.room_data;
-				} catch (error) {
-					roomData = {
-						name: 'Room',
-						price: 0,
-						image: '/default-room.jpg',
-						description: 'Room description',
-						bed_type: 'No bed information',
-						room_number: '-',
-					};
-				}
-
-				return {
-					id: item.cart_item_id,
-					cart_item_id: item.cart_item_id,
-					roomId: item.room_id,
-					room: roomData,
-					checkIn: item.check_in,
-					checkOut: item.check_out,
-					nights: item.nights,
-					adults: item.adults,
-					children: item.children,
-					guests: {
-						adults: item.adults,
-						children: item.children,
-					},
-					services: formattedServices,
-					totalPrice: item.total_price,
-				};
-			})
-		);
-
-		console.log('✅ Final cart data prepared');
-
-		res.json({
-			success: true,
-			cart: cartItemsWithServices,
-		});
-	} catch (error) {
-		console.error('Get cart error:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Failed to get cart items',
-		});
-	}
-};
-
-// REMOVE FROM CART
-export const removeFromCart = async (req, res) => {
-	try {
-		const { itemId } = req.params;
-
-		console.log('🗑️ Removing item:', itemId, 'from cart:', req.cart.cart_id, 'user:', req.user.id);
-
-		// Hapus services terlebih dahulu
-		await CartItemService.destroy({
-			where: { cart_item_id: itemId },
-		});
-
-		// Hapus cart item
-		const deleted = await CartItem.destroy({
-			where: {
-				cart_item_id: itemId,
-				cart_id: req.cart.cart_id,
-			},
-		});
-
-		if (!deleted) {
-			return res.status(404).json({
-				success: false,
-				message: 'Cart item not found',
-			});
-		}
-
-		res.json({
-			success: true,
-			message: 'Item removed from cart',
-		});
-	} catch (error) {
-		console.error('Remove from cart error:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Failed to remove item from cart',
-		});
-	}
-};
-
-// CLEAR CART
 export const clearCart = async (req, res) => {
-	try {
-		console.log('🧹 Clearing cart:', req.cart.cart_id, 'for user:', req.user.id);
+  try {
+    const cartItems = await RoomReservations.findAll({
+      where: { status: 'draft' }
+    });
 
-		// Hapus semua cart items dan services
-		await CartItemService.destroy({
-			where: {
-				'$cart_item.cart_id$': req.cart.cart_id,
-			},
-			include: [
-				{
-					model: CartItem,
-					as: 'cart_item',
-				},
-			],
-		});
+    for (const item of cartItems) {
+      await ServiceReservations.destroy({
+        where: { id_room_reservation: item.id_room_reservation }
+      });
+    }
 
-		await CartItem.destroy({
-			where: { cart_id: req.cart.cart_id },
-		});
+    await RoomReservations.destroy({
+      where: { status: 'draft' }
+    });
 
-		res.json({
-			success: true,
-			message: 'Cart cleared successfully',
-		});
-	} catch (error) {
-		console.error('Clear cart error:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Failed to clear cart',
-		});
-	}
+    res.json({
+      success: true,
+      message: 'Cart cleared successfully'
+    });
+
+  } catch (error) {
+    console.error('Clear cart error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clear cart'
+    });
+  }
+};
+
+export const getCartRoomNumbers = async (req, res) => {
+  try {
+    const cartItems = await RoomReservations.findAll({
+      where: {
+        status: 'draft',
+        id_reservation: null
+      },
+      include: [{
+        model: Rooms,
+        as: 'room',
+        attributes: ['id_room']
+      }]
+    });
+
+    const roomNumbers = cartItems
+      .map(item => item.room?.id_room)
+      .filter(id => id !== undefined && id !== null)
+      .map(id => parseInt(id));
+
+    console.log('📋 Cart room numbers:', roomNumbers);
+
+    res.json({
+      success: true,
+      roomNumbers: roomNumbers
+    });
+
+  } catch (error) {
+    console.error('Get cart room numbers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch cart room numbers'
+    });
+  }
 };

@@ -4,22 +4,22 @@ import {
   getCart, 
   removeFromCart, 
   clearCart,
-  authorizeCart,
   addServiceToCartItem,        
-  removeServiceFromCartItem    
-} from '../controllers/CartController.js';
-import { verifyToken } from '../middleware/authMiddleware.js';
+  removeServiceFromCartItem,
+  getCartRoomNumbers
+} from '../controllers/cartController.js';
+import { verifyToken, getOrCreateCartId } from '../middleware/cartMiddleware.js';
 
 const router = express.Router();
 
-router.use(verifyToken);
-router.use(authorizeCart);
+router.get('/room-numbers', getCartRoomNumbers);
+router.use(verifyToken); 
+router.use(getOrCreateCartId); 
 
 router.post('/add', addToCart);
 router.get('/', getCart);
 router.delete('/:itemId', removeFromCart);
 router.delete('/', clearCart);
-
 router.post('/:cartItemId/services', addServiceToCartItem);
 router.delete('/services/:cartItemServiceId', removeServiceFromCartItem);
 

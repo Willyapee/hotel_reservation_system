@@ -18,13 +18,13 @@ import {
 	LogOut,
 	ArrowLeft,
 } from 'lucide-react';
-import axios from 'axios';
-
+import NavigationBar from '../components/navigationBar.jsx';
 const Profile = () => {
 	const navigate = useNavigate();
 	const [isEditing, setIsEditing] = useState(false);
 	const [activeTab, setActiveTab] = useState('profile');
 	const [loading, setLoading] = useState(true);
+	const [openMenu, setOpenMenu] = useState(false); 
 
 	const [user, setUser] = useState({
 		name: '',
@@ -37,54 +37,99 @@ const Profile = () => {
 
 	const [formData, setFormData] = useState({ ...user });
 
-	// Check authentication and fetch user data
 	useEffect(() => {
 		const fetchData = async () => {
-			const token = localStorage.getItem('token');
-			if (!token) {
-				navigate('/login');
-				return;
-			}
-
+			setLoading(true);
+			
 			try {
-				const userRes = await axios.get('http://localhost:3000/auth/me', { withCredentials: true });
-				const userData = userRes.data;
-
-				const formattedUser = {
-					name: userData.username,
-					email: userData.email,
-					joinDate: new Date().toLocaleDateString('en-US', {
-						year: 'numeric',
-						month: 'long',
-						day: 'numeric',
-					}),
-					avatar: '../picture/logo/logoNoBG.png',
-				};
-				setUser(formattedUser);
-				setFormData(formattedUser);
-
-				const bookingRes = await axios.get('http://localhost:3000/reservations/my', {
-					withCredentials: true,
+				console.log('🔐 Checking authentication for profile...');
+				
+				const authResponse = await fetch('http://localhost:3000/auth/check', {
+					credentials: 'include'
 				});
-				if (bookingRes.data && bookingRes.data.reservations) {
-					setBookings(bookingRes.data.reservations);
+				
+				const authData = await authResponse.json();
+				console.log('Profile auth check:', authData);
+				
+				if (!authResponse.ok || !authData.authenticated) {
+					console.log('❌ Not authenticated, redirecting to login');
+					navigate('/login', {
+						state: {
+							redirectTo: '/profile',
+							message: 'Please login to view your profile'
+						}
+					});
+					return;
 				}
+				
+				console.log('✅ User authenticated, fetching profile data');
+				
+				const userRes = await fetch('http://localhost:3000/auth/me', {
+					credentials: 'include'
+				});
+				
+				const userData = await userRes.json();
+				console.log('User data:', userData);
+				
+				if (userRes.ok && userData.success) {
+					const formattedUser = {
+						name: userData.user.username,
+						email: userData.user.email,
+						joinDate: new Date().toLocaleDateString('en-US', {
+							year: 'numeric',
+							month: 'long',
+							day: 'numeric',
+						}),
+						avatar: '../picture/logo/logoNoBG.png',
+					};
+					
+					setUser(formattedUser);
+					setFormData(formattedUser);
+					
+					localStorage.setItem('user', JSON.stringify({
+						name: userData.user.username,
+						initials: userData.user.username.split(' ').map(n => n[0]).join('').toUpperCase(),
+						isLoggedIn: true,
+						role: userData.user.role || 'guest'
+					}));
+					
+					try {
+						const bookingRes = await fetch('http://localhost:3000/reservations/my', {
+							credentials: 'include'
+						});
+						
+						if (bookingRes.ok) {
+							const bookingData = await bookingRes.json();
+							if (bookingData.reservations) {
+								setBookings(bookingData.reservations);
+							}
+						}
+					} catch (bookingError) {
+						console.warn('Could not load bookings:', bookingError);
+					}
+					
+				} else {
+					throw new Error(userData.message || 'Failed to load user data');
+				}
+				
 			} catch (err) {
-				console.error('Error loading profile:', err);
-				if (err.response?.status === 401) {
-					localStorage.clear();
-					navigate('/login');
-				}
+				console.error('❌ Error loading profile:', err);
+				navigate('/login', {
+					state: {
+						redirectTo: '/profile',
+						message: 'Session expired. Please login again.'
+					}
+				});
 			} finally {
 				setLoading(false);
 			}
 		};
+		
 		fetchData();
 	}, [navigate]);
 
 	const handleEditToggle = () => {
 		if (isEditing) {
-			// Save changes
 			setUser(formData);
 		}
 		setIsEditing(!isEditing);
@@ -102,15 +147,24 @@ const Profile = () => {
 		}));
 	};
 
-	const handleSignOut = () => {
-		// Clear localStorage
-		localStorage.removeItem('token');
-		localStorage.removeItem('role');
-		localStorage.removeItem('username');
-
-		// Redirect to home
-		navigate('/');
-		window.location.reload();
+	const handleSignOut = async () => {
+		try {
+			await fetch('http://localhost:3000/auth/logout', {
+				method: 'POST',
+				credentials: 'include'
+			});
+			
+			localStorage.removeItem('user');
+			
+			navigate('/');
+			window.location.reload();
+		} catch (error) {
+			console.error('Logout error:', error);
+			localStorage.removeItem('user');
+			
+			navigate('/');
+			window.location.reload();
+		}
 	};
 
 	const ProfileInfo = () => (
@@ -274,46 +328,20 @@ const Profile = () => {
 
 	return (
 		<div className='min-h-screen bg-[#fbfaf9]'>
-			{/* Header - Updated to match navigationBar.jsx exactly */}
-			<div className='w-full h-fit fixed flex items-center gap-x-10 px-4 py-2 bg-[#102E50] z-40'>
-				<div className='flex items-center gap-x-8'>
-					<img src='../picture/logo/logo.png' className='w-13 h-fit' alt='Nyx Hotel' />
-					<button
-						onClick={() => navigate('/')}
-						className='flex items-center gap-x-2 text-white hover:text-gray-300 transition-colors'>
-						<ArrowLeft className='w-5 h-5' />
-						<span className='text-sm'>Back to Home</span>
-					</button>
-				</div>
+			{/* ✅ NAVIGATION BAR - SAMA SEPERTI DI HOMEPAGE */}
+			<NavigationBar openMenu={openMenu} handleOpenMenu={() => setOpenMenu(!openMenu)} />
+			
+			{/* Back to Home Button */}
+			<button
+				onClick={() => navigate('/')}
+				className='fixed top-20 left-6 z-50 flex items-center gap-2 text-white bg-[#102E50] px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:scale-105'
+			>
+				<ArrowLeft className='w-4 h-4' />
+				<span className='text-sm font-medium'>Back to Home</span>
+			</button>
 
-				<div className='flex-grow flex justify-end items-center gap-x-6'>
-					{user.name ? (
-						<button className='flex items-center gap-x-3'>
-							<div className='w-10 h-10 rounded-full bg-gradient-to-br from-[#c19a6b] to-[#a67c52] flex items-center justify-center text-white font-bold text-sm cursor-pointer hover:opacity-90 transition-opacity duration-300'>
-								{user.name
-									.split(' ')
-									.map((n) => n[0])
-									.join('')
-									.toUpperCase()}
-							</div>
-							<div className='text-right hidden sm:block'>
-								<p className='text-white text-sm font-medium'>{user.name}</p>
-							</div>
-						</button>
-					) : (
-						<div className='flex items-center gap-x-3 right-0'>
-							<button
-								onClick={() => navigate('/login')}
-								className='bg-[#c19a6b] hover:bg-[#a67c52] text-white px-4 py-2 rounded-lg transition-all duration-300 ease-in-out text-sm hover:scale-105 z-10'>
-								Sign In
-							</button>
-						</div>
-					)}
-				</div>
-			</div>
-
-			{/* Add padding to account for fixed header */}
-			<div className='pt-16'>
+			{/* Padding untuk NavigationBar */}
+			<div className='pt-20'>
 				<div className='max-w-6xl mx-auto p-6'>
 					<div className='grid grid-cols-1 lg:grid-cols-4 gap-6'>
 						{/* Sidebar Navigation */}

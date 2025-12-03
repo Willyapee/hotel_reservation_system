@@ -8,24 +8,52 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
     role: 'guest'
   });
 
-  // Check authentication status
+  // Refresh auth status saat component mount DAN saat menu dibuka
   useEffect(() => {
-    checkAuthStatus();
-  }, []);
+    if (isOpen) {
+      console.log('🔄 MenuOverlay: Checking auth status...');
+      checkAuthStatus();
+    }
+  }, [isOpen]);
 
   const checkAuthStatus = () => {
-    const token = localStorage.getItem('token');
-    const username = localStorage.getItem('username');
-    const role = localStorage.getItem('role');
+    // 🎯 CEK DARI localStorage 'user'
+    const storedUser = localStorage.getItem('user');
     
-    if (token && username) {
-      setUser({
-        name: username,
-        initials: username.split(' ').map(n => n[0]).join('').toUpperCase(),
-        isLoggedIn: true,
-        role: role || 'guest'
-      });
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        
+        // 🎯 SUPPORT BOTH FORMATS:
+        // 1. Format baru: {name, initials, isLoggedIn, role}
+        // 2. Format lama: {username, role} (dari Login.jsx lama)
+        
+        if (parsed.isLoggedIn || parsed.username) { // Jika logged in atau ada username
+          const userData = {
+            name: parsed.name || parsed.username || 'User',
+            initials: parsed.initials || 
+                     (parsed.username || 'U').split(' ').map(n => n[0]).join('').toUpperCase(),
+            isLoggedIn: true,
+            role: parsed.role || 'guest'
+          };
+          
+          console.log('✅ MenuOverlay: User authenticated', userData);
+          setUser(userData);
+          return;
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
     }
+    
+    // 🎯 JIKA TIDAK ADA DATA
+    console.log('❌ MenuOverlay: No valid user data');
+    setUser({
+      name: '',
+      initials: '',
+      isLoggedIn: false,
+      role: 'guest'
+    });
   };
 
   const menuItems = [
@@ -51,8 +79,15 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
     }
   ];
 
-  // Tambahkan item menu Admin hanya jika user adalah admin
+  // 🎯 TAMBAH ADMIN DASHBOARD JIKA ADMIN
+  // Debug: Log untuk melihat apakah kondisi ini terpenuhi
+  console.log('🔍 MenuOverlay - Condition check:');
+  console.log('  - user.isLoggedIn:', user.isLoggedIn);
+  console.log('  - user.role:', user.role);
+  console.log('  - Should show admin:', user.isLoggedIn && user.role === 'admin');
+  
   if (user.isLoggedIn && user.role === 'admin') {
+    console.log('✅ MenuOverlay: Adding Admin Dashboard to menu');
     menuItems.push({
       id: 'admin',
       label: 'Admin Dashboard',
@@ -65,11 +100,9 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
       onNavigate(item.section);
       onClose();
     } else if (item.path) {
-      if (item.path === '/admin') {
-        window.location.href = '/admin';
-      } else {
-        window.location.href = item.path;
-      }
+      console.log(`📍 Navigating to ${item.path}`);
+      window.location.href = item.path; // Simple redirect
+      onClose();
     }
   };
 
@@ -79,16 +112,23 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
     } else {
       window.location.href = '/login';
     }
+    onClose();
   };
 
   const handleSignOut = (e) => {
     e.stopPropagation();
-    // Clear localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('username');
     
-    // Reset user state
+    // Clear all auth data
+    localStorage.removeItem('user');
+    
+    // Call logout API
+    fetch('http://localhost:3000/auth/logout', {
+      method: 'POST',
+      credentials: 'include'
+    }).catch(() => {
+      // Ignore errors
+    });
+    
     setUser({
       name: '',
       initials: '',
@@ -96,9 +136,12 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
       role: 'guest'
     });
     
-    // Redirect to home
     window.location.href = '/';
+    onClose();
   };
+
+  // 🎯 DEBUG: Log state saat render
+  console.log('🔄 MenuOverlay render - user state:', user);
 
   return (
     <>

@@ -9,7 +9,8 @@ const RoomReservations = db.define('room_reservations', {
 	},
 	id_reservation: {
 		type: DataTypes.INTEGER,
-		allowNull: false,
+		allowNull: true,
+		defaultValue: null,
 	},
 	id_room: {
 		type: DataTypes.INTEGER,
@@ -24,13 +25,23 @@ const RoomReservations = db.define('room_reservations', {
 		allowNull: false,
 	},
 	status: {
-		type: DataTypes.ENUM('reserved', 'checked_in', 'checked_out', 'cancelled'),
-		defaultValue: 'reserved',
+		type: DataTypes.ENUM('draft', 'reserved', 'checked_in', 'checked_out', 'cancelled'),
+		defaultValue: 'draft',
 	},
 	subtotal_price: {
 		type: DataTypes.DECIMAL(63, 2),
 		allowNull: false,
 	},
+	guest_adults: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    },
+    guest_children: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    }
 }, {
     freezeTableName: true,
     timestamps: true,

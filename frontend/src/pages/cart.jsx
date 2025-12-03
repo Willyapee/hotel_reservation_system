@@ -14,7 +14,6 @@ function Cart() {
   const [showServicesModal, setShowServicesModal] = useState(false);
   const [servicesLoading, setServicesLoading] = useState(false);
 
-  // FETCH CART DATA
   const fetchCart = async () => {
     try {
       setLoading(true);
@@ -45,7 +44,6 @@ function Cart() {
     }
   };
 
-  // FETCH SERVICES FROM BACKEND
   const fetchServices = async () => {
     try {
       setServicesLoading(true);
@@ -64,7 +62,6 @@ function Cart() {
       
     } catch (error) {
       console.error('Failed to load services:', error);
-      // Fallback ke default services jika backend error
       const defaultServices = [
         { id_service: 1, name: "Breakfast", desc: "Premium buffet breakfast with international cuisine", service_price: "35.00", unit: "per_person" },
         { id_service: 2, name: "Business Center", desc: "Executive business facilities with meeting rooms", service_price: "50.00", unit: "per_booking" },
@@ -82,7 +79,6 @@ function Cart() {
     fetchCart();
   }, []);
 
-  // DEBUG: Log cart data changes
   useEffect(() => {
     console.log('🔄 Cart Data Updated:', cartData);
     if (cartData && cartData.length > 0) {
@@ -107,7 +103,6 @@ function Cart() {
     }
   }, [cartData]);
 
-  // REMOVE ITEM FROM CART
   const handleRemove = async (itemId) => {
     try {
       const response = await fetch(`http://localhost:3000/api/cart/${itemId}`, {
@@ -118,7 +113,6 @@ function Cart() {
       const result = await response.json();
       
       if (result.success) {
-        // Refresh cart data setelah remove
         await fetchCart();
       }
     } catch (error) {
@@ -127,14 +121,13 @@ function Cart() {
     }
   };
 
- // ADD SERVICE TO CART ITEM - BACKEND CALL
-const handleAddService = async (serviceId) => {
+  const handleAddService = async (serviceId) => {
   if (!selectedCartItem) return;
   
   try {
     console.log('➕ [FRONTEND] Adding service:', { 
       cartItemId: selectedCartItem.id, 
-      serviceId 
+      serviceId
     });
     
     const response = await fetch(`http://localhost:3000/api/cart/${selectedCartItem.id}/services`, {
@@ -144,8 +137,7 @@ const handleAddService = async (serviceId) => {
       },
       credentials: 'include',
       body: JSON.stringify({
-        serviceId: serviceId,
-        quantity: 1
+        serviceId: serviceId
       })
     });
     
@@ -159,20 +151,23 @@ const handleAddService = async (serviceId) => {
     }
     
     if (result.success) {
-      // Refresh cart data
       await fetchCart();
       
       const selectedService = services.find(service => service.id_service == serviceId);
       const guests = getGuestsData(selectedCartItem);
       const totalGuests = guests.adults + guests.children;
-      
-      const priceInfo = selectedService.unit === 'per_person' 
-        ? `$${selectedService.service_price} × ${totalGuests} guests = $${result.service.totalPrice}`
-        : `$${selectedService.service_price} per booking`;
+     
+      let priceInfo = '';
+      if (selectedService.unit === 'per_person') {
+        const unitPrice = parseFloat(selectedService.service_price);
+        const totalPrice = unitPrice * totalGuests;
+        priceInfo = `$${unitPrice.toFixed(2)} per person × ${totalGuests} guest(s) = $${totalPrice.toFixed(2)}`;
+      } else {
+        priceInfo = `$${selectedService.service_price} per booking (fixed)`;
+      }
         
       alert(`✅ "${selectedService.name}" added to your booking!\n\n${priceInfo}`);
       
-      // Tutup modal
       setShowServicesModal(false);
     } else {
       throw new Error(result.message || 'Failed to add service');
@@ -184,12 +179,10 @@ const handleAddService = async (serviceId) => {
   }
 };
 
-  // REMOVE SERVICE FROM CART ITEM - BACKEND CALL
   const handleRemoveService = async (serviceItemId) => {
     try {
       console.log('🗑️ Removing service:', serviceItemId);
       
-      // BACKEND CALL - Gunakan endpoint yang benar
       const response = await fetch(`http://localhost:3000/api/cart/services/${serviceItemId}`, {
         method: 'DELETE',
         credentials: 'include'
@@ -202,7 +195,6 @@ const handleAddService = async (serviceId) => {
       }
       
       if (result.success) {
-        // Refresh cart data
         await fetchCart();
         alert('✅ Service removed successfully!');
       }
@@ -213,7 +205,6 @@ const handleAddService = async (serviceId) => {
     }
   };
 
-  // OPEN SERVICES MODAL
   const openServicesModal = async (cartItem) => {
     setSelectedCartItem(cartItem);
     setShowServicesModal(true);
@@ -230,12 +221,10 @@ const handleAddService = async (serviceId) => {
     setSelectedCartItem(null);
   };
 
-  // CALCULATE TOTAL PRICE
   const totalPrice = Array.isArray(cartData) 
     ? cartData.reduce((sum, item) => sum + (parseFloat(item?.totalPrice) || 0), 0)
     : 0;
 
-  // FORMAT DATE
   const formatDate = (dateString) => {
     try {
       if (!dateString) return 'Invalid date';
@@ -250,7 +239,6 @@ const handleAddService = async (serviceId) => {
     }
   };
 
-  // GET ROOM DATA
   const getRoomData = (cartItem) => {
     if (!cartItem) return { name: "Room", price: 0, image: '/default-room.jpg' };
     
@@ -278,7 +266,6 @@ const handleAddService = async (serviceId) => {
     };
   };
 
-  // GET GUESTS DATA
   const getGuestsData = (cartItem) => {
     if (!cartItem) return { adults: 0, children: 0 };
     return cartItem.guests || {
@@ -287,7 +274,6 @@ const handleAddService = async (serviceId) => {
     };
   };
 
-  // CALCULATE SERVICES TOTAL
   const calculateServicesTotal = (cartItem) => {
     if (!cartItem.services || !Array.isArray(cartItem.services)) return 0;
     
@@ -296,7 +282,6 @@ const handleAddService = async (serviceId) => {
     }, 0);
   };
 
-  // GET SERVICE ICON BASED ON NAME
   const getServiceIcon = (serviceName) => {
     const name = serviceName.toLowerCase();
     if (name.includes('breakfast')) return '🍽️';
@@ -310,16 +295,13 @@ const handleAddService = async (serviceId) => {
     return '⭐';
   };
 
-  // GET CORRECT SERVICE ID - Handle field name mismatch
   const getServiceId = (serviceItem) => {
-    // Coba berbagai kemungkinan field names
     return serviceItem.id || 
            serviceItem.cart_item_service_id || 
            serviceItem.service_id ||
            serviceItem.serviceId;
   };
 
-  // GET CORRECT CART ITEM ID - Handle field name mismatch
   const getCartItemId = (cartItem) => {
     return cartItem.id || cartItem.cart_item_id;
   };
@@ -453,6 +435,9 @@ const handleAddService = async (serviceId) => {
                       <p>
                         <span className="font-medium">Room Number:</span> {room?.room_number || "-"}
                       </p>
+                       <p>
+                        <span className="font-medium">Room Type:</span> {room?.name || "Room"}
+                      </p>
                       <p>
                         <span className="font-medium">Guests:</span> {guests.adults} Adults, {guests.children} Children
                       </p>
@@ -481,64 +466,85 @@ const handleAddService = async (serviceId) => {
                       </div>
 
                       {hasServices ? (
-                        <div className="space-y-3">
-                          {cartItem.services.map((serviceItem) => {
-                            const serviceId = getServiceId(serviceItem);
-                            console.log('🛍️ Rendering Service:', { serviceItem, serviceId });
-                            
-                            return (
-                              <div key={serviceId} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-[#102E50] rounded-lg flex items-center justify-center text-white text-lg">
-                                      {getServiceIcon(serviceItem.service?.name)}
-                                    </div>
-                                    <div>
-                                      <p className="font-semibold text-gray-900">{serviceItem.service?.name}</p>
-                                      <p className="text-sm text-gray-600">
-                                        {serviceItem.service?.unit === 'per_person' 
-                                          ? `Per person × ${serviceItem.quantity} guests`
-                                          : 'Per booking'
-                                        } • ${serviceItem.service?.price} {serviceItem.service?.unit === 'per_person' ? 'per person' : 'per booking'}
-                                      </p>
-                                      {serviceItem.service?.desc && (
-                                        <p className="text-xs text-gray-500 mt-1">{serviceItem.service.desc}</p>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                  <span className="font-bold text-lg text-[#c19a6b]">
-                                    ${parseFloat(serviceItem.totalPrice || 0).toFixed(2)}
-                                  </span>
-                                  <button
-                                    onClick={() => handleRemoveService(serviceId)}
-                                    className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300"
-                                    title="Remove service"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                    Remove
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                          <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                          </svg>
-                          <p className="text-gray-500 text-sm">No services added yet</p>
-                          <p className="text-gray-400 text-xs mt-1">Click "Add Service" to enhance your stay</p>
-                        </div>
-                      )}
+  <div className="space-y-3">
+    {cartItem.services.map((serviceItem) => {
+      const serviceId = getServiceId(serviceItem);
+      const guests = getGuestsData(cartItem);
+      const isPerPerson = serviceItem.service?.unit === 'per_person';
+      
+      return (
+        <div key={serviceId} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg ${
+                isPerPerson ? 'bg-blue-600' : 'bg-green-600'
+              }`}>
+                {getServiceIcon(serviceItem.service?.name)}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-gray-900">{serviceItem.service?.name}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    isPerPerson 
+                      ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                      : 'bg-green-100 text-green-700 border border-green-200'
+                  }`}>
+                    {isPerPerson ? `For ${guests.adults + guests.children} guest${guests.adults + guests.children !== 1 ? 's' : ''}` : 'Per booking'}
+                  </span>
+                </div>
+                
+                {isPerPerson && (
+                  <div className="text-sm text-gray-600 mt-1">
+                    <p>• Adults: {guests.adults} × ${serviceItem.service?.price} = ${(serviceItem.service?.price * guests.adults).toFixed(2)}</p>
+                    <p>• Children: {guests.children} × (${serviceItem.service?.price} × 0.5) = ${((serviceItem.service?.price * 0.5) * guests.children).toFixed(2)}</p>
+                    <p className="font-medium mt-1">Total: ${serviceItem.totalPrice}</p>
+                  </div>
+                )}
+                
+                {!isPerPerson && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Fixed price: ${serviceItem.totalPrice}
+                  </p>
+                )}
+                
+                {serviceItem.service?.desc && (
+                  <p className="text-xs text-gray-500 mt-1">{serviceItem.service.desc}</p>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="font-bold text-lg text-[#c19a6b]">
+              ${parseFloat(serviceItem.totalPrice || 0).toFixed(2)}
+            </span>
+            <button
+              onClick={() => handleRemoveService(serviceId)}
+              className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300"
+              title="Remove service"
+            >
+              <Trash2 className="w-4 h-4" />
+              Remove
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+) : (
+  <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+    <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+    </svg>
+    <p className="text-gray-500 text-sm">No services added yet</p>
+    <p className="text-gray-400 text-xs mt-1">Click "Add Service" to enhance your stay</p>
+  </div>
+)}
                     </div>
                     
                     <div className="mt-4 space-y-2 border-t pt-4">
                       <div className="flex justify-between text-sm text-gray-600">
-                        <span>Room ({cartItem.nights} nights):</span>
-                        <span>${(parseFloat(room?.price || 0) * cartItem.nights).toFixed(2)}</span>
+                        <span>Room ({cartItem.nights} nights @ ${cartItem.room?.pricePerNight}/night):</span>
+                        <span>${parseFloat(cartItem.room?.totalForStay || 0).toFixed(2)}</span>
                       </div>
                       {hasServices && (
                         <div className="flex justify-between text-sm text-gray-600">
