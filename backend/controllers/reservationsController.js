@@ -1,4 +1,3 @@
-// controllers/reservationController.js
 import { Op } from 'sequelize';
 import Reservations from '../models/Reservations.js';
 import RoomReservations from '../models/RoomReservations.js';
@@ -9,14 +8,12 @@ import MsServices from '../models/msServices.js';
 import Invoices from '../models/Invoices.js';
 import MsUser from '../models/MsUsers.js';
 
-// Helper function
 const calculateDaysDifference = (check_in, check_out) => {
 	const start = new Date(check_in);
 	const end = new Date(check_out);
 	return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
 };
 
-// Helper function - Get one available room
 const getOneAvailableRoom = async (id_room_type, check_in, check_out) => {
 	const rooms = await Room.findAll({
 		where: { id_room_type },
@@ -38,7 +35,6 @@ const getOneAvailableRoom = async (id_room_type, check_in, check_out) => {
 	return null;
 };
 
-// STEP 3: CREATE TEMPORARY RESERVATION (BELUM LOGIN)
 export const createTemporaryReservation = async (req, res) => {
 	try {
 		const {
@@ -51,7 +47,6 @@ export const createTemporaryReservation = async (req, res) => {
 			selected_services = [],
 		} = req.body;
 
-		// Validasi input
 		if (!customer_name || !customer_email || !check_in || !check_out || !selected_room_type_id) {
 			return res.status(400).json({
 				message: 'Customer info, dates, and room type are required',
@@ -60,13 +55,11 @@ export const createTemporaryReservation = async (req, res) => {
 
 		const stayDuration = calculateDaysDifference(check_in, check_out);
 
-		// 1. Validasi room type
 		const roomType = await MsRoomType.findByPk(selected_room_type_id);
 		if (!roomType) {
 			return res.status(404).json({ message: 'Room type not found' });
 		}
 
-		// 2. Dapatkan 1 available room
 		const availableRoom = await getOneAvailableRoom(selected_room_type_id, check_in, check_out);
 
 		if (!availableRoom) {
@@ -75,10 +68,8 @@ export const createTemporaryReservation = async (req, res) => {
 			});
 		}
 
-		// 3. Hitung total amount
 		let totalAmount = roomType.price_per_night * stayDuration;
 
-		// 4. Validasi dan hitung services
 		const selectedServicesDetails = [];
 		for (const service of selected_services) {
 			const serviceData = await MsServices.findByPk(service.id_service);
@@ -93,7 +84,6 @@ export const createTemporaryReservation = async (req, res) => {
 			}
 		}
 
-		// 5. Create temporary reservation (TANPA user_id)
 		const reservation = await Reservations.create({
 			customer_name,
 			customer_email,
@@ -101,10 +91,9 @@ export const createTemporaryReservation = async (req, res) => {
 			check_in: new Date(check_in),
 			check_out: new Date(check_out),
 			reservation_date: new Date(),
-			status: 'temporary', // Status temporary
+			status: 'temporary', 
 		});
 
-		// 6. Create room reservation
 		const roomReservation = await RoomReservations.create({
 			id_reservation: reservation.id_reservation,
 			id_room: availableRoom.id_room,
@@ -114,7 +103,6 @@ export const createTemporaryReservation = async (req, res) => {
 			subtotal_price: roomType.price_per_night * stayDuration,
 		});
 
-		// 7. Create service reservations
 		const serviceReservations = [];
 		for (const service of selectedServicesDetails) {
 			const serviceReservation = await ServiceReservations.create({
@@ -152,13 +140,11 @@ export const createTemporaryReservation = async (req, res) => {
 	}
 };
 
-// STEP 4: CONFIRM RESERVATION SETELAH LOGIN
 export const confirmReservationAfterLogin = async (req, res) => {
 	try {
 		const { reservation_id } = req.body;
-		const id_user = req.user.id; // Dari middleware auth
+		const id_user = req.user.id;
 
-		// 1. Cari temporary reservation
 		const reservation = await Reservations.findByPk(reservation_id);
 		if (!reservation) {
 			return res.status(404).json({ message: 'Reservation not found' });
@@ -168,15 +154,13 @@ export const confirmReservationAfterLogin = async (req, res) => {
 			return res.status(400).json({ message: 'Reservation already confirmed or invalid' });
 		}
 
-		// 2. Update reservation dengan user_id dan status confirmed
 		await reservation.update({
 			id_user: id_user,
 			status: 'confirmed',
 		});
 
-		// 3. Create invoice
 		const dueDate = new Date();
-		dueDate.setDate(dueDate.getDate() + 3); // Due date 3 hari dari sekarang
+		dueDate.setDate(dueDate.getDate() + 3);
 
 		const roomReservations = await RoomReservations.findAll({
 			where: { id_reservation: reservation_id },
@@ -188,7 +172,6 @@ export const confirmReservationAfterLogin = async (req, res) => {
 			],
 		});
 
-		// Hitung total amount dari rooms dan services
 		const totalAmount = roomReservations.reduce((sum, rr) => {
 			const roomSubtotal = parseFloat(rr.subtotal_price);
 			const servicesSubtotal = rr.services.reduce(
@@ -222,7 +205,6 @@ export const confirmReservationAfterLogin = async (req, res) => {
 	}
 };
 
-// GET ALL RESERVATIONS (FOR ADMIN)
 export const getAllReservations = async (req, res) => {
 	try {
 		const reservations = await Reservations.findAll({
@@ -230,7 +212,7 @@ export const getAllReservations = async (req, res) => {
 				{
 					model: MsUser,
 					as: 'user',
-					attributes: ['id_user', 'username', 'email'], // Hanya data tertentu
+					attributes: ['id_user', 'username', 'email'], 
 				},
 				{
 					model: RoomReservations,
@@ -275,50 +257,60 @@ export const getAllReservations = async (req, res) => {
 	}
 };
 
-// GET USER RESERVATIONS (FOR CUSTOMER)
 export const getUserReservations = async (req, res) => {
-	try {
-		const id_user = req.user.id;
+  try {
+    const id_user = req.user.id;
+    console.log(`🔍 [RESERVATIONS] Fetching reservations for user ${id_user}`);
 
-		const reservations = await Reservations.findAll({
-			where: { id_user: id_user },
-			include: [
-				{
-					model: RoomReservations,
-					as: 'room_reservations',
-					include: [
-						{
-							model: Room,
-							as: 'room',
-							include: [{ model: MsRoomType, as: 'room_type' }],
-						},
-						{
-							// [UPDATE] Gunakan ServiceReservations dengan alias BARU
-							model: ServiceReservations,
-							as: 'service_details', // Sesuai Relationship.js poin 8
-							include: [
-								{
-									model: MsServices,
-									as: 'service', // Sesuai Relationship.js poin 8
-								},
-							],
-						},
-					],
-				},
-				{
-					model: Invoices,
-					as: 'invoice',
-					// Hapus include payments jika modelnya belum fix/tidak perlu ditampilkan di list utama
-				},
-			],
-			order: [['reservation_date', 'DESC']],
-		});
+    const reservations = await Reservations.findAll({
+      where: { id_user: id_user },
+      include: [
+        {
+          model: RoomReservations,
+          as: 'room_reservations',  
+          include: [
+            {
+              model: Room,
+              as: 'room',  
+              include: [{ 
+                model: MsRoomType, 
+                as: 'room_type' 
+              }]
+            },
+            {
+              model: ServiceReservations,
+              as: 'service_details', 
+              include: [
+                {
+                  model: MsServices,
+                  as: 'service', 
+                }
+              ]
+            }
+          ]
+        },
+        {
+          model: Invoices,
+          as: 'invoice'  
+        }
+      ],
+      order: [['reservation_date', 'DESC']]
+    });
 
-		res.json({
-			reservations: reservations,
-		});
-	} catch (error) {
-		console.error('Get user reservations error:', error);
-		res.status(500).json({ message: 'Server error' });
-	}
+    console.log(`✅ [RESERVATIONS] Found ${reservations.length} reservations for user ${id_user}`);
+
+    res.json({
+      success: true,
+      reservations: reservations
+    });
+
+  } catch (error) {
+    console.error('❌ [RESERVATIONS] Get user reservations error:', error);
+    console.error('Error details:', error.message);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch user reservations',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
 };

@@ -1,4 +1,5 @@
 import { Op } from 'sequelize';
+import db from '../config/db.js';
 import Reservations from '../models/Reservations.js';
 import RoomReservations from '../models/RoomReservations.js';
 import ServiceReservations from '../models/ServiceReservations.js';
@@ -6,164 +7,202 @@ import Invoices from '../models/Invoices.js';
 import Rooms from '../models/Rooms.js';
 import MsRoomType from '../models/msRoomTypes.js';
 import MsServices from '../models/msServices.js';
+import MsUser from '../models/MsUsers.js';
 
 export const createReservationFromCart = async (req, res) => {
-    const transaction = await db.transaction();
+    let transaction;
     
     try {
+        console.log('🔍 [CHECKOUT] Starting process...');
+        
         const { guestInfo, cartItems } = req.body;
         const id_user = req.user?.id;
 
+        console.log('📋 [CHECKOUT] Received data:', {
+            userId: id_user,
+            guestInfo: guestInfo,
+            cartItems: cartItems
+        });
+
         if (!id_user) {
-            await transaction.rollback();
+            console.log('❌ [CHECKOUT] No user ID');
             return res.status(401).json({
                 success: false,
-                message: 'Authentication required. Please login first.'
+                message: 'Authentication required'
             });
         }
 
-        console.log('🛒 Checkout Process for USER:', id_user);
-
-        if (!cartItems || cartItems.length === 0) {
-            await transaction.rollback();
+        if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+            console.log('❌ [CHECKOUT] Empty cart');
             return res.status(400).json({
                 success: false,
-                message: 'Cart is empty'
+                message: 'Your cart is empty'
             });
         }
 
-        const user = await MsUser.findByPk(id_user, { transaction });
+        const user = await MsUser.findByPk(id_user);
         if (!user) {
-            await transaction.rollback();
+            console.log(`❌ [CHECKOUT] User ${id_user} not found`);
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
+        console.log(`✅ [CHECKOUT] User found: ${user.username}`);
 
-        if (guestInfo?.email && guestInfo.email !== user.email) {
-            console.warn(`Email mismatch: Form=${guestInfo.email}, User=${user.email}`);
-        }
+        transaction = await db.transaction();
+        console.log('✅ [CHECKOUT] Transaction started');
 
-        const reservation = await Reservations.create({
-            id_user: id_user, 
-            reservation_date: new Date()
-        }, { transaction });
+        try {
+            console.log('📝 [CHECKOUT] Creating reservation...');
+            const reservation = await Reservations.create({
+                id_user: id_user,
+                reservation_date: new Date()
+            }, { transaction });
 
-        console.log('✅ Reservation created for user:', id_user);
+            console.log(`✅ [CHECKOUT] Reservation created: ID ${reservation.id_reservation}`);
 
-        let totalAmount = 0;
-        const updatedItems = [];
+            let subtotal = 0;
+            const processedItems = [];
 
-        for (const cartItem of cartItems) {
-            const [updatedCount] = await RoomReservations.update(
-                {
-                    id_reservation: reservation.id_reservation,
-                    status: 'reserved'
-                },
-                {
+            for (const cartItem of cartItems) {
+                const cartItemId = parseInt(cartItem.id);
+                console.log(`🔄 [CHECKOUT] Processing cart item ID: ${cartItemId}`);
+
+                const roomReservation = await RoomReservations.findOne({
                     where: { 
-                        id_room_reservation: cartItem.id,
+                        id_room_reservation: cartItemId,
                         status: 'draft',
                         id_reservation: null
                     },
                     transaction
-                }
-            );
-
-            if (updatedCount === 0) {
-                await transaction.rollback();
-                return res.status(400).json({
-                    success: false,
-                    message: `Failed to update room reservation ${cartItem.id}`
                 });
+
+                if (!roomReservation) {
+                    console.log(`❌ [CHECKOUT] Cart item ${cartItemId} not found`);
+                    throw new Error(`Cart item ${cartItemId} not found`);
+                }
+
+                console.log(`✅ [CHECKOUT] Found room reservation for room ID: ${roomReservation.id_room}`);
+
+                await roomReservation.update({
+                    id_reservation: reservation.id_reservation,
+                    status: 'reserved'
+                }, { transaction });
+
+                const roomSubtotal = parseFloat(roomReservation.subtotal_price) || 0;
+                subtotal += roomSubtotal;
+
+                const services = await ServiceReservations.findAll({
+                    where: { id_room_reservation: cartItemId },
+                    transaction
+                });
+
+                let servicesSubtotal = 0;
+                if (services && services.length > 0) {
+                    for (const service of services) {
+                        const servicePrice = parseFloat(service.subtotal_price) || 0;
+                        servicesSubtotal += servicePrice;
+                    }
+                    subtotal += servicesSubtotal;
+                }
+
+                console.log(`💰 [CHECKOUT] Cart item ${cartItemId}: Room $${roomSubtotal}, Services $${servicesSubtotal}`);
             }
 
-            updatedItems.push(cartItem.id);
+            const tax = subtotal * 0.1;
+            const serviceFee = 10;
+            const totalAmount = subtotal + tax + serviceFee;
 
-            const roomRes = await RoomReservations.findByPk(cartItem.id, {
-                include: [
-                    {
-                        model: ServiceReservations,
-                        as: 'service_details'
-                    }
-                ],
-                transaction
+            console.log('💰 [CHECKOUT] Final calculation:', {
+                subtotal: subtotal,
+                tax: tax,
+                serviceFee: serviceFee,
+                totalAmount: totalAmount
             });
 
-            if (roomRes) {
-                totalAmount += parseFloat(roomRes.subtotal_price || 0);
-                
-                if (roomRes.service_details) {
-                    roomRes.service_details.forEach(service => {
-                        totalAmount += parseFloat(service.subtotal_price || 0);
-                    });
-                }
-            }
-        }
+            const dueDate = new Date();
+            dueDate.setHours(dueDate.getHours() + 16);
+            
+            const invoiceNumber = `INV-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
-        const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + 3);
-
-        const invoice = await Invoices.create({
-            id_reservation: reservation.id_reservation,
-            total_amount: totalAmount,
-            issued_date: new Date(),
-            due_date: dueDate,
-            status: 'pending'
-        }, { transaction });
-
-        await transaction.commit();
-
-        res.status(201).json({
-            success: true,
-            message: 'Reservation created successfully',
-            reservation: {
+            console.log('📝 [CHECKOUT] Creating invoice...');
+            const invoice = await Invoices.create({
                 id_reservation: reservation.id_reservation,
-                id_user: reservation.id_user,
-                reservation_date: reservation.reservation_date
-            },
-            invoice: {
-                id_invoice: invoice.id_invoice,
-                invoice_number: `INV-${String(invoice.id_invoice).padStart(6, '0')}`,
-                total_amount: parseFloat(invoice.total_amount).toFixed(2),
-                issued_date: invoice.issued_date,
-                due_date: invoice.due_date,
-                status: invoice.status
-            },
-            user_info: {
-                id: user.id_user,
-                name: user.username || `${guestInfo?.firstName} ${guestInfo?.lastName}`,
-                email: user.email
-            },
-            summary: {
-                total_items: updatedItems.length,
-                total_amount: parseFloat(totalAmount).toFixed(2)
+                invoice_number: invoiceNumber,
+                total_amount: totalAmount,
+                issued_date: new Date(),
+                due_date: dueDate,
+                status: 'pending'
+            }, { transaction });
+
+            console.log(`✅ [CHECKOUT] Invoice created: ${invoiceNumber}`);
+
+            await transaction.commit();
+            console.log('✅ [CHECKOUT] Transaction committed successfully');
+
+            res.status(201).json({
+                success: true,
+                message: 'Reservation created successfully',
+                reservation: {
+                    id_reservation: reservation.id_reservation,
+                    reservation_date: reservation.reservation_date
+                },
+                invoice: {
+                    id_invoice: invoice.id_invoice,
+                    invoice_number: invoice.invoice_number,
+                    total_amount: parseFloat(invoice.total_amount).toFixed(2),
+                    issued_date: invoice.issued_date,
+                    due_date: invoice.due_date,
+                    status: invoice.status
+                },
+                guest_info: {
+                    name: `${guestInfo.firstName || ''} ${guestInfo.lastName || ''}`.trim(),
+                    email: guestInfo.email || '',
+                    phone: guestInfo.phone || 'Not provided'
+                },
+                summary: {
+                    payment_due: dueDate.toISOString(),
+                    subtotal: parseFloat(subtotal).toFixed(2),
+                    tax: parseFloat(tax).toFixed(2),
+                    service_fee: serviceFee.toFixed(2),
+                    total_amount: parseFloat(totalAmount).toFixed(2),
+                    rooms_count: cartItems.length
+                }
+            });
+
+        } catch (innerError) {
+            if (transaction && !transaction.finished) {
+                await transaction.rollback();
+                console.log('🔄 [CHECKOUT] Transaction rolled back due to inner error');
             }
-        });
+            throw innerError;
+        }
 
     } catch (error) {
-        await transaction.rollback();
-        console.error('❌ Checkout error:', error);
+        console.error('❌ [CHECKOUT] Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
+
+        let errorMessage = 'Failed to process checkout';
         
-        if (error.name === 'SequelizeValidationError') {
-            return res.status(400).json({
-                success: false,
-                message: 'Validation error',
-                errors: error.errors.map(e => e.message)
-            });
+        if (error.message.includes('foreign key constraint')) {
+            errorMessage = 'Data integrity error. Please refresh your cart and try again.';
+        } else if (error.message.includes('Cart item')) {
+            errorMessage = error.message;
+        } else if (error.name === 'SequelizeDatabaseError') {
+            errorMessage = 'Database error. Please contact support.';
         }
-        
-        if (error.name === 'SequelizeForeignKeyConstraintError') {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid user reference'
-            });
-        }
-        
+
         res.status(500).json({
             success: false,
-            message: 'Failed to process checkout'
+            message: errorMessage,
+            error: process.env.NODE_ENV === 'development' ? {
+                name: error.name,
+                message: error.message
+            } : undefined
         });
     }
 };
@@ -211,7 +250,7 @@ export const getReservationDetails = async (req, res) => {
             });
         }
 
-        if (id_user && reservation.id_user !== id_user) {
+        if (id_user && reservation.id_user !== parseInt(id_user)) {
             return res.status(403).json({
                 success: false,
                 message: 'Access denied'
@@ -229,37 +268,5 @@ export const getReservationDetails = async (req, res) => {
             success: false,
             message: 'Failed to fetch reservation'
         });
-    }
-};
-
-const checkRoomAvailability = async (roomId, checkIn, checkOut, excludeReservationId = null, transaction = null) => {
-    try {
-        const whereClause = {
-            id_room: roomId,
-            status: { [Op.in]: ['reserved', 'checked_in'] },
-            [Op.or]: [
-                {
-                    check_in_date: { [Op.lt]: checkOut },
-                    check_out_date: { [Op.gt]: checkIn }
-                }
-            ]
-        };
-
-        if (excludeReservationId) {
-            whereClause.id_room_reservation = { [Op.ne]: excludeReservationId };
-        }
-
-        const options = {};
-        if (transaction) options.transaction = transaction;
-
-        const conflictingBooking = await RoomReservations.findOne({
-            where: whereClause,
-            ...options
-        });
-
-        return !conflictingBooking;
-    } catch (error) {
-        console.error('Check availability error:', error);
-        return false;
     }
 };

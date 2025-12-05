@@ -1,146 +1,158 @@
-// controllers/invoiceController.js
+import { Op } from 'sequelize';
 import Invoices from '../models/Invoices.js';
 import Reservations from '../models/Reservations.js';
 import RoomReservations from '../models/RoomReservations.js';
-import ServiceReservations from '../models/ServiceReservations.js';
-import MsUser from '../models/MsUsers.js';
+import Rooms from '../models/Rooms.js';
+import MsRoomType from '../models/msRoomTypes.js';
 
-// GET INVOICE BY ID
-export const getInvoiceById = async (req, res) => {
+export const getUserPendingInvoices = async (req, res) => {
     try {
-        const { id } = req.params;
-        
-        const invoice = await Invoices.findByPk(id, {
-            include: [
-                {
-                    model: Reservations,
-                    as: 'reservation',
-                    include: [
-                        {
-                            model: RoomReservations,
-                            as: 'room_reservations',
-                            include: [
-                                {
-                                    model: ServiceReservations,
-                                    as: 'services',
-                                    include: ['service']
-                                },
-                                {
-                                    model: 'room',
-                                    include: ['room_type']
-                                }
-                            ]
-                        },
-                        {
-                            model: MsUser,
-                            as: 'user'
-                        }
-                    ]
+        const userId = req.user.id;
+        const now = new Date();
+
+        console.log(`🔍 Fetching pending invoices for user ${userId}`);
+
+        const reservations = await Reservations.findAll({
+            where: { id_user: userId },
+            include: [{
+                model: Invoices,
+                as: 'invoice',
+                where: {
+                    status: 'pending',
+                    due_date: { [Op.gt]: now } 
                 },
-                {
-                    model: 'payment'
-                }
-            ]
+                required: true 
+            }]
         });
 
-        if (!invoice) {
-            return res.status(404).json({ message: "Invoice not found" });
-        }
+        const pendingInvoices = reservations.map(reservation => {
+            const invoice = reservation.invoice;
+            return {
+                id_invoice: invoice.id_invoice,
+                invoice_number: invoice.invoice_number,
+                total_amount: invoice.total_amount,
+                issued_date: invoice.issued_date,
+                due_date: invoice.due_date,
+                status: invoice.status,
+                reservation_id: reservation.id_reservation,
+                time_remaining: Math.max(0, Math.floor((new Date(invoice.due_date) - now) / (1000 * 60 * 60)))
+            };
+        });
 
-        res.json(invoice);
+        console.log(`✅ Found ${pendingInvoices.length} pending invoices`);
+
+        res.json({
+            success: true,
+            invoices: pendingInvoices
+        });
+
     } catch (error) {
-        console.error("Get invoice error:", error);
-        res.status(500).json({ message: "Server error" });
+        console.error('❌ Error fetching pending invoices:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch pending invoices'
+        });
     }
 };
 
-// GET INVOICES BY USER
-export const getInvoicesByUser = async (req, res) => {
-    try {
-        const { id_user } = req.params;
-        
-        const invoices = await Invoices.findAll({
-            include: [
-                {
-                    model: Reservations,
-                    as: 'reservation',
-                    where: { id_user: parseInt(id_user) },
-                    include: [
-                        {
-                            model: RoomReservations,
-                            as: 'room_reservations',
-                            include: [
-                                {
-                                    model: 'room',
-                                    include: ['room_type']
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ],
-            order: [['issued_date', 'DESC']]
-        });
-
-        res.json({ invoices });
-    } catch (error) {
-        console.error("Get user invoices error:", error);
-        res.status(500).json({ message: "Server error" });
-    }
-};
-
-// UPDATE INVOICE STATUS
 export const updateInvoiceStatus = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { invoiceId } = req.params;
         const { status } = req.body;
+        const userId = req.user.id;
 
-        const validStatuses = ['pending', 'paid', 'overdue', 'cancelled'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ 
-                message: "Invalid status. Must be: pending, paid, overdue, or cancelled" 
-            });
-        }
+        console.log(`🔄 Updating invoice ${invoiceId} to status: ${status}`);
 
-        const invoice = await Invoices.findByPk(id);
+        const invoice = await Invoices.findByPk(invoiceId, {
+            include: [{
+                model: Reservations,
+                as: 'reservation',
+                where: { id_user: userId }
+            }]
+        });
+
         if (!invoice) {
-            return res.status(404).json({ message: "Invoice not found" });
+            return res.status(404).json({
+                success: false,
+                message: 'Invoice not found'
+            });
         }
 
         await invoice.update({ status });
 
-        res.json({ 
-            message: "Invoice status updated successfully", 
-            invoice 
+        console.log(`✅ Invoice ${invoiceId} updated to ${status}`);
+
+        res.json({
+            success: true,
+            message: `Invoice status updated to ${status}`,
+            invoice: {
+                id_invoice: invoice.id_invoice,
+                invoice_number: invoice.invoice_number,
+                status: invoice.status
+            }
         });
+
     } catch (error) {
-        console.error("Update invoice error:", error);
-        res.status(500).json({ message: "Server error" });
+        console.error('❌ Error updating invoice:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update invoice'
+        });
     }
 };
 
-// CALCULATE INVOICE TOTAL (Helper function)
-export const calculateInvoiceTotal = async (id_reservation) => {
+export const getInvoiceDetails = async (req, res) => {
     try {
-        // Calculate room reservations total
-        const roomReservations = await RoomReservations.findAll({
-            where: { id_reservation }
-        });
-        const roomTotal = roomReservations.reduce((sum, rr) => sum + parseFloat(rr.subtotal_price), 0);
+        const { invoiceId } = req.params;
+        const userId = req.user.id;
 
-        // Calculate service reservations total
-        const serviceReservations = await ServiceReservations.findAll({
+        console.log(`🔍 Fetching details for invoice ${invoiceId}`);
+
+        const invoice = await Invoices.findByPk(invoiceId, {
             include: [{
-                model: RoomReservations,
-                as: 'room_reservation',
-                where: { id_reservation }
+                model: Reservations,
+                as: 'reservation',
+                where: { id_user: userId },
+                include: [{
+                    model: RoomReservations,
+                    as: 'room_reservations',
+                    include: [{
+                        model: Rooms,
+                        as: 'room',
+                        include: [{
+                            model: MsRoomType,
+                            as: 'room_type'
+                        }]
+                    }]
+                }]
             }]
         });
-        const serviceTotal = serviceReservations.reduce((sum, sr) => sum + parseFloat(sr.subtotal_price), 0);
 
-        return roomTotal + serviceTotal;
+        if (!invoice) {
+            return res.status(404).json({
+                success: false,
+                message: 'Invoice not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            invoice: {
+                id_invoice: invoice.id_invoice,
+                invoice_number: invoice.invoice_number,
+                total_amount: invoice.total_amount,
+                issued_date: invoice.issued_date,
+                due_date: invoice.due_date,
+                status: invoice.status,
+                reservation: invoice.reservation
+            }
+        });
+
     } catch (error) {
-        console.error("Calculate invoice total error:", error);
-        throw error;
+        console.error('❌ Error fetching invoice details:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch invoice details'
+        });
     }
 };

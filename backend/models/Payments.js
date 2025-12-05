@@ -21,12 +21,20 @@ const Payments = db.define("payment", {
         allowNull: false
     },
     method: {
-        type: DataTypes.ENUM('credit_card', 'debit_card', 'cash', 'transfer', 'ewallet'),
+        type: DataTypes.ENUM('bank_transfer', 'virtual_account', 'ewallet'),
         allowNull: false
     },
     status: {
-        type: DataTypes.ENUM('pending', 'completed', 'failed', 'refunded'),
+        type: DataTypes.ENUM('pending', 'verified', 'cancelled'),
         defaultValue: 'pending'
+    },
+    payment_proof_url: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+    },
+    payment_notes: {
+        type: DataTypes.TEXT,
+        allowNull: true
     }
 }, {
     freezeTableName: true,

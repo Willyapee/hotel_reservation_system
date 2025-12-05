@@ -7,7 +7,9 @@ import Admin from './pages/admin.jsx';
 import Profile from './pages/profile.jsx';
 import Cart from './pages/cart.jsx';
 import Checkout from './pages/checkout.jsx';
-import { Navigate } from 'react-router-dom';
+import BookingConfirmed from './pages/bookingConfirmed.jsx';
+import BookingHistory from './pages/bookingHistory.jsx'; 
+import Invoices from './pages/invoices.jsx'; 
 import PrivateRoute from '../src/components/privateRoute.jsx';
 
 function App() {
@@ -27,6 +29,23 @@ function App() {
       <Route path='/booking' element={<Book />} />
       <Route path='/cart' element={<Cart />} />
       <Route path='/checkout' element={<Checkout />} />
+      <Route path='/booking-confirmed' element={<BookingConfirmed />} />
+      <Route 
+        path='/my-bookings' 
+        element={
+          <PrivateRoute>
+            <BookingHistory />
+          </PrivateRoute>
+        } 
+      />
+      <Route 
+        path='/invoices' 
+        element={
+          <PrivateRoute>
+            <Invoices />
+          </PrivateRoute>
+        } 
+      />
       <Route
         path='/admin'
         element={

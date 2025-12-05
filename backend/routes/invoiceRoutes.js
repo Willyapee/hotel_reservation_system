@@ -1,14 +1,16 @@
 import express from 'express';
 import { 
-    getInvoiceById,
-    getInvoicesByUser,
-    updateInvoiceStatus 
+    getUserPendingInvoices, 
+    updateInvoiceStatus,
+    getInvoiceDetails 
 } from '../controllers/invoiceController.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/:id', getInvoiceById);
-router.get('/user/:id_user', getInvoicesByUser);
-router.put('/:id/status', updateInvoiceStatus);
+router.get('/pending', verifyToken, getUserPendingInvoices);
+router.get('/:invoiceId', verifyToken, getInvoiceDetails);
+router.patch('/:invoiceId/status', verifyToken, updateInvoiceStatus);
+router.put('/:invoiceId/status', verifyToken, updateInvoiceStatus); // backup PUT method
 
 export default router;
