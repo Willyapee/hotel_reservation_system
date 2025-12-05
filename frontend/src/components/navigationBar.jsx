@@ -29,7 +29,7 @@ export default function NavigationBar({ openMenu, handleOpenMenu }) {
         const userData = {
           name: parsed.name || parsed.username || '',
           initials: parsed.initials || (parsed.username || '').split(' ').map(n => n[0]).join('').toUpperCase(),
-          isLoggedIn: parsed.isLoggedIn === undefined ? true : parsed.isLoggedIn, // Default true jika tidak ada
+          isLoggedIn: parsed.isLoggedIn === undefined ? true : parsed.isLoggedIn, 
           role: parsed.role || 'guest'
         };
         

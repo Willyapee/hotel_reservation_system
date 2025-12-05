@@ -1,14 +1,11 @@
-//Import Models
 import Payment from '../models/Payments.js';
 import Invoice from '../models/Invoices.js';
 
-//Create a new Payment
 export const createPayment = async (req, res) => {
 	try {
 		const { id_invoice, amount, payment_method } = req.body;
 		const userId = req.user.id;
 
-		//Validate Invoice Exists
 		const invoice = await Invoice.findOne({
 			where: { id_invoice },
 			include: [
@@ -31,14 +28,12 @@ export const createPayment = async (req, res) => {
             return res.status(400).json({ message: "Cannot pay cancelled invoice" });
         }
 
-        // Validasi amount
         if (parseFloat(amount) !== parseFloat(invoice.total_amount)) {
             return res.status(400).json({
                 message: `Payment amount (${amount}) must match invoice total (${invoice.total_amount})`
             });
         }
 
-        // Create payment record
         const payment = await Payments.create({
             id_invoice: parseInt(id_invoice),
             amount: parseFloat(amount),
@@ -48,10 +43,8 @@ export const createPayment = async (req, res) => {
             status: 'completed'
         });
 
-        // Update invoice status to paid
         await invoice.update({ status: 'paid' });
 
-        // Update room reservations status to confirmed
         if (invoice.reservation && invoice.reservation.room_reservations) {
             await RoomReservations.update(
                 { status: 'confirmed' },
@@ -75,7 +68,6 @@ export const createPayment = async (req, res) => {
     }
 };
 
-// GET PAYMENT BY ID
 export const getPaymentById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -98,7 +90,6 @@ export const getPaymentById = async (req, res) => {
     }
 };
 
-// GET PAYMENTS BY INVOICE
 export const getPaymentsByInvoice = async (req, res) => {
     try {
         const { id_invoice } = req.params;
@@ -115,7 +106,6 @@ export const getPaymentsByInvoice = async (req, res) => {
     }
 };
 
-// REFUND PAYMENT
 export const refundPayment = async (req, res) => {
     try {
         const { id } = req.params;
@@ -130,16 +120,13 @@ export const refundPayment = async (req, res) => {
             return res.status(400).json({ message: "Only completed payments can be refunded" });
         }
 
-        // Update payment status to refunded
         await payment.update({ status: 'refunded' });
 
-        // Update invoice status back to pending
         await Invoices.update(
             { status: 'pending' },
             { where: { id_invoice: payment.id_invoice } }
         );
 
-        // Update room reservations status to cancelled
         const invoice = await Invoices.findByPk(payment.id_invoice, {
             include: [{
                 model: 'reservation',
@@ -165,19 +152,16 @@ export const refundPayment = async (req, res) => {
     }
 };
 
-// PROCESS PAYMENT SETELAH CHECKOUT
 export const processPaymentAfterCheckout = async (req, res) => {
     try {
         const { reservation_id, amount, method, transaction_id } = req.body;
 
-        // Validasi input
         if (!reservation_id || !amount || !method) {
             return res.status(400).json({
                 message: "Reservation ID, amount, and payment method are required"
             });
         }
 
-        // Cari reservation dan invoice
         const reservation = await Reservations.findByPk(reservation_id, {
             include: [{
                 model: Invoices,
@@ -199,14 +183,12 @@ export const processPaymentAfterCheckout = async (req, res) => {
 
         const invoice = reservation.invoice;
 
-        // Validasi amount
         if (parseFloat(amount) !== parseFloat(invoice.total_amount)) {
             return res.status(400).json({
                 message: `Payment amount (${amount}) must match invoice total (${invoice.total_amount})`
             });
         }
 
-        // Create payment record
         const payment = await Payments.create({
             id_invoice: invoice.id_invoice,
             amount: parseFloat(amount),
@@ -216,10 +198,8 @@ export const processPaymentAfterCheckout = async (req, res) => {
             status: 'completed'
         });
 
-        // Update invoice status to paid
         await invoice.update({ status: 'paid' });
 
-        // Update reservation status to completed
         await reservation.update({ status: 'completed' });
 
         res.status(201).json({

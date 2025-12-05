@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
   const [user, setUser] = useState({
@@ -8,7 +9,8 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
     role: 'guest'
   });
 
-  // Refresh auth status saat component mount DAN saat menu dibuka
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (isOpen) {
       console.log('🔄 MenuOverlay: Checking auth status...');
@@ -17,18 +19,13 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
   }, [isOpen]);
 
   const checkAuthStatus = () => {
-    // 🎯 CEK DARI localStorage 'user'
     const storedUser = localStorage.getItem('user');
     
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
-        
-        // 🎯 SUPPORT BOTH FORMATS:
-        // 1. Format baru: {name, initials, isLoggedIn, role}
-        // 2. Format lama: {username, role} (dari Login.jsx lama)
-        
-        if (parsed.isLoggedIn || parsed.username) { // Jika logged in atau ada username
+    
+        if (parsed.isLoggedIn || parsed.username) {
           const userData = {
             name: parsed.name || parsed.username || 'User',
             initials: parsed.initials || 
@@ -46,7 +43,6 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
       }
     }
     
-    // 🎯 JIKA TIDAK ADA DATA
     console.log('❌ MenuOverlay: No valid user data');
     setUser({
       name: '',
@@ -79,19 +75,37 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
     }
   ];
 
-  // 🎯 TAMBAH ADMIN DASHBOARD JIKA ADMIN
-  // Debug: Log untuk melihat apakah kondisi ini terpenuhi
-  console.log('🔍 MenuOverlay - Condition check:');
-  console.log('  - user.isLoggedIn:', user.isLoggedIn);
-  console.log('  - user.role:', user.role);
-  console.log('  - Should show admin:', user.isLoggedIn && user.role === 'admin');
-  
+  if (user.isLoggedIn && user.role === 'guest') {
+    console.log('✅ MenuOverlay: Adding guest menus');
+    
+    const insertIndex = menuItems.length;
+    
+    menuItems.splice(insertIndex, 0, 
+      {
+        id: 'my-bookings',
+        label: 'My Bookings',
+        path: '/my-bookings',
+        icon: '📋',
+        badge: 'Guest'
+      },
+      {
+        id: 'invoices',
+        label: 'Pending Invoices',
+        path: '/invoices',
+        icon: '💰',
+        badge: 'Payment'
+      }
+    );
+  }
+
   if (user.isLoggedIn && user.role === 'admin') {
     console.log('✅ MenuOverlay: Adding Admin Dashboard to menu');
     menuItems.push({
       id: 'admin',
       label: 'Admin Dashboard',
-      path: '/admin'
+      path: '/admin',
+      icon: '⚙️',
+      badge: 'Admin'
     });
   }
 
@@ -101,16 +115,16 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
       onClose();
     } else if (item.path) {
       console.log(`📍 Navigating to ${item.path}`);
-      window.location.href = item.path; // Simple redirect
+      navigate(item.path);
       onClose();
     }
   };
 
   const handleUserAction = () => {
     if (user.isLoggedIn) {
-      window.location.href = '/profile';
+      navigate('/profile');
     } else {
-      window.location.href = '/login';
+      navigate('/login');
     }
     onClose();
   };
@@ -118,10 +132,8 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
   const handleSignOut = (e) => {
     e.stopPropagation();
     
-    // Clear all auth data
     localStorage.removeItem('user');
     
-    // Call logout API
     fetch('http://localhost:3000/auth/logout', {
       method: 'POST',
       credentials: 'include'
@@ -136,11 +148,10 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
       role: 'guest'
     });
     
-    window.location.href = '/';
+    navigate('/');
     onClose();
   };
 
-  // 🎯 DEBUG: Log state saat render
   console.log('🔄 MenuOverlay render - user state:', user);
 
   return (
@@ -176,16 +187,27 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
             <li key={item.id} className="my-6">
               <button
                 onClick={() => handleMenuClick(item)}
-                className={`overlay-menu-item text-lg font-medium w-full text-left bg-none border-none cursor-pointer py-2 px-1 transition-all duration-300 ${
+                className={`overlay-menu-item text-lg font-medium w-full text-left bg-none border-none cursor-pointer py-2 px-1 transition-all duration-300 flex items-center gap-3 ${
                   item.id === 'admin' 
                     ? 'text-[#c19a6b] hover:text-[#f0a500] border-l-2 border-[#c19a6b] pl-3' 
+                    : item.id === 'my-bookings' || item.id === 'invoices'
+                    ? 'text-[#c19a6b] hover:text-[#f0a500] border-l-2 border-blue-400 pl-3'
                     : 'text-white hover:text-[#f0a500]'
                 }`}
               >
-                {item.label}
-                {item.id === 'admin' && (
-                  <span className="ml-2 text-xs bg-[#c19a6b] text-white px-2 py-1 rounded-full">
-                    Admin
+                {item.icon && <span className="text-lg">{item.icon}</span>}
+                <span>{item.label}</span>
+                {item.badge && (
+                  <span className={`ml-auto text-xs px-2 py-1 rounded-full ${
+                    item.badge === 'Admin' 
+                      ? 'bg-[#c19a6b] text-white' 
+                      : item.badge === 'Guest'
+                      ? 'bg-blue-500 text-white'
+                      : item.badge === 'Payment'
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-600 text-white'
+                  }`}>
+                    {item.badge}
                   </span>
                 )}
               </button>
@@ -225,8 +247,11 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
                 
                 <button
                   onClick={handleSignOut}
-                  className="w-full text-sm text-red-500 hover:text-red-400 transition-colors bg-none border-none cursor-pointer text-left py-2 mt-2"
+                  className="w-full text-sm text-red-500 hover:text-red-400 transition-colors bg-none border-none cursor-pointer text-left py-2 mt-2 flex items-center gap-2"
                 >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
                   Sign Out
                 </button>
               </div>
@@ -236,7 +261,9 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
                 className="w-full flex items-center gap-3 text-white hover:text-[#f0a500] transition-all duration-300 bg-none border-none cursor-pointer group"
               >
                 <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-bold text-sm group-hover:scale-105 transition-transform">
-                  <i className="fa-solid fa-user"></i>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </div>
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium">Sign In</p>

@@ -1,7 +1,5 @@
-// controllers/servicesController.js
 import MsServices from '../models/msServices.js';
 
-// GET ALL SERVICES
 export const getAllServices = async (req, res) => {
 	try {
 		const services = await MsServices.findAll({
@@ -14,7 +12,6 @@ export const getAllServices = async (req, res) => {
 	}
 };
 
-// GET SERVICE BY ID
 export const getServiceById = async (req, res) => {
 	try {
 		const { id } = req.params;
@@ -31,7 +28,6 @@ export const getServiceById = async (req, res) => {
 	}
 };
 
-// CREATE SERVICE (admin only)
 export const createService = async (req, res) => {
 	try {
 		const { name, desc, service_price, unit } = req.body;
@@ -50,7 +46,6 @@ export const createService = async (req, res) => {
 	}
 };
 
-// UPDATE SERVICE (admin only)
 export const updateService = async (req, res) => {
 	try {
 		const { id } = req.params;
@@ -76,7 +71,6 @@ export const updateService = async (req, res) => {
 	}
 };
 
-// DELETE SERVICE (admin only)
 export const deleteServices = async (req, res) => {
 	try {
 		const { id } = req.params;

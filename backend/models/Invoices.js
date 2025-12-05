@@ -10,6 +10,11 @@ const Invoices = db.define('invoice', {
 	id_reservation: {
         type: DataTypes.INTEGER,
         allowNull: false,
+	},
+	invoice_number: { 
+        type: DataTypes.STRING(50),
+        allowNull: false,
+        unique: true
     },
 	total_amount: {
 		type: DataTypes.DECIMAL(63, 2),
@@ -25,7 +30,7 @@ const Invoices = db.define('invoice', {
 		allowNull: false,
 	},
 	status: {
-		type: DataTypes.ENUM('pending', 'paid', 'cancelled'),
+		type: DataTypes.ENUM('pending', 'paid', 'cancelled', 'expired'),
 		defaultValue: 'pending',
 	},
 }, {  

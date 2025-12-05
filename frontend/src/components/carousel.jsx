@@ -7,7 +7,7 @@ export default function Carousel() {
     const [active, setActive] = useState(2);
     const [cards] = useState(Cards);
 
-    const maxVisibility = 2; // Show 2 cards before and after the active card (total 5 visible)
+    const maxVisibility = 2; 
 
     return (
         <div className='cardContainer transform-3d justify-self-center relative w-100 h-[30rem] perspective-[1000px] select-none'>

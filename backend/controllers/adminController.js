@@ -3,7 +3,6 @@ import MsServices from '../models/msServices.js';
 import Rooms from '../models/Rooms.js';
 import { Op } from 'sequelize';
 
-//ROOM TYPE CONTROLLERS
 export const createRoomType = async (req, res) => {
 	try {
 		const { name, capacity, price_per_night, description, room_bed, max_stay_duration, image_url } =
@@ -79,7 +78,6 @@ export const updateRoomType = async (req, res) => {
 		const { name, capacity, price_per_night, description, room_bed, max_stay_duration, image_url } =
 			req.body;
 
-		// Check if room type exists
 		const existingRoomType = await MsRoomType.findByPk(id);
 		if (!existingRoomType) {
 			return res.status(404).json({ message: 'Room type not found' });
@@ -151,13 +149,11 @@ export const deleteRoomType = async (req, res) => {
 	try {
 		const { id } = req.params;
 
-		// Check if room type exists
 		const roomType = await MsRoomType.findByPk(id);
 		if (!roomType) {
 			return res.status(404).json({ message: 'Room type not found' });
 		}
 
-		// Check if there are rooms associated with this room type
 		const associatedRooms = await Rooms.count({
 			where: { id_room_type: id },
 		});
@@ -186,7 +182,6 @@ export const deleteRoomType = async (req, res) => {
 	}
 };
 
-//ROOM CONTROLLERS
 export const createRoom = async (req, res) => {
 	try {
 		const { id_room_type, room_number } = req.body;
@@ -253,7 +248,6 @@ export const updateRoom = async (req, res) => {
 		const { id } = req.params;
 		const { id_room_type, room_number } = req.body;
 
-		// Check if room exists
 		const existingRoom = await Rooms.findByPk(id);
 		if (!existingRoom) {
 			return res.status(404).json({ message: 'Room not found' });
@@ -338,7 +332,6 @@ export const deleteRoom = async (req, res) => {
 	}
 };
 
-//SERVICES CONTROLLERS
 export const createService = async (req, res) => {
 	try {
 		const { name, desc, service_price, unit } = req.body;
