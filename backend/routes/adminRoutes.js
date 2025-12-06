@@ -13,6 +13,7 @@ import {
 	updateService,
 	deleteServices,
 } from '../controllers/adminController.js';
+import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -22,8 +23,8 @@ router.put('/rooms/:id', updateRoom);
 router.delete('/rooms/:id', deleteRoom);
 
 router.get('/room-types', readRoomTypes);
-router.post('/room-types', createRoomType);
-router.put('/room-types/:id', updateRoomType);
+router.post('/room-types', upload.single('image'), createRoomType);
+router.put('/room-types/:id', upload.single('image'), updateRoomType);
 router.delete('/room-types/:id', deleteRoomType);
 
 router.get('/services', readServices);

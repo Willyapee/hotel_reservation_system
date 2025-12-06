@@ -5,8 +5,12 @@ import { Op } from 'sequelize';
 
 export const createRoomType = async (req, res) => {
 	try {
-		const { name, capacity, price_per_night, description, room_bed, max_stay_duration, image_url } =
-			req.body;
+		const { name, capacity, price_per_night, description, room_bed, max_stay_duration } = req.body;
+
+		let image_url = req.body.image_url;
+		if (req.file) {
+			image_url = `/room/${req.file.filename}`;
+		}
 
 		if (!name || !name.trim()) {
 			return res.status(400).json({ message: 'Room type name is required' });
@@ -36,11 +40,11 @@ export const createRoomType = async (req, res) => {
 
 		const newRoomType = await MsRoomType.create({
 			name: name.trim(),
-			capacity,
-			price_per_night,
+			capacity: parseInt(capacity),
+			price_per_night: parseFloat(price_per_night),
 			description: description.trim(),
 			room_bed: room_bed.trim(),
-			max_stay_duration,
+			max_stay_duration: parseInt(max_stay_duration),
 			image_url: image_url || null,
 		});
 
@@ -75,8 +79,7 @@ export const readRoomTypes = async (req, res) => {
 export const updateRoomType = async (req, res) => {
 	try {
 		const { id } = req.params;
-		const { name, capacity, price_per_night, description, room_bed, max_stay_duration, image_url } =
-			req.body;
+		const { name, capacity, price_per_night, description, room_bed, max_stay_duration } = req.body;
 
 		const existingRoomType = await MsRoomType.findByPk(id);
 		if (!existingRoomType) {
@@ -102,6 +105,11 @@ export const updateRoomType = async (req, res) => {
 			return res.status(400).json({ message: 'Valid max stay duration is required' });
 		}
 
+		let image_url = req.body.image_url;
+		if (req.file) {
+			image_url = `/room/${req.file.filename}`;
+		}
+
 		const duplicateRoomType = await MsRoomType.findOne({
 			where: {
 				name: name.trim(),
@@ -115,12 +123,12 @@ export const updateRoomType = async (req, res) => {
 		const [updated] = await MsRoomType.update(
 			{
 				name: name.trim(),
-				capacity,
-				price_per_night,
+				capacity: parseInt(capacity),
+				price_per_night: parseFloat(price_per_night),
 				description: description.trim(),
 				room_bed: room_bed.trim(),
-				max_stay_duration,
-				image_url: image_url || null,
+				max_stay_duration: parseInt(max_stay_duration),
+				image_url: image_url || existingRoomType.image_url,
 			},
 			{
 				where: { id_room_type: id },
