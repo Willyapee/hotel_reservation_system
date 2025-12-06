@@ -118,8 +118,8 @@ app.use('/api/cart', cartRoutes);
       await db.sync({ alter: true });
       console.log('📦 Production: All models synchronized with alter');
     } else {
-      await db.sync({ force: false, alter: false });
-      console.log('📦 Development: All models synchronized safely (no alter)');
+      await db.sync({ force: false, alter: true });
+      console.log('📦 Development: All models synchronized safely (alter)');
     }
 
     try {
