@@ -18,7 +18,7 @@ import {
 	LogOut,
 	ArrowLeft,
 } from 'lucide-react';
-import NavigationBar from '../components/navigationBar.jsx';
+
 const Profile = () => {
 	const navigate = useNavigate();
 	const [isEditing, setIsEditing] = useState(false);
@@ -73,6 +73,7 @@ const Profile = () => {
 				
 				if (userRes.ok && userData.success) {
 					const formattedUser = {
+						id: userData.user.id,
 						name: userData.user.username,
 						email: userData.user.email,
 						joinDate: new Date().toLocaleDateString('en-US', {
@@ -128,11 +129,48 @@ const Profile = () => {
 		fetchData();
 	}, [navigate]);
 
-	const handleEditToggle = () => {
+	const handleEditToggle = async () => {
 		if (isEditing) {
-			setUser(formData);
-		}
-		setIsEditing(!isEditing);
+        try {
+            const response = await fetch(`http://localhost:3000/users/users/${user.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: formData.name, 
+                    email: formData.email
+                }),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                
+                setUser({ 
+                    ...user, 
+                    name: formData.name, 
+                    email: formData.email 
+                });
+                
+                const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                localStorage.setItem('user', JSON.stringify({
+                    ...storedUser,
+                    name: formData.name
+                }));
+
+                alert('✅ Profile updated successfully!');
+                setIsEditing(false);
+            } else {
+                const errorData = await response.json();
+                alert(`❌ Failed to update: ${errorData.message}`);
+            }
+        } catch (error) {
+            console.error("Update error:", error);
+            alert("❌ Server error when updating profile.");
+        }
+    } else {
+        setIsEditing(true);
+    }
 	};
 
 	const handleCancelEdit = () => {
@@ -329,16 +367,15 @@ const Profile = () => {
 	return (
 		<div className='min-h-screen bg-[#fbfaf9]'>
 			{/* ✅ NAVIGATION BAR - SAMA SEPERTI DI HOMEPAGE */}
-			<NavigationBar openMenu={openMenu} handleOpenMenu={() => setOpenMenu(!openMenu)} />
-			
-			{/* Back to Home Button */}
-			<button
-				onClick={() => navigate('/')}
-				className='fixed top-20 left-6 z-50 flex items-center gap-2 text-white bg-[#102E50] px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:scale-105'
-			>
-				<ArrowLeft className='w-4 h-4' />
-				<span className='text-sm font-medium'>Back to Home</span>
-			</button>
+			<div className="w-full h-17 fixed flex items-center gap-x-10 px-4 py-2 bg-[#102E50] z-10">
+					<button
+						  onClick={() => navigate('/')}
+						  className="absolute left-6 z-20 flex items-center gap-2 text-white bg-[#102E50] px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:scale-105"
+					  >
+						  <ArrowLeft className="w-4 h-4" />
+						  <span className="text-3sm font-medium">Back to Home</span>
+					  </button>
+				  </div>
 
 			{/* Padding untuk NavigationBar */}
 			<div className='pt-20'>
@@ -375,8 +412,8 @@ const Profile = () => {
 						{/* Main Content */}
 						<div className='lg:col-span-3'>
 							<div className='bg-white rounded-2xl shadow-lg border border-gray-100 p-6'>
-								{activeTab === 'profile' && <ProfileInfo />}
-								{activeTab === 'bookings' && <BookingHistory />}
+								{activeTab === 'profile' && ProfileInfo() }
+								{activeTab === 'bookings' && BookingHistory()}
 							</div>
 						</div>
 					</div>
