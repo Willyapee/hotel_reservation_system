@@ -857,38 +857,6 @@ const RoomManagement = () => {
 								)}
 							</div>
 
-							{/* <div className='grid grid-cols-1 md:grid-cols-3 gap-4 items-start'>
-                  <div className='md:col-span-2'>
-                    <label className='block text-sm font-medium text-gray-700'>Image URL</label>
-                    <input
-                      name='image_url'
-                      value={roomTypeForm.image_url}
-                      onChange={handleRoomTypeInputChange}
-                      className='w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c19a6b]'
-                      placeholder='e.g., https://example.com/room1.jpg'
-                    />
-                  </div>
-                  <div className='flex items-center justify-center'>
-                    <div className='w-full h-32 border border-gray-200 rounded-lg overflow-hidden'>
-                      {roomTypeForm.image_url ? (
-                        <img
-                          src={roomTypeForm.image_url}
-                          alt='preview'
-                          className='w-full h-full object-cover'
-                          onError={(e) => {
-                            e.target.src =
-                              'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjEwMCIgeT0iNjAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RmFpbGVkIHRvIGxvYWQ8L3RleHQ+PC9zdmc+';
-                          }}
-                        />
-                      ) : (
-                        <div className='w-full h-full flex items-center justify-center text-gray-400 bg-gray-100'>
-                          Preview
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div> */}
-
 							<div className='md:col-span-2'>
 								<label className='block text-sm font-medium text-gray-700 mb-2'>Room Image</label>
 
@@ -897,21 +865,18 @@ const RoomManagement = () => {
 										htmlFor='dropzone-file'
 										className='flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors relative overflow-hidden group'>
 										{imagePreview ? (
-											// TAMPILAN JIKA SUDAH ADA GAMBAR
 											<>
 												<img
 													src={imagePreview}
 													alt='Room Preview'
 													className='w-full h-full object-cover'
 												/>
-												{/* Overlay saat hover supaya user tahu bisa ganti gambar */}
 												<div className='absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'>
 													<Upload className='w-10 h-10 text-white mb-2' />
 													<p className='text-sm text-white font-semibold'>Click to Change Image</p>
 												</div>
 											</>
 										) : (
-											// TAMPILAN JIKA BELUM ADA GAMBAR (KOTAK KOSONG)
 											<div className='flex flex-col items-center justify-center pt-5 pb-6'>
 												<Upload className='w-10 h-10 text-gray-400 mb-3' />
 												<p className='mb-2 text-sm text-gray-500'>
@@ -921,7 +886,6 @@ const RoomManagement = () => {
 											</div>
 										)}
 
-										{/* INPUT FILE ASLI (DISEMBUNYIKAN) */}
 										<input
 											id='dropzone-file'
 											type='file'
@@ -931,7 +895,7 @@ const RoomManagement = () => {
 												if (e.target.files && e.target.files[0]) {
 													setRoomTypeForm({
 														...roomTypeForm,
-														image_file: e.target.files[0], // Simpan file ke state
+														image_file: e.target.files[0], 
 													});
 												}
 											}}
@@ -939,7 +903,6 @@ const RoomManagement = () => {
 									</label>
 								</div>
 
-								{/* Tombol Hapus Gambar (Opsional, jika ingin mereset) */}
 								{imagePreview && (
 									<button
 										type='button'

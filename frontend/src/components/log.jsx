@@ -1,33 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import jsPDF from 'jspdf'; // ← IMPORT JSPDF
-
+import jsPDF from 'jspdf';
 import '../css/log.css';
 
 export default function Log() {
 	const [users, setUsers] = useState([]);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [sortOrder, setSortOrder] = useState('username-asc');
+	const [topSpenders, setTopSpenders] = useState([]);
+	const [loadingSpenders, setLoadingSpenders] = useState(false);
+	const [analyticsSummary, setAnalyticsSummary] = useState(null);
 
 	useEffect(() => {
-		const fetchUser = async () => {
-			try {
-				const res = await axios.get('http://localhost:3000/users/allusers');
-				setUsers(res.data);
-			} catch (err) {
-				console.log('Error fetching users:', err);
-			}
-		};
 		fetchUser();
+		fetchTopSpenders();
 	}, []);
 
-	// Filter users based on search term
+	const fetchUser = async () => {
+		try {
+			const res = await axios.get('http://localhost:3000/users/allusers');
+			setUsers(res.data);
+		} catch (err) {
+			console.log('Error fetching users:', err);
+		}
+	};
+
+	const fetchTopSpenders = async () => {
+		setLoadingSpenders(true);
+		try {
+			const res = await axios.get('http://localhost:3000/users/analytics/top-spenders');
+			if (res.data.success) {
+				setTopSpenders(res.data.topSpenders || []);
+				setAnalyticsSummary(res.data.summary);
+			}
+		} catch (err) {
+			console.log('Error fetching top spenders:', err);
+		} finally {
+			setLoadingSpenders(false);
+		}
+	};
+
 	const filteredUsers = users.filter(user =>
 		user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
 		user.email.toLowerCase().includes(searchTerm.toLowerCase())
 	);
 
-	// Sort users based on selected criteria
 	const sortedUsers = [...filteredUsers].sort((a, b) => {
 		switch (sortOrder) {
 			case 'username-asc':
@@ -43,7 +60,6 @@ export default function Log() {
 		}
 	});
 
-	// 20 user terbaru untuk PDF
 	const usersForPDF = [...users]
 		.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 		.slice(0, 20);
@@ -84,7 +100,6 @@ export default function Log() {
 		doc.setFontSize(16);
 		doc.text("USER REPORT", 170, 18, { align: "center" });
 
-		// Tambah timestamp download
 		const downloadDate = new Date().toLocaleString();
 		doc.setFontSize(8);
 		doc.setTextColor(100, 100, 100);
@@ -147,6 +162,27 @@ export default function Log() {
 		doc.save(`User_Report_${dateStr}.pdf`);
 	};
 
+	const formatCurrency = (amount) => {
+		if (!amount && amount !== 0) return '$0.00';
+		const num = parseFloat(amount);
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD',
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2
+		}).format(num);
+	};
+
+
+	const getRankBadgeClass = (index) => {
+		switch(index) {
+			case 0: return 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white';
+			case 1: return 'bg-gradient-to-r from-gray-400 to-gray-500 text-white';
+			case 2: return 'bg-gradient-to-r from-amber-700 to-amber-800 text-white';
+			default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700';
+		}
+	};
+
 	return (
 		<div className='w-full h-full p-6 flex flex-col'>
 
@@ -185,26 +221,199 @@ export default function Log() {
 				</button>
 			</div>
 
-			<div className='flex-1 overflow-y-auto'>
-				<div className='grid grid-cols-4 font-semibold p-3 sticky'>
-					<div>No</div>
-					<div>Username</div>
-					<div>Email</div>
-					<div>Created At</div>
+			{/* QUERY ANALYTIC SECTION: TOP SPENDERS LEADERBOARD */}
+			<div className="mb-8 bg-white rounded-xl shadow-lg p-6">
+				<div className="flex justify-between items-center mb-6">
+					<h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+						<svg className="w-6 h-6 text-[#c19a6b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+						</svg>
+						Top 10 Spenders Leaderboard
+					</h2>
+					<button 
+						onClick={fetchTopSpenders}
+						className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-all duration-300"
+					>
+						<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+						</svg>
+						Refresh
+					</button>
 				</div>
 
-				{sortedUsers.map((user, index) => (
-					<div
-						key={user.id_user}
-						className='grid grid-cols-4 items-center p-3'>
-						<div>{index + 1}</div>
-						<div>{user.username}</div>
-						<div>{user.email}</div>
-						<div>{new Date(user.createdAt).toLocaleString()}</div>
+				{analyticsSummary && (
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+						<div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+							<div className="text-sm text-gray-600 font-medium">Total Revenue (Top 10)</div>
+							<div className="text-2xl font-bold text-gray-800 mt-1">
+								{formatCurrency(analyticsSummary.totalRevenue || 0)}
+							</div>
+							<div className="text-xs text-gray-500 mt-1">From top 10 customers</div>
+						</div>
+						<div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+							<div className="text-sm text-gray-600 font-medium">Average Spending</div>
+							<div className="text-2xl font-bold text-gray-800 mt-1">
+								{formatCurrency(analyticsSummary.averageSpending || 0)}
+							</div>
+							<div className="text-xs text-gray-500 mt-1">Per top customer</div>
+						</div>
+						<div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+							<div className="text-sm text-gray-600 font-medium">Top Spender</div>
+							<div className="text-xl font-bold text-gray-800 mt-1 truncate">
+								{analyticsSummary.topSpender?.username || 'N/A'}
+							</div>
+							<div className="text-sm text-gray-600">
+								{analyticsSummary.topSpender ? formatCurrency(analyticsSummary.topSpender.totalSpent) : 'No data'}
+							</div>
+						</div>
 					</div>
-				))}
+				)}
 
-				{sortedUsers.length === 0 && <div className='text-center p-4'>No users found.</div>}
+				{loadingSpenders ? (
+					<div className="text-center py-12">
+						<div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#c19a6b] border-t-transparent"></div>
+						<p className="mt-4 text-gray-600 font-medium">Loading leaderboard data...</p>
+					</div>
+				) : topSpenders.length > 0 ? (
+					<div className="overflow-x-auto rounded-lg border border-gray-200">
+						<table className="min-w-full divide-y divide-gray-200">
+							<thead className="bg-gray-50">
+								<tr>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bookings</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Spent</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Booking</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+								</tr>
+							</thead>
+							<tbody className="bg-white divide-y divide-gray-200">
+								{topSpenders.map((user, index) => (
+									<tr 
+										key={user.id} 
+										className={`hover:bg-gray-50 transition-colors duration-200 ${
+											index === 0 ? 'bg-yellow-50' : 
+											index === 1 ? 'bg-gray-50' : 
+											index === 2 ? 'bg-amber-50' : ''
+										}`}
+									>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold ${getRankBadgeClass(index)}`}>
+												{index + 1}
+											</div>
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<div className="flex items-center">
+												<div className="flex-shrink-0 h-12 w-12 bg-gradient-to-r from-[#c19a6b] to-[#a67c52] rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
+													{user.username.charAt(0).toUpperCase()}
+												</div>
+												<div className="ml-4">
+													<div className="font-bold text-gray-900 text-lg">{user.username}</div>
+													<div className="text-sm text-gray-500">{user.email}</div>
+													<div className="text-xs text-gray-400 capitalize mt-1">{user.role}</div>
+												</div>
+											</div>
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<div className="text-center">
+												<div className="text-2xl font-bold text-gray-800">{user.totalBookings}</div>
+												<div className="text-xs text-gray-500">bookings</div>
+											</div>
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<div className="font-bold text-lg text-gray-900">
+												{formatCurrency(user.totalSpent)}
+											</div>
+											<div className="text-xs text-gray-500">
+												{user.totalBookings > 0 
+													? `${formatCurrency(user.totalSpent / user.totalBookings)} avg/booking`
+													: 'No bookings'
+												}
+											</div>
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+											{user.lastBooking}
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+												user.role === 'admin' 
+													? 'bg-red-100 text-red-800' 
+													: 'bg-green-100 text-green-800'
+											}`}>
+												{user.role}
+											</span>
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				) : (
+					<div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
+						<svg className="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+						</svg>
+						<p className="mt-4 text-lg font-medium">No spending data available</p>
+						<p className="text-sm">Customers need to make bookings first</p>
+					</div>
+				)}
+			</div>
+
+			{/* USER LIST SECTION */}
+			<div className="bg-white rounded-xl shadow-lg p-6 flex-1">
+				<h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+					<svg className="w-6 h-6 text-[#c19a6b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13 0h-6" />
+					</svg>
+					All Users ({sortedUsers.length})
+				</h2>
+
+				<div className="overflow-y-auto" style={{ maxHeight: '400px' }}>
+					<div className='grid grid-cols-4 font-semibold p-3 bg-gray-50 rounded-t-lg sticky top-0 z-10'>
+						<div className="font-bold text-gray-700">No</div>
+						<div className="font-bold text-gray-700">Username</div>
+						<div className="font-bold text-gray-700">Email</div>
+						<div className="font-bold text-gray-700">Created At</div>
+					</div>
+
+					{sortedUsers.length > 0 ? (
+						sortedUsers.map((user, index) => (
+							<div
+								key={user.id_user}
+								className={`grid grid-cols-4 items-center p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150 ${
+									index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+								}`}
+							>
+								<div className="font-medium text-gray-600">{index + 1}</div>
+								<div className="flex items-center gap-2">
+									<span className="font-medium text-gray-900">{user.username}</span>
+									{user.role === 'admin' && (
+										<span className="px-2 py-0.5 text-xs bg-red-100 text-red-800 rounded-full font-bold">
+											ADMIN
+										</span>
+									)}
+								</div>
+								<div className="text-gray-600 truncate" title={user.email}>{user.email}</div>
+								<div className="text-gray-500 text-sm">
+									{new Date(user.createdAt).toLocaleDateString('id-ID', {
+										day: 'numeric',
+										month: 'short',
+										year: 'numeric',
+										hour: '2-digit',
+										minute: '2-digit'
+									})}
+								</div>
+							</div>
+						))
+					) : (
+						<div className='text-center p-8 text-gray-500'>
+							<svg className="w-12 h-12 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+							</svg>
+							<p className="mt-2">No users found matching your search</p>
+						</div>
+					)}
+				</div>
 			</div>
 		</div>
 	);

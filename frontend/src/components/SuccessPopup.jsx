@@ -5,8 +5,8 @@ const SuccessPopup = ({
   message, 
   onClose, 
   duration = 3000,
-  type = 'success', // 'success', 'error', 'info', 'luxury'
-  position = 'center', // 'center', 'top', 'bottom'
+  type = 'success',
+  position = 'center', 
   showCloseButton = true,
   autoClose = true,
   showIcon = true,
@@ -21,7 +21,6 @@ const SuccessPopup = ({
     }
   }, [onClose, duration, autoClose]);
 
-  // Config based on type
   const config = {
     success: {
       icon: CheckCircle,
@@ -56,7 +55,6 @@ const SuccessPopup = ({
 
   const { icon: Icon, iconColor, bgColor, buttonColor, title, isLuxury } = config[type];
 
-  // Position classes
   const positionClasses = {
     center: 'items-center justify-center',
     top: 'items-start justify-center pt-20',
