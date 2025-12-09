@@ -143,7 +143,6 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
       method: 'POST',
       credentials: 'include'
     }).catch(() => {
-      // Ignore errors
     });
     
     setUser({
