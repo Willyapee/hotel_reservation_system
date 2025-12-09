@@ -151,11 +151,25 @@ const Profile = () => {
                     name: formData.name, 
                     email: formData.email 
                 });
+
+				const newInitials = formData.name
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .toUpperCase();
+
+				window.dispatchEvent(new Event('userUpdated'));
                 
                 const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
                 localStorage.setItem('user', JSON.stringify({
                     ...storedUser,
                     name: formData.name
+                }));
+
+				localStorage.setItem('user', JSON.stringify({
+                    ...storedUser,
+                    name: formData.name,
+                    initials: newInitials
                 }));
 
                 alert('✅ Profile updated successfully!');

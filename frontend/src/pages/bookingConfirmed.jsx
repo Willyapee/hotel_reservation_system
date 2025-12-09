@@ -58,25 +58,33 @@ function BookingConfirmed() {
     try {
       setPaymentProcessing(true);
       
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await fetch(`http://localhost:3000/invoices/${bookingData.invoiceId}/status`, {
+          method: 'PATCH',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+              status: 'paid'
+          })
+      });
       
-      // Here you would normally call payment API
-      console.log(`Processing ${bookingData.paymentMethod} payment...`);
+      const result = await response.json();
+
+      if (!response.ok) {
+          throw new Error(result.message || 'Payment failed');
+      }
       
-      // Mock successful payment
       setPaymentCompleted(true);
       
-      // Simulate payment confirmation
       setTimeout(() => {
         alert('✅ Payment successful! Your booking is now confirmed.');
-        // Navigate to homepage or booking history
         navigate('/');
       }, 1000);
       
     } catch (error) {
       console.error('Payment error:', error);
-      alert('Payment failed. Please try again.');
+      alert(`Payment failed: ${error.message}`);
     } finally {
       setPaymentProcessing(false);
     }

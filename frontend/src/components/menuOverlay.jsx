@@ -16,6 +16,11 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
       console.log('🔄 MenuOverlay: Checking auth status...');
       checkAuthStatus();
     }
+    window.addEventListener('userUpdated', checkAuthStatus);
+
+    return () => {
+        window.removeEventListener('userUpdated', checkAuthStatus);
+    };
   }, [isOpen]);
 
   const checkAuthStatus = () => {

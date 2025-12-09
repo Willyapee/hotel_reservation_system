@@ -15,6 +15,10 @@ export default function NavigationBar({ openMenu, handleOpenMenu }) {
   useEffect(() => {
     console.log('🔧 NavigationBar mounted');
     loadUserData();
+    window.addEventListener('userUpdated', loadUserData);
+    return () => {
+        window.removeEventListener('userUpdated', loadUserData);
+    };
   }, []);
 
   const loadUserData = () => {
