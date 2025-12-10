@@ -11,6 +11,7 @@ import BookingConfirmed from './pages/bookingConfirmed.jsx';
 import BookingHistory from './pages/bookingHistory.jsx'; 
 import Invoices from './pages/invoices.jsx'; 
 import PrivateRoute from '../src/components/privateRoute.jsx';
+import FeedbackPage from './pages/feedback';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
       <Route path='/cart' element={<Cart />} />
       <Route path='/checkout' element={<Checkout />} />
       <Route path='/booking-confirmed' element={<BookingConfirmed />} />
+      <Route path="/reviews" element={<FeedbackPage />} />
       <Route 
         path='/my-bookings' 
         element={

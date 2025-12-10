@@ -10,6 +10,9 @@ import MsUser from './models/MsUsers.js';
 import MsRoomType from './models/msRoomTypes.js';
 import MsServices from './models/msServices.js';
 
+import connectMongoDB from './config/mongoDb.js'; 
+import feedbackRoutes from './routes/feedbackRoutes.js';
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -90,7 +93,8 @@ app.use('/admin', adminRoutes);
 app.use('/invoices', invoiceRoutes); // PASTIKAN INI ADA
 app.use('/payments', paymentRoutes);
 app.use('/users', userRoutes);
-app.use('/api/cart', cartRoutes); 
+app.use('/api/cart', cartRoutes);
+app.use('/feedbacks', feedbackRoutes);
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
 // const __filename = fileURLToPath(import.meta.url);
@@ -110,6 +114,8 @@ app.use('/api/cart', cartRoutes);
   try {
     await db.authenticate();
     console.log('✅ Connected to the database');
+
+    await connectMongoDB();
 
     defineRelationships();
     console.log('🔗 Relationships defined');
