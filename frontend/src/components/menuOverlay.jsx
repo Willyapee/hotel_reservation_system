@@ -74,6 +74,11 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
       section: 'dine'
     },
     {
+      id: 'reviews',
+      label: 'Guest Reviews',
+      path: '/reviews', 
+    },
+    {
       id: 'contact',
       label: 'Contact',
       section: 'contact'
