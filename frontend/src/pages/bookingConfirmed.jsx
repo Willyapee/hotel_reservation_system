@@ -33,7 +33,6 @@ function BookingConfirmed() {
     setBookingData(location.state);
     console.log('✅ Booking data received:', location.state);
 
-    // Timer countdown
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 0) {
@@ -58,33 +57,61 @@ function BookingConfirmed() {
     try {
       setPaymentProcessing(true);
       
+      console.log('💳 Starting payment process...');
+      
+      console.log(`📝 Updating invoice ${bookingData.invoiceId} status to paid...`);
       const response = await fetch(`http://localhost:3000/invoices/${bookingData.invoiceId}/status`, {
-          method: 'PATCH',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-              status: 'paid'
-          })
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          status: 'paid',
+          payment_method: bookingData.paymentMethod || 'bank_transfer'
+        })
       });
       
-      const result = await response.json();
-
+      const responseText = await response.text();
+      console.log('📨 Response:', responseText);
+      
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Failed to parse response:', parseError);
+        throw new Error(`Invalid response from server: ${responseText.substring(0, 100)}`);
+      }
+      
       if (!response.ok) {
-          throw new Error(result.message || 'Payment failed');
+        throw new Error(result?.message || `Payment failed: ${response.status}`);
+      }
+      
+      console.log('✅ Payment successful!');
+      
+      try {
+        await fetch('http://localhost:3000/api/cart', {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        console.log('🛒 Cart cleared');
+      } catch (cartError) {
+        console.warn('Failed to clear cart:', cartError);
       }
       
       setPaymentCompleted(true);
-      
+
       setTimeout(() => {
-        alert('✅ Payment successful! Your booking is now confirmed.');
+        alert('✅ Payment successful! Your booking is now confirmed.\n\n' +
+              `Booking ID: ${bookingData.bookingId}\n` +
+              `Invoice: ${bookingData.invoiceNumber}\n` +
+              `Total: $${bookingData.totalAmount}`);
         navigate('/');
       }, 1000);
       
     } catch (error) {
-      console.error('Payment error:', error);
-      alert(`Payment failed: ${error.message}`);
+      console.error('❌ Payment error:', error);
+      alert(`❌ ${error.message}\n\nPlease try again or contact support.`);
     } finally {
       setPaymentProcessing(false);
     }
@@ -95,7 +122,6 @@ function BookingConfirmed() {
   };
 
   const handleDownloadInvoice = () => {
-    // Mock invoice download
     const invoiceContent = `
       =====================================
                 NYX HOTEL INVOICE

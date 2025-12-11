@@ -85,10 +85,50 @@ export const createReservationFromCart = async (req, res) => {
 
                 console.log(`✅ [CHECKOUT] Found room reservation for room ID: ${roomReservation.id_room}`);
 
+                console.log(`🔍 [CHECKOUT] Checking for overlapping RESERVED bookings for room ${roomReservation.id_room}...`);
+                
+                const overlappingReserved = await RoomReservations.findOne({
+                    where: {
+                        id_room: roomReservation.id_room,
+                        status: { 
+                            [Op.in]: ['reserved', 'pending_payment', 'checked_in']  
+                        },
+                        [Op.or]: [
+                            {
+                                check_in_date: { 
+                                    [Op.lt]: roomReservation.check_out_date 
+                                },
+                                check_out_date: { 
+                                    [Op.gt]: roomReservation.check_in_date 
+                                },
+                            },
+                        ],
+                        id_room_reservation: {
+                            [Op.ne]: roomReservation.id_room_reservation
+                        }
+                    },
+                    transaction
+                });
+
+                if (overlappingReserved) {
+                    console.log(`❌ [CHECKOUT] Room ${roomReservation.id_room} already RESERVED for overlapping dates`);
+                    throw new Error(`Room already reserved for the selected dates. Please choose another room or different dates.`);
+                }
+
+                if (overlappingReserved) {
+                    console.log(`❌ [CHECKOUT] Room ${roomReservation.id_room} already RESERVED for overlapping dates`);
+                    console.log(`📅 Conflicting: ${overlappingReserved.check_in_date} to ${overlappingReserved.check_out_date}`);
+                    throw new Error(`Room already reserved for the selected dates. Please choose another room or different dates.`);
+                }
+                
+                console.log(`✅ [CHECKOUT] No overlapping RESERVED bookings found`);
+
                 await roomReservation.update({
                     id_reservation: reservation.id_reservation,
-                    status: 'reserved'
+                    status: 'pending_payment' 
                 }, { transaction });
+
+                console.log(`✅ [CHECKOUT] Room reservation ${cartItemId} updated to pending_payment`);
 
                 const roomSubtotal = parseFloat(roomReservation.subtotal_price) || 0;
                 subtotal += roomSubtotal;
@@ -137,13 +177,14 @@ export const createReservationFromCart = async (req, res) => {
             }, { transaction });
 
             console.log(`✅ [CHECKOUT] Invoice created: ${invoiceNumber}`);
+            console.log(`⏰ [CHECKOUT] Payment due in 16 hours: ${dueDate}`);
 
             await transaction.commit();
             console.log('✅ [CHECKOUT] Transaction committed successfully');
 
             res.status(201).json({
                 success: true,
-                message: 'Reservation created successfully',
+                message: 'Reservation created successfully. You have 16 hours to complete payment.',
                 reservation: {
                     id_reservation: reservation.id_reservation,
                     reservation_date: reservation.reservation_date
@@ -167,7 +208,8 @@ export const createReservationFromCart = async (req, res) => {
                     tax: parseFloat(tax).toFixed(2),
                     service_fee: serviceFee.toFixed(2),
                     total_amount: parseFloat(totalAmount).toFixed(2),
-                    rooms_count: cartItems.length
+                    rooms_count: cartItems.length,
+                    note: 'Multiple users can checkout the same room. First to pay wins!'
                 }
             });
 
@@ -188,7 +230,9 @@ export const createReservationFromCart = async (req, res) => {
 
         let errorMessage = 'Failed to process checkout';
         
-        if (error.message.includes('foreign key constraint')) {
+        if (error.message.includes('Room already reserved')) {
+            errorMessage = error.message;
+        } else if (error.message.includes('foreign key constraint')) {
             errorMessage = 'Data integrity error. Please refresh your cart and try again.';
         } else if (error.message.includes('Cart item')) {
             errorMessage = error.message;

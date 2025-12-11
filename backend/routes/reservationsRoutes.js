@@ -3,7 +3,8 @@ import {
     createTemporaryReservation,
     confirmReservationAfterLogin,
     getAllReservations,
-    getUserReservations
+    getUserReservations,
+    confirmReservationPayment
 } from '../controllers/reservationsController.js';
 
 import { 
@@ -19,6 +20,7 @@ router.post('/confirm', verifyToken, confirmReservationAfterLogin);
 router.get('/', verifyToken, getAllReservations);
 router.get('/my', verifyToken, getUserReservations);
 
+router.post('/:id/confirm-payment', verifyToken, confirmReservationPayment);
 router.post('/create-from-cart', verifyToken, createReservationFromCart);
 router.get('/:id', verifyToken, getReservationDetails);
 

@@ -1,4 +1,5 @@
 import { Op } from 'sequelize';
+import db from '../config/db.js';
 import Reservations from '../models/Reservations.js';
 import RoomReservations from '../models/RoomReservations.js';
 import ServiceReservations from '../models/ServiceReservations.js';
@@ -313,4 +314,188 @@ export const getUserReservations = async (req, res) => {
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
+};
+
+export const confirmReservationPayment = async (req, res) => {
+    let transaction;
+    
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        
+        console.log(`💰 [PAYMENT] Starting payment confirmation for reservation ${id}, user ${userId}`);
+        
+        const reservationExists = await Reservations.findOne({
+            where: { 
+                id_reservation: id,
+                id_user: userId 
+            }
+        });
+        
+        if (!reservationExists) {
+            console.log(`❌ [PAYMENT] Reservation ${id} not found or user mismatch`);
+            return res.status(404).json({
+                success: false,
+                message: 'Reservation not found'
+            });
+        }
+        
+        console.log(`✅ [PAYMENT] Reservation ${id} found`);
+        
+        transaction = await db.transaction();
+        
+        try {
+            console.log(`🔍 [PAYMENT] Looking for pending payment rooms...`);
+
+            const invoice = await Invoices.findOne({
+                where: { 
+                    id_reservation: id,
+                    status: 'pending' 
+                },
+                transaction
+            });
+            
+            if (!invoice) {
+                await transaction.rollback();
+                console.log(`❌ [PAYMENT] No pending invoice found for reservation ${id}`);
+                return res.status(400).json({
+                    success: false,
+                    message: 'No pending invoice found. Reservation may already be paid.'
+                });
+            }
+            
+            const roomReservations = await RoomReservations.findAll({
+                where: { 
+                    id_reservation: id,
+                    status: 'pending_payment'
+                },
+                transaction
+            });
+            
+            if (!roomReservations || roomReservations.length === 0) {
+                await transaction.rollback();
+                console.log(`❌ [PAYMENT] No pending payment rooms found for reservation ${id}`);
+                return res.status(400).json({
+                    success: false,
+                    message: 'No pending payment rooms found. Reservation may already be paid or cancelled.'
+                });
+            }
+            
+            console.log(`✅ [PAYMENT] Found ${roomReservations.length} pending rooms`);
+            
+            console.log(`🔍 [PAYMENT] Validating room availability...`);
+            for (const roomRes of roomReservations) {
+                console.log(`   Checking room ${roomRes.id_room} (${roomRes.check_in_date} to ${roomRes.check_out_date})`);
+                
+                const overlappingReserved = await RoomReservations.findOne({
+                    where: {
+                        id_room: roomRes.id_room,
+                        status:{ 
+							[Op.in]: ['reserved', 'pending_payment', 'checked_in']  
+						},
+                        [Op.and]: [
+                            {
+                                [Op.or]: [
+                                    {
+                                        check_in_date: { 
+                                            [Op.lt]: roomRes.check_out_date 
+                                        },
+                                        check_out_date: { 
+                                            [Op.gt]: roomRes.check_in_date 
+                                        },
+                                    }
+                                ]
+                            },
+                            {
+                                id_room_reservation: {
+                                    [Op.ne]: roomRes.id_room_reservation
+                                }
+                            }
+                        ]
+                    },
+                    transaction
+                });
+
+                if (overlappingReserved) {
+                    await transaction.rollback();
+                    console.log(`❌ [PAYMENT] Room ${roomRes.id_room} already reserved!`);
+                    console.log(`   Conflict with reservation ${overlappingReserved.id_reservation}`);
+                    console.log(`   Dates: ${overlappingReserved.check_in_date} to ${overlappingReserved.check_out_date}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: `Room ${roomRes.id_room} has already been reserved for overlapping dates. Please choose another room.`,
+                        details: {
+                            roomId: roomRes.id_room,
+                            conflictingDates: {
+                                check_in: overlappingReserved.check_in_date,
+                                check_out: overlappingReserved.check_out_date
+                            }
+                        }
+                    });
+                }
+            }
+            
+            console.log(`🔄 [PAYMENT] Updating room status to reserved...`);
+            for (const roomRes of roomReservations) {
+                await roomRes.update({ 
+                    status: 'reserved',
+                    updatedAt: new Date()
+                }, { transaction });
+                console.log(`   ✅ Room ${roomRes.id_room} updated to reserved`);
+            }
+            
+            console.log(`🔄 [PAYMENT] Updating invoice status to paid...`);
+            await invoice.update({ 
+                status: 'paid',
+                updatedAt: new Date(),
+                payment_date: new Date()
+            }, { transaction });
+            console.log(`✅ Invoice ${invoice.id_invoice} (${invoice.invoice_number}) marked as paid`);
+            
+            await transaction.commit();
+            console.log(`✅ [PAYMENT] Transaction completed successfully for reservation ${id}`);
+            
+            res.json({
+                success: true,
+                message: 'Payment confirmed successfully. Rooms are now reserved.',
+                reservationId: id,
+                roomsCount: roomReservations.length,
+                invoiceNumber: invoice.invoice_number,
+                totalPaid: invoice.total_amount
+            });
+            
+        } catch (innerError) {
+            console.error(`❌ [PAYMENT] Inner error in transaction:`, innerError);
+            console.error(`❌ [PAYMENT] Error stack:`, innerError.stack);
+            
+            if (transaction && !transaction.finished) {
+                await transaction.rollback();
+                console.log('🔄 Transaction rolled back');
+            }
+            
+            throw innerError;
+        }
+        
+    } catch (error) {
+        console.error('❌ [PAYMENT] Confirm payment error:', error);
+        console.error('❌ [PAYMENT] Error stack:', error.stack);
+        
+        let errorMessage = 'Failed to confirm payment. Please try again or contact support.';
+        
+        if (error.name === 'SequelizeDatabaseError') {
+            if (error.message.includes('ENUM')) {
+                errorMessage = 'Database error: Room status not recognized. Please contact support.';
+            }
+        }
+        
+        res.status(500).json({
+            success: false,
+            message: errorMessage,
+            error: process.env.NODE_ENV === 'development' ? {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            } : undefined
+        });
+    }
 };

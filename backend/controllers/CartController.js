@@ -134,27 +134,27 @@ export const addToCart = async (req, res) => {
 };
 
 const checkRoomAvailability = async (roomId, checkIn, checkOut) => {
-	try {
-		const conflictingBooking = await RoomReservations.findOne({
-			where: {
-				id_room: roomId,
-				status: {
-					[Op.notIn]: ['reserved', 'checked_out'],
-				},
-				[Op.or]: [
-					{
-						check_in_date: { [Op.lt]: checkOut },
-						check_out_date: { [Op.gt]: checkIn },
-					},
-				],
-			},
-		});
+    try {
+        const conflictingBooking = await RoomReservations.findOne({
+            where: {
+                id_room: roomId,
+                status: {
+                    [Op.in]: ['reserved', 'checked_in'], 
+                },
+                [Op.or]: [
+                    {
+                        check_in_date: { [Op.lt]: checkOut },
+                        check_out_date: { [Op.gt]: checkIn },
+                    },
+                ],
+            },
+        });
 
-		return !conflictingBooking;
-	} catch (error) {
-		console.error('Check availability error:', error);
-		return false;
-	}
+        return !conflictingBooking; 
+    } catch (error) {
+        console.error('Check availability error:', error);
+        return false;
+    }
 };
 
 export const getCart = async (req, res) => {

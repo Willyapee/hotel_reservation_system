@@ -32,7 +32,7 @@ const RoomReservations = db.define(
 			allowNull: false,
 		},
 		status: {
-			type: DataTypes.ENUM('draft', 'reserved', 'checked_in', 'checked_out', 'cancelled'),
+			type: DataTypes.ENUM('draft', 'reserved', 'pending_payment','checked_in', 'checked_out', 'cancelled'),
 			defaultValue: 'draft',
 		},
 		subtotal_price: {
