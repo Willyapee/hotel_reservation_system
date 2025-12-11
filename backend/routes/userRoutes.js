@@ -5,7 +5,8 @@ import {
   createUser,
   updateUser,
   deleteUser,
-  getTopSpendingUsers
+  getTopSpendingUsers,
+  getCustomerLoyaltyAnalytics
 } from '../controllers/userController.js';
 
 const router = express.Router();
@@ -16,5 +17,6 @@ router.post('/users', createUser);
 router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
 router.get('/analytics/top-spenders', getTopSpendingUsers);
+router.get('/analytics/customer-loyalty', getCustomerLoyaltyAnalytics);
 
 export default router;

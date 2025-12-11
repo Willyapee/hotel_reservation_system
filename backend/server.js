@@ -6,9 +6,15 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcrypt';
+import cron from 'node-cron'; 
+import { Op } from 'sequelize'; 
+
 import MsUser from './models/MsUsers.js';
 import MsRoomType from './models/msRoomTypes.js';
 import MsServices from './models/msServices.js';
+import Invoices from './models/Invoices.js';
+import Reservations from './models/Reservations.js';
+import RoomReservations from './models/RoomReservations.js';
 
 import connectMongoDB from './config/mongoDb.js'; 
 import feedbackRoutes from './routes/feedbackRoutes.js';
@@ -31,6 +37,7 @@ import invoiceRoutes from './routes/invoiceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import cartRoutes from './routes/cartRoutes.js'; 
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
 const allowedOrigins = [
@@ -90,11 +97,12 @@ app.use('/room-reservations', roomReservationsRoutes);
 app.use('/services', servicesRoutes);
 app.use('/service-reservations', serviceReservationsRoutes);
 app.use('/admin', adminRoutes);
-app.use('/invoices', invoiceRoutes); // PASTIKAN INI ADA
+app.use('/invoices', invoiceRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/users', userRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/feedbacks', feedbackRoutes);
+app.use('/analytics', analyticsRoutes);
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
 // const __filename = fileURLToPath(import.meta.url);
@@ -110,6 +118,52 @@ app.use('/feedbacks', feedbackRoutes);
 // }
 /*=============================================================================== */
 
+const setupCronJobs = () => {
+    console.log('⏰ Setting up cron job for auto-cancel...');
+    
+    cron.schedule('*/5 * * * *', async () => {
+        try {
+            const now = new Date();
+            console.log(`⏰ [${now.toLocaleTimeString()}] Checking expired invoices...`);
+            
+            const expiredInvoices = await Invoices.findAll({
+                where: {
+                    status: 'pending',
+                    due_date: { [Op.lt]: now }
+                },
+                include: [{
+                    model: Reservations,
+                    as: 'reservation',
+                    include: [{
+                        model: RoomReservations,
+                        as: 'room_reservations',
+                        where: { status: 'pending_payment' }
+                    }]
+                }]
+            });
+
+            if (expiredInvoices.length > 0) {
+                console.log(`📋 Found ${expiredInvoices.length} expired invoice(s)`);
+                
+                for (const invoice of expiredInvoices) {
+                    await invoice.update({ status: 'expired' });
+                    
+                    for (const roomRes of invoice.reservation.room_reservations) {
+                        await roomRes.update({ status: 'cancelled' });
+                    }
+                    
+                    console.log(`✅ Invoice ${invoice.invoice_number} cancelled`);
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Cron job error:', error);
+        }
+    });
+    
+    console.log('✅ Auto-cancel cron job activated (runs every 5 minutes)');
+};
+
 (async () => {
   try {
     await db.authenticate();
@@ -120,12 +174,17 @@ app.use('/feedbacks', feedbackRoutes);
     defineRelationships();
     console.log('🔗 Relationships defined');
 
+    const syncOptions = {
+      force: false,
+      alter: false 
+    };
+
     if (process.env.NODE_ENV === 'production') {
-      await db.sync({ alter: true });
-      console.log('📦 Production: All models synchronized with alter');
+      await db.sync(syncOptions);
+      console.log('📦 Production: Models synchronized (alter disabled to prevent index duplication)');
     } else {
-      await db.sync({ force: false, alter: true });
-      console.log('📦 Development: All models synchronized safely (alter)');
+      await db.sync(syncOptions);  
+      console.log('📦 Development: Models synchronized (alter disabled)');
     }
 
     try {
@@ -173,81 +232,81 @@ app.use('/feedbacks', feedbackRoutes);
 
       if (roomTypeCount === 0) {
         const defaultRoomTypes = [
-		{
-				name: 'Stellar Suite',
-				capacity: 2,
-				price_per_night: 200,
-				description: 'Warm materials, elegant furnishings and sweeping view of the slopes.',
-				room_bed: 'King Bed • 40m²',
-				max_stay_duration: 30,
-				image_url: '../public/room/room1.jpg',
-			},
-			{
-				name: 'Orion Suite',
-				capacity: 3,
-				price_per_night: 250,
-				description: 'Separate living room, refined details and private balcony.',
-				room_bed: 'King Bed • Living Area • 50m²',
-				max_stay_duration: 30,
-				image_url: '../public/room/room3.jpg',
-			},
-			{
-				name: 'Deluxe Luna',
-				capacity: 2,
-				price_per_night: 300,
-				description: 'Expansive terrace, private services and panoramic vistas.',
-				room_bed: 'King Bed • Terrace • 40m²',
-				max_stay_duration: 30,
-				image_url: '../public/room/room7.jpg',
-			},
-			{
-				name: 'Celestial Chamber',
-				capacity: 2,
-				price_per_night: 350,
-				description: 'Cozy elegance with soft tones, perfect for a serene retreat.',
-				room_bed: 'Queen Bed • 35m²',
-				max_stay_duration: 30,
-				image_url: '../public/room/room4.jpg',
-			},
-			{
-				name: 'Aurora Retreat',
-				capacity: 2,
-				price_per_night: 400,
-				description:
-					'Bright interiors with natural light and a private balcony overlooking the skyline.',
-				room_bed: 'King Bed • Balcony • 45m²',
-				max_stay_duration: 30,
-				image_url: '../public/room/room5.jpg',
-			},
-			{
-				name: 'Galaxy Loft',
-				capacity: 4,
-				price_per_night: 450,
-				description:
-					'Two-story loft with modern design, spacious living area, and sweeping city views.',
-				room_bed: 'King Bed • Duplex • 55m²',
-				max_stay_duration: 30,
-				image_url: '../public/room/room8.jpg',
-			},
-			{
-				name: 'Nova Deluxe',
-				capacity: 2,
-				price_per_night: 500,
-				description: 'Refined comfort with flexible twin setup, ideal for friends or family.',
-				room_bed: 'Twin Beds • 38m²',
-				max_stay_duration: 30,
-				image_url: '../public/room/room9.jpg',
-			},
-			{
-				name: 'Lunar Penthouse',
-				capacity: 4,
-				price_per_night: 550,
-				description:
-					'Opulent penthouse featuring a jacuzzi, floor-to-ceiling windows, and premium amenities.',
-				room_bed: 'King Bed • Jacuzzi • 90m²',
-				max_stay_duration: 30,
-				image_url: '../public/room/room6.jpg',
-			},
+          {
+            name: 'Stellar Suite',
+            capacity: 2,
+            price_per_night: 200,
+            description: 'Warm materials, elegant furnishings and sweeping view of the slopes.',
+            room_bed: 'King Bed • 40m²',
+            max_stay_duration: 30,
+            image_url: '../public/room/room1.jpg',
+          },
+          {
+            name: 'Orion Suite',
+            capacity: 3,
+            price_per_night: 250,
+            description: 'Separate living room, refined details and private balcony.',
+            room_bed: 'King Bed • Living Area • 50m²',
+            max_stay_duration: 30,
+            image_url: '../public/room/room3.jpg',
+          },
+          {
+            name: 'Deluxe Luna',
+            capacity: 2,
+            price_per_night: 300,
+            description: 'Expansive terrace, private services and panoramic vistas.',
+            room_bed: 'King Bed • Terrace • 40m²',
+            max_stay_duration: 30,
+            image_url: '../public/room/room7.jpg',
+          },
+          {
+            name: 'Celestial Chamber',
+            capacity: 2,
+            price_per_night: 350,
+            description: 'Cozy elegance with soft tones, perfect for a serene retreat.',
+            room_bed: 'Queen Bed • 35m²',
+            max_stay_duration: 30,
+            image_url: '../public/room/room4.jpg',
+          },
+          {
+            name: 'Aurora Retreat',
+            capacity: 2,
+            price_per_night: 400,
+            description:
+              'Bright interiors with natural light and a private balcony overlooking the skyline.',
+            room_bed: 'King Bed • Balcony • 45m²',
+            max_stay_duration: 30,
+            image_url: '../public/room/room5.jpg',
+          },
+          {
+            name: 'Galaxy Loft',
+            capacity: 4,
+            price_per_night: 450,
+            description:
+              'Two-story loft with modern design, spacious living area, and sweeping city views.',
+            room_bed: 'King Bed • Duplex • 55m²',
+            max_stay_duration: 30,
+            image_url: '../public/room/room8.jpg',
+          },
+          {
+            name: 'Nova Deluxe',
+            capacity: 2,
+            price_per_night: 500,
+            description: 'Refined comfort with flexible twin setup, ideal for friends or family.',
+            room_bed: 'Twin Beds • 38m²',
+            max_stay_duration: 30,
+            image_url: '../public/room/room9.jpg',
+          },
+          {
+            name: 'Lunar Penthouse',
+            capacity: 4,
+            price_per_night: 550,
+            description:
+              'Opulent penthouse featuring a jacuzzi, floor-to-ceiling windows, and premium amenities.',
+            room_bed: 'King Bed • Jacuzzi • 90m²',
+            max_stay_duration: 30,
+            image_url: '../public/room/room6.jpg',
+          },
         ];
 
         await MsRoomType.bulkCreate(defaultRoomTypes);
@@ -259,10 +318,13 @@ app.use('/feedbacks', feedbackRoutes);
       console.error('❌ Gagal membuat default room types:', error);
     }
 
+    setupCronJobs();
+
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
       console.log(`🔧 Allowed methods: GET, POST, PUT, DELETE, PATCH, OPTIONS`);
+      console.log(`⏰ Cron jobs activated for reservation management`);
     });
   } catch (error) {
     console.error('❌ Unable to connect to the database:', error);

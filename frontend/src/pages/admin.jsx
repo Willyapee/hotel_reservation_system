@@ -4,6 +4,7 @@ import '../css/admin.css';
 import Log from '../components/log.jsx';
 import RoomManagement from '../components/roomManagement.jsx';
 import Services from '../components/services.jsx';
+import Analytics from '../components/analytics.jsx'; 
 import NavigationBar from '../components/navigationBar.jsx';
 import MenuOverlay from '../components/menuOverlay.jsx';
 
@@ -29,15 +30,13 @@ export default function Admin() {
 	const currentTab = () => {
 		switch (visibleTab) {
 			case 'log':
-				return (
-					<div className='flex flex-col relative'>
-						<Log /> {/* HAPUS props logs={activityLogs} */}
-					</div>
-				);
+				return <Log />;
 			case 'room':
 				return <RoomManagement />;
 			case 'services':
 				return <Services />;
+			case 'analytics': 
+				return <Analytics />;
 			default:
 				return (
 					<div className='admin-placeholder'>
@@ -87,6 +86,11 @@ export default function Admin() {
 						onClick={() => setVisibleTab('services')}
 						className={`sidebar-btn ${visibleTab === 'services' ? 'active' : ''}`}>
 						Services
+					</button>
+					<button 
+						onClick={() => setVisibleTab('analytics')}
+						className={`sidebar-btn ${visibleTab === 'analytics' ? 'active' : ''}`}>
+						Analytics
 					</button>
 				</aside>
 

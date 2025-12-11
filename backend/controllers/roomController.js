@@ -60,7 +60,9 @@ export const searchAvailableRooms = async (req, res) => {
                             {
                                 check_in_date: { [Op.lt]: checkOutDate },
                                 check_out_date: { [Op.gt]: checkInDate },
-                                status: { [Op.in]: ['reserved', 'checked_in', 'draft'] }
+                                status: { 
+                                    [Op.in]: ['reserved', 'checked_in'] 
+                                }
                             }
                         ]
                     },

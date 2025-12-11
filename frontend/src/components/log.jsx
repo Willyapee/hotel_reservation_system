@@ -7,13 +7,9 @@ export default function Log() {
 	const [users, setUsers] = useState([]);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [sortOrder, setSortOrder] = useState('username-asc');
-	const [topSpenders, setTopSpenders] = useState([]);
-	const [loadingSpenders, setLoadingSpenders] = useState(false);
-	const [analyticsSummary, setAnalyticsSummary] = useState(null);
 
 	useEffect(() => {
 		fetchUser();
-		fetchTopSpenders();
 	}, []);
 
 	const fetchUser = async () => {
@@ -22,21 +18,6 @@ export default function Log() {
 			setUsers(res.data);
 		} catch (err) {
 			console.log('Error fetching users:', err);
-		}
-	};
-
-	const fetchTopSpenders = async () => {
-		setLoadingSpenders(true);
-		try {
-			const res = await axios.get('http://localhost:3000/users/analytics/top-spenders');
-			if (res.data.success) {
-				setTopSpenders(res.data.topSpenders || []);
-				setAnalyticsSummary(res.data.summary);
-			}
-		} catch (err) {
-			console.log('Error fetching top spenders:', err);
-		} finally {
-			setLoadingSpenders(false);
 		}
 	};
 
@@ -162,30 +143,8 @@ export default function Log() {
 		doc.save(`User_Report_${dateStr}.pdf`);
 	};
 
-	const formatCurrency = (amount) => {
-		if (!amount && amount !== 0) return '$0.00';
-		const num = parseFloat(amount);
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD',
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2
-		}).format(num);
-	};
-
-
-	const getRankBadgeClass = (index) => {
-		switch(index) {
-			case 0: return 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white';
-			case 1: return 'bg-gradient-to-r from-gray-400 to-gray-500 text-white';
-			case 2: return 'bg-gradient-to-r from-amber-700 to-amber-800 text-white';
-			default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700';
-		}
-	};
-
 	return (
 		<div className='w-full h-full p-6 flex flex-col'>
-
 			{/* Search, Filter, dan Print Controls */}
 			<div className='mb-4 flex gap-4'>
 				<div className="relative flex-1">
@@ -219,144 +178,6 @@ export default function Log() {
 				>
 					Print PDF
 				</button>
-			</div>
-
-			{/* QUERY ANALYTIC SECTION: TOP SPENDERS LEADERBOARD */}
-			<div className="mb-8 bg-white rounded-xl shadow-lg p-6">
-				<div className="flex justify-between items-center mb-6">
-					<h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-						<svg className="w-6 h-6 text-[#c19a6b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-						</svg>
-						Top 10 Spenders Leaderboard
-					</h2>
-					<button 
-						onClick={fetchTopSpenders}
-						className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-all duration-300"
-					>
-						<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-						</svg>
-						Refresh
-					</button>
-				</div>
-
-				{analyticsSummary && (
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-						<div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
-							<div className="text-sm text-gray-600 font-medium">Total Revenue (Top 10)</div>
-							<div className="text-2xl font-bold text-gray-800 mt-1">
-								{formatCurrency(analyticsSummary.totalRevenue || 0)}
-							</div>
-							<div className="text-xs text-gray-500 mt-1">From top 10 customers</div>
-						</div>
-						<div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-							<div className="text-sm text-gray-600 font-medium">Average Spending</div>
-							<div className="text-2xl font-bold text-gray-800 mt-1">
-								{formatCurrency(analyticsSummary.averageSpending || 0)}
-							</div>
-							<div className="text-xs text-gray-500 mt-1">Per top customer</div>
-						</div>
-						<div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
-							<div className="text-sm text-gray-600 font-medium">Top Spender</div>
-							<div className="text-xl font-bold text-gray-800 mt-1 truncate">
-								{analyticsSummary.topSpender?.username || 'N/A'}
-							</div>
-							<div className="text-sm text-gray-600">
-								{analyticsSummary.topSpender ? formatCurrency(analyticsSummary.topSpender.totalSpent) : 'No data'}
-							</div>
-						</div>
-					</div>
-				)}
-
-				{loadingSpenders ? (
-					<div className="text-center py-12">
-						<div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#c19a6b] border-t-transparent"></div>
-						<p className="mt-4 text-gray-600 font-medium">Loading leaderboard data...</p>
-					</div>
-				) : topSpenders.length > 0 ? (
-					<div className="overflow-x-auto rounded-lg border border-gray-200">
-						<table className="min-w-full divide-y divide-gray-200">
-							<thead className="bg-gray-50">
-								<tr>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bookings</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Spent</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Booking</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-								</tr>
-							</thead>
-							<tbody className="bg-white divide-y divide-gray-200">
-								{topSpenders.map((user, index) => (
-									<tr 
-										key={user.id} 
-										className={`hover:bg-gray-50 transition-colors duration-200 ${
-											index === 0 ? 'bg-yellow-50' : 
-											index === 1 ? 'bg-gray-50' : 
-											index === 2 ? 'bg-amber-50' : ''
-										}`}
-									>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold ${getRankBadgeClass(index)}`}>
-												{index + 1}
-											</div>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<div className="flex items-center">
-												<div className="flex-shrink-0 h-12 w-12 bg-gradient-to-r from-[#c19a6b] to-[#a67c52] rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
-													{user.username.charAt(0).toUpperCase()}
-												</div>
-												<div className="ml-4">
-													<div className="font-bold text-gray-900 text-lg">{user.username}</div>
-													<div className="text-sm text-gray-500">{user.email}</div>
-													<div className="text-xs text-gray-400 capitalize mt-1">{user.role}</div>
-												</div>
-											</div>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<div className="text-center">
-												<div className="text-2xl font-bold text-gray-800">{user.totalBookings}</div>
-												<div className="text-xs text-gray-500">bookings</div>
-											</div>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<div className="font-bold text-lg text-gray-900">
-												{formatCurrency(user.totalSpent)}
-											</div>
-											<div className="text-xs text-gray-500">
-												{user.totalBookings > 0 
-													? `${formatCurrency(user.totalSpent / user.totalBookings)} avg/booking`
-													: 'No bookings'
-												}
-											</div>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{user.lastBooking}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-												user.role === 'admin' 
-													? 'bg-red-100 text-red-800' 
-													: 'bg-green-100 text-green-800'
-											}`}>
-												{user.role}
-											</span>
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				) : (
-					<div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
-						<svg className="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-						</svg>
-						<p className="mt-4 text-lg font-medium">No spending data available</p>
-						<p className="text-sm">Customers need to make bookings first</p>
-					</div>
-				)}
 			</div>
 
 			{/* USER LIST SECTION */}
