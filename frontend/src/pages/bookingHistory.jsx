@@ -15,7 +15,9 @@ import {
   Printer,
   CreditCard,
   AlertCircle,
-  Download
+  Download,
+  Search,
+  Filter
 } from 'lucide-react';
 
 function BookingHistory() {
@@ -26,6 +28,8 @@ function BookingHistory() {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     fetchUserBookings();
@@ -109,20 +113,18 @@ function BookingHistory() {
     }
   };
 
-  const getStatusColor = (status) => {
+ const getStatusColor = (status) => {
     switch(status?.toLowerCase()) {
       case 'reserved':
         return 'bg-green-100 text-green-800 border-green-200';
+      case 'pending_payment':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'checked_in':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'checked_out':
         return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'cancelled':
         return 'bg-red-100 text-red-800 border-red-200';
-      case 'expired':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -130,16 +132,14 @@ function BookingHistory() {
     switch(status?.toLowerCase()) {
       case 'reserved':
         return <CheckCircle className="w-4 h-4" />;
+      case 'pending_payment':
+        return <Clock className="w-4 h-4" />;
       case 'checked_in':
         return <Home className="w-4 h-4" />;
       case 'checked_out':
         return <CheckCircle className="w-4 h-4" />;
       case 'cancelled':
         return <XCircle className="w-4 h-4" />;
-      case 'expired':
-        return <Clock className="w-4 h-4" />;
-      default:
-        return <Clock className="w-4 h-4" />;
     }
   };
 
@@ -555,6 +555,21 @@ Generated on: ${formatDateTime(new Date().toISOString())}
     
     alert(`Invoice receipt ${invoice.invoice_number} downloaded!`);
   };
+  
+  const filteredBookings = bookings.filter(booking => {
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = 
+      booking.id_reservation.toString().includes(searchLower) ||
+      booking.room_reservations?.some(room => 
+        room.room?.room_type?.name?.toLowerCase().includes(searchLower)
+      );
+    const roomStatus = booking.room_reservations?.[0]?.status;
+    const effectiveStatus = roomStatus || booking.status;
+
+    const matchesStatus = statusFilter === 'all' || effectiveStatus === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   if (loading) {
     return (
@@ -638,30 +653,78 @@ Generated on: ${formatDateTime(new Date().toISOString())}
           </div>
         </motion.div>
 
-        {/* BOOKINGS LIST */}
-        <div className="space-y-6">
-          {bookings.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white rounded-2xl shadow-lg p-10 text-center"
+        {/* SEARCH AND FILTER TOOLS */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          {/* Search Bar */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search by Booking ID or Room Type..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#102E50] focus:ring-2 focus:ring-[#102E50]/20 outline-none transition-all duration-300"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div className="relative min-w-[200px]">
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full pl-10 pr-8 py-3 rounded-xl border border-gray-200 focus:border-[#102E50] focus:ring-2 focus:ring-[#102E50]/20 outline-none appearance-none bg-white cursor-pointer transition-all duration-300"
             >
-              <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No Bookings Yet</h3>
-              <p className="text-gray-500 mb-6">You haven't made any bookings yet.</p>
-              <button
-                onClick={() => navigate('/booking')}
-                className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-6 py-3 rounded-lg transition-colors duration-300"
-              >
-                Book Your Stay Now
-              </button>
-            </motion.div>
+              <option value="all">All Statuses</option>
+              <option value="pending_payment">Pending Payment</option>
+              <option value="reserved">Reserved</option>
+              <option value="checked_in">Checked In</option>
+              <option value="checked_out">Checked Out</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            {/* Custom Arrow for Select */}
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+{/* BOOKINGS LIST - GANTI DENGAN INI */}
+        <div className="space-y-6">
+          {filteredBookings.length === 0 ? (
+            bookings.length > 0 ? (
+               /* Tampilan jika pencarian tidak ditemukan */
+               <div className="text-center py-10 text-gray-500 bg-white rounded-2xl shadow">
+                 <Search className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                 <p>No bookings match your search.</p>
+               </div>
+            ) : (
+             /* Tampilan jika belum ada booking sama sekali (default) */
+             <motion.div
+               initial={{ opacity: 0, scale: 0.9 }}
+               animate={{ opacity: 1, scale: 1 }}
+               transition={{ duration: 0.5 }}
+               className="bg-white rounded-2xl shadow-lg p-10 text-center"
+             >
+               <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+               <h3 className="text-xl font-semibold text-gray-700 mb-2">No Bookings Yet</h3>
+               <p className="text-gray-500 mb-6">You haven't made any bookings yet.</p>
+               <button
+                 onClick={() => navigate('/booking')}
+                 className="bg-[#c19a6b] hover:bg-[#a67c52] text-white px-6 py-3 rounded-lg transition-colors duration-300"
+               >
+                 Book Your Stay Now
+               </button>
+             </motion.div>
+            )
           ) : (
-            bookings.map((booking, index) => {
+            filteredBookings.map((booking, index) => {
               const invoiceStatus = calculateInvoiceStatus(booking.invoice);
               const isInvoicePaid = invoiceStatus === 'paid';
               
+              const displayStatus = booking.room_reservations?.[0]?.status || booking.status || 'draft';
               return (
                 <motion.div
                   key={booking.id_reservation}
@@ -678,9 +741,9 @@ Generated on: ${formatDateTime(new Date().toISOString())}
                         <h3 className="text-xl font-bold text-[#102E50]">
                           Booking #{booking.id_reservation}
                         </h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(booking.status)} flex items-center gap-1`}>
-                          {getStatusIcon(booking.status)}
-                          {booking.status?.toUpperCase() || 'UNKNOWN'}
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(displayStatus)} flex items-center gap-1`}>
+                          {getStatusIcon(displayStatus)}
+                          {displayStatus?.toUpperCase() || 'UNKNOWN'}
                         </span>
                       </div>
                       
@@ -690,7 +753,6 @@ Generated on: ${formatDateTime(new Date().toISOString())}
                           <span>Booked on: {formatDate(booking.reservation_date)}</span>
                         </div>
                         
-                        {/* Room Reservations */}
                         {booking.room_reservations && booking.room_reservations.length > 0 && (
                           <div className="mt-3">
                             <p className="font-semibold text-gray-700 mb-2">Rooms:</p>
@@ -724,7 +786,6 @@ Generated on: ${formatDateTime(new Date().toISOString())}
                           </div>
                         )}
 
-                        {/* Invoice Info */}
                         {booking.invoice && (
                           <div className="mt-4 pt-4 border-t">
                             <div className="flex items-center justify-between">
