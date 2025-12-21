@@ -44,6 +44,13 @@ export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        if (!email || !password) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Email and password are required' 
+            });
+        }
+
         if (!process.env.JWT_SECRET) {
             return res.status(500).json({ 
                 success: false,
