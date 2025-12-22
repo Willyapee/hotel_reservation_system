@@ -106,7 +106,7 @@ const __filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);
 
 if (process.env.NODE_ENV === 'production') {
-   const buildPath = path.join(__dirname, '../client/dist');
+   const buildPath = path.join(__dirname, '../frontend/dist');
    app.use(express.static(buildPath));
 
    app.get('*', (req, res) => {
@@ -165,8 +165,6 @@ const setupCronJobs = () => {
   try {
     await db.authenticate();
     console.log('✅ Connected to the database');
-
-    await connectMongoDB();
 
     defineRelationships();
     console.log('🔗 Relationships defined');
