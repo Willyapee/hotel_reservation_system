@@ -41,10 +41,10 @@ Ceryne:
 Josiah Maximus Suryadi:
 - Fullstack
 - Set up the VPS (Hostinger)
-- Implementing mySQL database into ExpressJS
-- Half of the backend features and integration to the Frontend
-- Created CRUD for user log
-- Created some jsx components
+- Created filter and search for "My Booking"
+- Created confirmation window on some CRUD action 
+- Created checkout process
+- Created feedback using MongoDB
 
 William Asabha Purnamadjaja:
 - Backend
