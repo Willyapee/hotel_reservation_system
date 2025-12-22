@@ -10,7 +10,7 @@ import RoomList from "../../../backend/data/roomList.json";
 import { useNavigate } from "react-router-dom";
 
 import { Link } from "react-router-dom";
-import { ShoppingCart, X, Loader, ArrowLeft} from "lucide-react";
+import { ShoppingCart, X, Loader, ArrowLeft } from "lucide-react";
 
 function Book() {
   const navigate = useNavigate();
@@ -21,10 +21,10 @@ function Book() {
   const [loading, setLoading] = useState(false);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [searchParams, setSearchParams] = useState(null);
-  
+
   const [selectedRoomNumbers, setSelectedRoomNumbers] = useState({});
   const [cartRoomNumbers, setCartRoomNumbers] = useState([]);
-  
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
@@ -48,7 +48,6 @@ function Book() {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        console.log('🔐 Checking authentication...');
         const response = await fetch('http://localhost:3000/auth/me', {
           credentials: 'include',
           headers: {
@@ -56,19 +55,13 @@ function Book() {
           }
         });
 
-        console.log('🔐 Auth response status:', response.status);
-        
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ User authenticated:', data.user);
-          
           if (data.user) {
             localStorage.setItem('user', JSON.stringify(data.user));
           }
-          
           setIsAuthenticated(true);
         } else {
-          console.log('❌ Not authenticated, redirecting to login');
           navigate('/login', {
             state: {
               redirectTo: '/booking',
@@ -77,7 +70,6 @@ function Book() {
           });
         }
       } catch (error) {
-        console.error('❌ Auth check error:', error);
         navigate('/login', {
           state: {
             redirectTo: '/booking',
@@ -97,11 +89,10 @@ function Book() {
       const response = await fetch('http://localhost:3000/api/cart/room-numbers', {
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          console.log('🛒 Room numbers in cart:', result.roomNumbers);
           setCartRoomNumbers(result.roomNumbers.map(id => parseInt(id)));
         }
       }
@@ -214,7 +205,7 @@ function Book() {
 
   const searchRooms = async () => {
     if (!date[0].startDate || !date[0].endDate) return;
-    
+
     if (!isAuthenticated) {
       alert('Please login to search for rooms');
       navigate('/login', {
@@ -225,12 +216,12 @@ function Book() {
       });
       return;
     }
-    
+
     setLoading(true);
     try {
       const checkIn = format(date[0].startDate, 'yyyy-MM-dd');
       const checkOut = format(date[0].endDate, 'yyyy-MM-dd');
-      
+
       const queryParams = new URLSearchParams({
         check_in: checkIn,
         check_out: checkOut,
@@ -270,20 +261,20 @@ function Book() {
         return;
       }
 
-      const selectedRoomId = selectedRoomNumbers[roomData.roomTypeId];
-      
-      if (!selectedRoomId) {
+      const selectedRoomIdForType = selectedRoomNumbers[roomData.roomTypeId];
+
+      if (!selectedRoomIdForType) {
         alert('Please select a room number first!');
         return;
       }
 
-      if (cartRoomNumbers.includes(parseInt(selectedRoomId))) {
+      if (cartRoomNumbers.includes(parseInt(selectedRoomIdForType))) {
         alert('This room is already in your cart!');
         return;
       }
 
       const selectedRoom = roomData.availableRoomNumbers?.find(
-        room => room.roomId === parseInt(selectedRoomId)
+        room => room.roomId === parseInt(selectedRoomIdForType)
       );
 
       if (!selectedRoom) {
@@ -291,14 +282,8 @@ function Book() {
         return;
       }
 
-      console.log('Adding room to cart:', {
-        roomId: selectedRoomId,
-        roomNumber: selectedRoom.roomNumber,
-        roomTypeName: roomData.roomName
-      });
-      
       const cartData = {
-        roomId: selectedRoomId.toString(),
+        roomId: selectedRoomIdForType.toString(),
         checkIn: format(date[0].startDate, 'yyyy-MM-dd'),
         checkOut: format(date[0].endDate, 'yyyy-MM-dd'),
         guests: {
@@ -307,8 +292,6 @@ function Book() {
         },
         roomNumber: selectedRoom.roomNumber
       };
-
-      console.log('📤 Cart data to send:', cartData);
 
       const response = await fetch('http://localhost:3000/api/cart/add', {
         method: 'POST',
@@ -319,10 +302,7 @@ function Book() {
         body: JSON.stringify(cartData)
       });
 
-      console.log('📨 Response status:', response.status);
-      
       const result = await response.json();
-      console.log('📨 Response data:', result);
 
       if (result.success) {
         alert(`✅ Room ${selectedRoom.roomNumber} (${roomData.roomName}) added to cart successfully!`);
@@ -400,8 +380,7 @@ function Book() {
         <p className="text-sm text-gray-400 mb-4">
           Available: {room.availableRooms} room{room.availableRooms > 1 ? 's' : ''}
         </p>
-        
-        {/* Dropdown untuk memilih Room Number */}
+
         <div className="mb-6">
           <label className="block text-sm text-gray-400 mb-2">
             Select Room Number:
@@ -413,8 +392,8 @@ function Book() {
           >
             <option value="">-- Select a room --</option>
             {room.availableRoomNumbers?.map((roomItem) => (
-              <option 
-                key={roomItem.roomId} 
+              <option
+                key={roomItem.roomId}
                 value={roomItem.roomId}
                 disabled={cartRoomNumbers.includes(roomItem.roomId)}
               >
@@ -422,15 +401,15 @@ function Book() {
               </option>
             ))}
           </select>
-          
-          {selectedRoomNumbers[room.roomTypeId] && 
-           cartRoomNumbers.includes(parseInt(selectedRoomNumbers[room.roomTypeId])) && (
-            <p className="text-red-400 text-xs mt-1">
-              This room is already in your cart
-            </p>
-          )}
+
+          {selectedRoomNumbers[room.roomTypeId] &&
+            cartRoomNumbers.includes(parseInt(selectedRoomNumbers[room.roomTypeId])) && (
+              <p className="text-red-400 text-xs mt-1">
+                This room is already in your cart
+              </p>
+            )}
         </div>
-        
+
         <p className="text-sm text-gray-400 mb-6">
           {room.roomDesc || "No description available."}
         </p>
@@ -450,7 +429,7 @@ function Book() {
             (${room.roomPrice.toFixed(2)} / night)
           </span>
         </div>
-        
+
         <button
           onClick={() => {
             if (selectedRoomNumbers[room.roomTypeId]) {
@@ -459,17 +438,17 @@ function Book() {
               alert('Please select a room number first!');
             }
           }}
-          disabled={!selectedRoomNumbers[room.roomTypeId] || 
-                    cartRoomNumbers.includes(parseInt(selectedRoomNumbers[room.roomTypeId]))}
+          disabled={!selectedRoomNumbers[room.roomTypeId] ||
+            cartRoomNumbers.includes(parseInt(selectedRoomNumbers[room.roomTypeId]))}
           className={`px-6 py-3 rounded-lg font-semibold ${
-            !selectedRoomNumbers[room.roomTypeId] || 
-            cartRoomNumbers.includes(parseInt(selectedRoomNumbers[room.roomTypeId]))
+            !selectedRoomNumbers[room.roomTypeId] ||
+              cartRoomNumbers.includes(parseInt(selectedRoomNumbers[room.roomTypeId]))
               ? "bg-gray-600 cursor-not-allowed"
               : "bg-[#c19a6b] hover:bg-[#a67c52] text-white"
           }`}
         >
-          {!selectedRoomNumbers[room.roomTypeId] 
-            ? "Select Room First" 
+          {!selectedRoomNumbers[room.roomTypeId]
+            ? "Select Room First"
             : cartRoomNumbers.includes(parseInt(selectedRoomNumbers[room.roomTypeId]))
               ? "Room in Cart"
               : "Add to Cart"}
@@ -477,17 +456,18 @@ function Book() {
       </div>
     </div>
   );
+
   return (
     <div className="w-full min-h-screen bg-[#fbfaf9]">
       {/* HEADER */}
       <div className="w-full h-17 fixed flex items-center gap-x-10 px-4 py-2 bg-[#102E50] z-10">
         <button
-              onClick={() => navigate('/')}
-              className="absolute left-6 z-20 flex items-center gap-2 text-white bg-[#102E50] px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:scale-105"
-          >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-3sm font-medium">Back to Home</span>
-          </button>
+          onClick={() => navigate('/')}
+          className="absolute left-6 z-20 flex items-center gap-2 text-white bg-[#102E50] px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:scale-105"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-3sm font-medium">Back to Home</span>
+        </button>
       </div>
 
       <div className="p-10 pt-20">
@@ -538,171 +518,182 @@ function Book() {
         <AnimatePresence>
           {openGuest && (
             <>
-              {/* Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.5 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.4 }}
-                className="fixed inset-0 bg-overlay z-40"
+                className="fixed inset-0 bg-black bg-opacity-50 z-40"
                 onClick={() => setOpenGuest(false)}
               />
 
-              {/* Popup utama */}
               <motion.div
                 initial={{ opacity: 0, y: -40 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -40 }}
                 transition={{ duration: 0.5 }}
-                className="fixed inset-0 flex items-center justify-center z-50"
+                className="fixed inset-0 flex items-center justify-center z-50 p-4"
               >
-                <div className="relative p-8 bg-white rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105 w-full max-w-2xl">
+                <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
                   <button
                     onClick={() => setOpenGuest(false)}
-                    className="absolute -top-4 -right-4 w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-xl btn-close"
+                    className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-[#c19a6b] text-white shadow-lg flex items-center justify-center hover:bg-[#a67c52] transition"
                   >
                     ✕
                   </button>
 
-                  <h3 className="text-2xl font-bold mb-6 text-secondary text-center">
-                    Select Guests
-                  </h3>
+                  <div className="p-6 md:p-8 max-h-[90vh] overflow-y-auto">
+                    <h3 className="text-xl md:text-2xl font-bold mb-6 text-gray-800 text-center">
+                      Select Guests
+                    </h3>
 
-                  {/* Room Cards */}
-                  <div className="space-y-6 max-h-[60vh] overflow-y-auto px-1">
-                    {rooms.map((room, index) => (
-                      <motion.div
-                        key={room.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="border-2 border-gray-200 rounded-xl p-6 bg-light"
-                      >
-                        <div className="flex justify-between items-center mb-4">
-                          <h4 className="text-lg font-bold text-primary">
-                            Room {index + 1}
-                          </h4>
-                          {rooms.length > 1 && (
-                            <button
-                              onClick={() => handleRemoveRoom(room.id)}
-                              className="text-sm font-semibold btn-remove"
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Adults */}
-                        <div className="flex justify-between items-center mb-4">
-                          <span className="font-medium text-dark">Adults (16+)</span>
-                          <div className="flex items-center gap-3">
-                            <button
-                              className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold btn-round"
-                              onClick={() => updateRoomAdults(room.id, room.adults - 1)}
-                              disabled={room.adults <= 0}
-                            >
-                              –
-                            </button>
-                            <span className="min-w-[20px] text-center text-lg font-semibold">
-                              {room.adults}
-                            </span>
-                            <button
-                              className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold btn-round"
-                              onClick={() => updateRoomAdults(room.id, room.adults + 1)}
-                              disabled={room.adults >= 9}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Children */}
-                        <div className="flex justify-between items-center mb-4">
-                          <span className="font-medium text-dark">Children (0–15)</span>
-                          <div className="flex items-center gap-3">
-                            <button
-                              className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold btn-round"
-                              onClick={() =>
-                                updateRoomChildren(room.id, room.children - 1)
-                              }
-                              disabled={room.children <= 0}
-                            >
-                              –
-                            </button>
-                            <span className="min-w-[20px] text-center text-lg font-semibold">
-                              {room.children}
-                            </span>
-                            <button
-                              className="w-9 h-9 flex items-center justify-center border rounded-full text-lg font-bold btn-round"
-                              onClick={() =>
-                                updateRoomChildren(room.id, room.children + 1)
-                              }
-                              disabled={room.children >= 9}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Child Ages */}
-                        {room.childAges.map((age, childIndex) => (
-                          <div key={childIndex} className="mb-3 ml-4">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">
-                              Child {childIndex + 1} Age
-                            </label>
-                            <select
-                              value={age}
-                              onChange={(e) =>
-                                updateChildAge(room.id, childIndex, e.target.value)
-                              }
-                              className="w-full border rounded px-3 py-2 select-box"
-                            >
-                              <option value="">Select age</option>
-                              {[...Array(16).keys()].map((num) => (
-                                <option key={num} value={num}>
-                                  {num} years old
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        ))}
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Done Button */}
-                  <div className="mt-6 text-center">
-                    {(() => {
-                      const isAllAgesSelected = rooms.every((room) =>
-                        room.childAges.every(
-                          (age) =>
-                            age !== "" &&
-                            age !== null &&
-                            age !== undefined &&
-                            !isNaN(age)
-                        )
-                      );
-
-                      return (
-                        <button
-                          onClick={() => {
-                            if (isAllAgesSelected) {
-                              setOpenGuest(false);
-                            } else {
-                              alert(
-                                "Please select all children's ages before continuing!"
-                              );
-                            }
-                          }}
-                          className={`inline-block px-6 py-3 rounded-lg text-lg shadow-md btn-done ${
-                            !isAllAgesSelected ? "opacity-50 cursor-not-allowed" : ""
-                          }`}
-                          disabled={!isAllAgesSelected}
+                    <div className="space-y-4 md:space-y-6">
+                      {rooms.map((room, index) => (
+                        <motion.div
+                          key={room.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="border border-gray-200 rounded-xl p-4 md:p-6 bg-gray-50"
                         >
-                          Done
-                        </button>
-                      );
-                    })()}
+                          <div className="flex justify-between items-center mb-4">
+                            <h4 className="text-base md:text-lg font-bold text-gray-800">
+                              Room {index + 1}
+                            </h4>
+                            {rooms.length > 1 && (
+                              <button
+                                onClick={() => handleRemoveRoom(room.id)}
+                                className="text-sm text-red-500 hover:text-red-700 font-semibold"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="flex justify-between items-center mb-4">
+                            <span className="font-medium text-gray-700 text-sm md:text-base">
+                              Adults (16+)
+                            </span>
+                            <div className="flex items-center gap-3">
+                              <button
+                                className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center border rounded-full text-lg font-bold bg-gray-400 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={() => updateRoomAdults(room.id, room.adults - 1)}
+                                disabled={room.adults <= 0}
+                              >
+                                –
+                              </button>
+                              <span className="min-w-[20px] text-center text-lg font-semibold">
+                                {room.adults}
+                              </span>
+                              <button
+                                className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center border rounded-full text-lg font-bold bg-gray-400 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={() => updateRoomAdults(room.id, room.adults + 1)}
+                                disabled={room.adults >= 9}
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center mb-4">
+                            <span className="font-medium text-gray-700 text-sm md:text-base">
+                              Children (0–15)
+                            </span>
+                            <div className="flex items-center gap-3">
+                              <button
+                                className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center border rounded-full text-lg font-bold bg-gray-400 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={() =>
+                                  updateRoomChildren(room.id, room.children - 1)
+                                }
+                                disabled={room.children <= 0}
+                              >
+                                –
+                              </button>
+                              <span className="min-w-[20px] text-center text-lg font-semibold">
+                                {room.children}
+                              </span>
+                              <button
+                                className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center border rounded-full text-lg font-bold bg-gray-400 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={() =>
+                                  updateRoomChildren(room.id, room.children + 1)
+                                }
+                                disabled={room.children >= 9}
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+
+                          {room.childAges.map((age, childIndex) => (
+                            <div key={childIndex} className="mb-3">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                Child {childIndex + 1} Age
+                              </label>
+                              <select
+                                value={age}
+                                onChange={(e) =>
+                                  updateChildAge(room.id, childIndex, e.target.value)
+                                }
+                                className="w-full border rounded px-3 py-2 text-sm md:text-base bg-white"
+                              >
+                                <option value="">Select age</option>
+                                {[...Array(16).keys()].map((num) => (
+                                  <option key={num} value={num}>
+                                    {num} years old
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ))}
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    <div className="mt-6 text-center">
+                      <button
+                        onClick={handleAddRoom}
+                        disabled={rooms.length >= 5}
+                        className="px-4 py-2 bg-gray-400 hover:bg-gray-500 rounded-lg text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        + Add Another Room
+                      </button>
+                    </div>
+
+                    <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+                      {(() => {
+                        const isAllAgesSelected = rooms.every((room) =>
+                          room.childAges.every(
+                            (age) =>
+                              age !== "" &&
+                              age !== null &&
+                              age !== undefined &&
+                              !isNaN(age)
+                          )
+                        );
+
+                        return (
+                          <button
+                            onClick={() => {
+                              if (isAllAgesSelected) {
+                                setOpenGuest(false);
+                              } else {
+                                alert(
+                                  "Please select all children's ages before continuing!"
+                                );
+                              }
+                            }}
+                            className={`inline-block px-6 py-3 rounded-lg text-sm md:text-base shadow-md transition-colors ${
+                              isAllAgesSelected
+                                ? "bg-[#c19a6b] hover:bg-[#a67c52] text-white"
+                                : "bg-gray-300 cursor-not-allowed text-gray-500"
+                            }`}
+                            disabled={!isAllAgesSelected}
+                          >
+                            Done
+                          </button>
+                        );
+                      })()}
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -727,32 +718,35 @@ function Book() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -40 }}
                 transition={{ duration: 0.5 }}
-                className="fixed inset-0 flex items-center justify-center z-50"
+                className="fixed inset-0 flex items-center justify-center z-50 p-4"
               >
-                <div className="relative p-8 bg-white rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105">
+                <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-auto">
                   <button
                     onClick={() => setOpenCalendar(false)}
-                    className="absolute -top-4 -right-4 bg-[#c19a6b] text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-[#a67c52] transition text-xl"
+                    className="absolute top-4 right-4 bg-[#c19a6b] text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-[#a67c52] transition z-10"
                   >
                     ✕
                   </button>
-                  <DateRange
-                    editableDateInputs={true}
-                    onChange={(item) => setDate([item.selection])}
-                    moveRangeOnFirstSelection={false}
-                    ranges={date}
-                    minDate={new Date()}
-                    months={2}
-                    direction="horizontal"
-                    rangeColors={["#c19a6b"]}
-                  />
-                  <div className="mt-6 text-center">
-                    <button
-                      className="inline-block bg-[#c19a6b] hover:bg-[#a67c52] text-white px-6 py-3 rounded-lg text-lg shadow-md transition-colors duration-300"
-                      onClick={handleSearch}
-                    >
-                      Search
-                    </button>
+                  <div className="p-4 md:p-8">
+                    <DateRange
+                      editableDateInputs={true}
+                      onChange={(item) => setDate([item.selection])}
+                      moveRangeOnFirstSelection={false}
+                      ranges={date}
+                      minDate={new Date()}
+                      months={window.innerWidth < 768 ? 1 : 2}
+                      direction="horizontal"
+                      rangeColors={["#c19a6b"]}
+                      className="w-full"
+                    />
+                    <div className="mt-6 text-center">
+                      <button
+                        className="inline-block bg-[#c19a6b] hover:bg-[#a67c52] text-white px-6 py-3 rounded-lg text-sm md:text-base shadow-md transition-colors duration-300"
+                        onClick={handleSearch}
+                      >
+                        Search
+                      </button>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -760,179 +754,113 @@ function Book() {
           )}
         </AnimatePresence>
 
-        {/* ROOM CATALOG SECTION */}
-        {!openSearchResult ? (
-          <section className="w-full max-w-6xl mx-auto mt-20 flex flex-col gap-16 pb-20">
-            {RoomList.map((room, index) => (
-              <div
-                key={room.roomId}
-                className={`flex flex-col md:flex-row ${
-                  index % 2 === 1 ? "md:flex-row-reverse" : ""
-                } bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300`}
-              >
-                <div className="md:w-1/2 w-full">
-                  <img
-                    src={room.roomImage}
-                    alt={room.roomName}
-                    className="w-full h-80 object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="md:w-1/2 w-full p-8 flex flex-col justify-center">
-                  <h3 className="text-2xl font-semibold text-[#c19a6b] mb-3 uppercase">
-                    {room.roomName}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-2 font-medium">
-                    {room.roomBed}
-                  </p>
-                  <p className="text-[#3a2f2a] text-sm mb-4 leading-relaxed">
-                    {room.roomDesc}
-                  </p>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-2xl font-bold text-[#102E50]">
-                      ${room.roomPrice}/night
-                    </span>
-                    
-                  </div>
-                </div>
-              </div>
-            ))}
-          </section>
-        ) : (
-          <section className="w-full max-w-5xl mx-auto mt-20 pb-20 flex flex-col gap-6">
-            <h2 className="text-3xl font-bold text-[#102E50] mb-10 text-center">
-              Available Rooms
-            </h2>
-            
-            {loading && (
-              <div className="flex justify-center items-center py-20">
-                <Loader className="w-8 h-8 animate-spin text-[#c19a6b]" />
-                <span className="ml-2 text-gray-600">Loading available rooms...</span>
-              </div>
-            )}
-            
-            {!loading && availableRooms.length === 0 && (
-              <div className="text-center py-20">
-                <p className="text-gray-600 text-lg">No rooms available for your selected criteria.</p>
-                <button 
-                  onClick={() => setOpenCalendar(true)}
-                  className="mt-4 text-[#c19a6b] hover:text-[#a67c52] underline"
-                >
-                  Modify your search
-                </button>
-              </div>
-            )}
-            
-            {/* TAMPILKAN ROOM TYPES DENGAN DROPDOWN */}
-            {!loading && availableRooms.map((roomType) => (
-              <div key={roomType.roomTypeId} className="relative bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row items-start gap-6">
-                <img
-                  src={roomType.roomImage}
-                  alt={roomType.roomName}
-                  className="w-full md:w-64 h-48 object-cover rounded-lg cursor-pointer"
-                  onClick={() => setSelectedRoomId((prev) => prev === roomType.roomTypeId ? null : roomType.roomTypeId)}
-                />
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-[#c19a6b] mb-1">{roomType.roomName}</h3>
-                  <p className="text-gray-500 mb-1">{roomType.roomBed}</p>
-                  <p className="text-gray-700 mb-2">{roomType.roomDesc || "No description available."}</p>
-                  
-                  {/* Room Information */}
-                  <div className="mb-4">
-                    <p className="text-[#102E50] font-semibold text-lg">${roomType.roomPrice} / night</p>
-                    <p className="text-sm text-gray-600">
-                      Available: {roomType.availableRooms} room{roomType.availableRooms > 1 ? 's' : ''}
-                    </p>
-                    <p className="text-sm text-gray-600">Capacity: {roomType.capacity} adults</p>
-                    <p className="text-sm text-gray-600">Duration: {roomType.duration} night{roomType.duration > 1 ? 's' : ''}</p>
-                  </div>
-                  
-                  {/* Dropdown untuk memilih Room Number */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Select Room Number:
-                    </label>
-                    <select
-                      className="w-full md:w-64 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#c19a6b]"
-                      value={selectedRoomNumbers[roomType.roomTypeId] || ''}
-                      onChange={(e) => handleRoomNumberSelect(roomType.roomTypeId, e.target.value)}
-                    >
-                      <option value="">-- Select a room --</option>
-                      {roomType.availableRoomNumbers?.map((room) => (
-                        <option 
-                          key={room.roomId} 
-                          value={room.roomId}
-                          disabled={cartRoomNumbers.includes(room.roomId)}
-                        >
-                          {room.roomNumber} {cartRoomNumbers.includes(room.roomId) ? '(In Cart)' : ''}
-                        </option>
-                      ))}
-                    </select>
-                    
-                    {/* Error message jika room sudah di cart */}
-                    {selectedRoomNumbers[roomType.roomTypeId] && 
-                     cartRoomNumbers.includes(parseInt(selectedRoomNumbers[roomType.roomTypeId])) && (
-                      <p className="text-red-500 text-sm mt-1">
-                        This room is already in your cart
-                      </p>
-                    )}
-                  </div>
-                </div>
+        {/* SEARCH RESULTS */}
+        <div className="mt-8">
+          {loading && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#c19a6b] mx-auto mb-4"></div>
+              <p className="text-gray-600">Searching rooms...</p>
+            </div>
+          )}
 
-                {/* Button Add to Cart */}
-                <button
-                  onClick={() => addToCart(roomType)}
-                  disabled={!selectedRoomNumbers[roomType.roomTypeId] || 
-                            cartRoomNumbers.includes(parseInt(selectedRoomNumbers[roomType.roomTypeId]))}
-                  className={`absolute bottom-4 right-4 px-4 py-2 rounded-lg transition-colors duration-300 ${
-                    !selectedRoomNumbers[roomType.roomTypeId] || 
-                    cartRoomNumbers.includes(parseInt(selectedRoomNumbers[roomType.roomTypeId]))
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-[#c19a6b] hover:bg-[#a67c52] text-white"
-                  }`}
-                >
-                  {!selectedRoomNumbers[roomType.roomTypeId] 
-                    ? "Select Room First" 
-                    : cartRoomNumbers.includes(parseInt(selectedRoomNumbers[roomType.roomTypeId]))
-                      ? "Room in Cart"
-                      : "Add to Cart"}
-                </button>
+          {!loading && openSearchResult && availableRooms.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-600">No rooms available for selected dates.</p>
+            </div>
+          )}
 
-                {/* POPUP DETAIL */}
-                <AnimatePresence>
-                  {selectedRoomId === roomType.roomTypeId && (
-                    <>
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.5 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.4 }}
-                        className="fixed inset-0 bg-black backdrop-blur-sm z-40"
-                        onClick={() => setSelectedRoomId(null)}
-                      />
-                      <motion.div
-                        initial={{ opacity: 0, y: -40 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -40 }}
-                        transition={{ duration: 0.5 }}
-                        className="fixed inset-0 flex items-center justify-center z-50 p-4"
-                      >
-                        <div className="relative w-full max-w-md">
+          {!loading && openSearchResult && availableRooms.length > 0 && (
+            <section className="grid gap-6">
+              {availableRooms.map((roomType) => {
+                // compute duration, totalPrice etc if not provided by backend
+                const duration = nights;
+                const roomPrice = roomType.roomPrice ?? 200;
+                const totalPrice = (roomPrice) * duration;
+
+                // normalize some fields expected in DetailCard
+                const normalized = {
+                  ...roomType,
+                  duration,
+                  roomPrice,
+                  totalPrice,
+                };
+
+                return (
+                  <div key={roomType.roomTypeId || roomType.roomId || roomType.roomName} className="bg-white rounded-xl shadow p-4">
+                    <div className="flex flex-col md:flex-row gap-4">
+                      <div className="w-full md:w-1/3 h-48 bg-cover bg-center rounded-lg" style={{ backgroundImage: `url(${roomType.roomImage || '/room/room1.jpg'})` }} />
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold">{roomType.roomName}</h3>
+                        <p className="text-sm text-gray-500 mb-2">{roomType.roomDesc}</p>
+                        <p className="text-sm text-gray-600 mb-4">Capacity: {roomType.capacity ?? 2} • Available: {roomType.availableRooms ?? 0}</p>
+
+                        <div className="flex flex-wrap gap-3 items-center">
                           <button
-                            onClick={() => setSelectedRoomId(null)}
-                            className="absolute -top-4 -right-4 bg-[#c19a6b] text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-[#a67c52] transition text-xl"
+                            onClick={() => setSelectedRoomId(roomType.roomTypeId ?? roomType.roomId)}
+                            className="px-4 py-2 bg-[#102e50] text-white rounded-lg"
                           >
-                            <X />
+                            View Details
                           </button>
-                          <DetailCard room={roomType} />
+
+                          <button
+                            onClick={() => {
+                              // quick add: select first available room number if exists then add
+                              const firstRoom = (roomType.availableRoomNumbers && roomType.availableRoomNumbers[0]) || null;
+                              if (firstRoom) {
+                                handleRoomNumberSelect(roomType.roomTypeId, firstRoom.roomId);
+                                addToCart(roomType);
+                              } else {
+                                alert('No room numbers available to add');
+                              }
+                            }}
+                            className="px-4 py-2 bg-[#c19a6b] text-white rounded-lg"
+                          >
+                            Quick Add
+                          </button>
                         </div>
-                      </motion.div>
-                    </>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </section>
-        )}
+                      </div>
+                    </div>
+
+                    {/* Detail overlay modal for this roomType */}
+                    <AnimatePresence>
+                      {selectedRoomId === (roomType.roomTypeId ?? roomType.roomId) && (
+                        <>
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.5 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="fixed inset-0 bg-black backdrop-blur-sm z-40"
+                            onClick={() => setSelectedRoomId(null)}
+                          />
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            className="fixed inset-0 flex items-center justify-center z-50 p-4"
+                          >
+                            <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                              <button
+                                onClick={() => setSelectedRoomId(null)}
+                                className="absolute top-4 right-4 bg-[#c19a6b] text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-[#a67c52] transition z-10"
+                              >
+                                <X className="w-5 h-5" />
+                              </button>
+                              <div className="bg-[#102e50] text-white rounded-xl overflow-hidden">
+                                <DetailCard room={normalized} />
+                              </div>
+                            </div>
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </section>
+          )}
+        </div>
       </div>
 
       {/* FLOATING CART BUTTON */}
