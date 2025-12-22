@@ -58,7 +58,8 @@ export default function HomePage() {
 		try {
 			console.log('🔐 Checking authentication for booking...');
 			
-			const response = await fetch('http://localhost:3000/auth/check', {
+			// const response = await fetch('http://localhost:3000/auth/check', {
+			const response = await fetch('http://148.230.99.149/auth/check', {
 			method: 'GET',
 			credentials: 'include', 
 			headers: {

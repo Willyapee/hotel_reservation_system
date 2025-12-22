@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-const URL = 'http://localhost:5000/reservation';
+// const URL = 'http://localhost:5000/reservation';
+const URL = 'http://148.230.99.149/reservation';
 
 export default function Reservations() {
 	const [reservations, setReservations] = useState([]);

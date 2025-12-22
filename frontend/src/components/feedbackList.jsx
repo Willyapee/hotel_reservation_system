@@ -8,7 +8,7 @@ const FeedbackList = ({ refreshTrigger }) => {
 
     const fetchFeedbacks = async () => {
         try {
-            const response = await fetch('http://localhost:3000/feedbacks');
+            const response = await fetch('http://148.230.99.149/feedbacks');
             const result = await response.json();
             if (result.success) {
                 setFeedbacks(result.data);

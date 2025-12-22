@@ -14,7 +14,7 @@ export default function Log() {
 
 	const fetchUser = async () => {
 		try {
-			const res = await axios.get('http://localhost:3000/users/allusers');
+			const res = await axios.get('http://148.230.99.149/users/allusers');
 			setUsers(res.data);
 		} catch (err) {
 			console.log('Error fetching users:', err);

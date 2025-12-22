@@ -49,7 +49,7 @@ const RoomManagement = () => {
 	const fetchRoomTypes = async () => {
 		setLoading(true);
 		try {
-			const response = await fetch('http://localhost:3000/admin/room-types');
+			const response = await fetch('http://148.230.99.149/admin/room-types');
 			if (!response.ok) throw new Error('Failed to fetch room types');
 			const data = await response.json();
 			setRoomTypes(data);
@@ -63,7 +63,7 @@ const RoomManagement = () => {
 
 	const fetchRooms = async () => {
 		try {
-			const response = await fetch('http://localhost:3000/admin/rooms');
+			const response = await fetch('http://148.230.99.149/admin/rooms');
 			if (!response.ok) throw new Error('Failed to fetch rooms');
 			const data = await response.json();
 			setRooms(data);
@@ -127,7 +127,7 @@ const RoomManagement = () => {
 				formData.append('image', roomTypeForm.image_file);
 			}
 
-			const response = await fetch('http://localhost:3000/admin/room-types', {
+			const response = await fetch('http://148.230.99.149/admin/room-types', {
 				method: 'POST',
 				body: formData,
 			});
@@ -183,7 +183,7 @@ const RoomManagement = () => {
 			}
 
 			const response = await fetch(
-				`http://localhost:3000/admin/room-types/${editingRoomType.id_room_type}`,
+				`http://148.230.99.149/admin/room-types/${editingRoomType.id_room_type}`,
 				{
 					method: 'PUT',
 					body: formData,
@@ -234,7 +234,7 @@ const RoomManagement = () => {
 
 		setLoading(true);
 		try {
-			const response = await fetch(`http://localhost:3000/admin/room-types/${roomTypeId}`, {
+			const response = await fetch(`http://148.230.99.149/admin/room-types/${roomTypeId}`, {
 				method: 'DELETE',
 			});
 
@@ -287,7 +287,7 @@ const RoomManagement = () => {
 
 		setLoading(true);
 		try {
-			const response = await fetch('http://localhost:3000/admin/rooms', {
+			const response = await fetch('http://148.230.99.149/admin/rooms', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(roomForm),
@@ -340,7 +340,7 @@ const RoomManagement = () => {
 
 		setLoading(true);
 		try {
-			const response = await fetch(`http://localhost:3000/admin/rooms/${editingRoom.id_room}`, {
+			const response = await fetch(`http://148.230.99.149/admin/rooms/${editingRoom.id_room}`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(roomForm),
@@ -377,7 +377,7 @@ const RoomManagement = () => {
 
 		setLoading(true);
 		try {
-			const response = await fetch(`http://localhost:3000/admin/rooms/${roomId}`, {
+			const response = await fetch(`http://148.230.99.149/admin/rooms/${roomId}`, {
 				method: 'DELETE',
 			});
 

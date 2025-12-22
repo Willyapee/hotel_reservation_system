@@ -60,7 +60,8 @@ function BookingConfirmed() {
       console.log('💳 Starting payment process...');
       
       console.log(`📝 Updating invoice ${bookingData.invoiceId} status to paid...`);
-      const response = await fetch(`http://localhost:3000/invoices/${bookingData.invoiceId}/status`, {
+      // const response = await fetch(`http://localhost:3000/invoices/${bookingData.invoiceId}/status`, {
+      const response = await fetch(`http://148.230.99.149/invoices/${bookingData.invoiceId}/status`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
@@ -90,7 +91,8 @@ function BookingConfirmed() {
       console.log('✅ Payment successful!');
       
       try {
-        await fetch('http://localhost:3000/api/cart', {
+        // await fetch('http://localhost:3000/api/cart', {
+        await fetch('http://148.230.99.149/api/cart', {
           method: 'DELETE',
           credentials: 'include'
         });

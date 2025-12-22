@@ -40,7 +40,8 @@ function Invoices() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('http://localhost:3000/invoices/pending', {
+      // const response = await fetch('http://localhost:3000/invoices/pending', {
+      const response = await fetch('http://148.230.99.149/invoices/pending', {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -113,7 +114,8 @@ function Invoices() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Update status invoice ke 'paid' di backend
-      const response = await fetch(`http://localhost:3000/invoices/${invoiceId}/status`, {
+      // const response = await fetch(`http://localhost:3000/invoices/${invoiceId}/status`, {
+      const response = await fetch(`http://148.230.99.149/invoices/${invoiceId}/status`, {
         method: 'PATCH',
         credentials: 'include',
         headers: {

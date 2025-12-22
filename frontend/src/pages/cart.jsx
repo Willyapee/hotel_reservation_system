@@ -19,7 +19,8 @@ function Cart() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('http://localhost:3000/api/cart', {
+      // const response = await fetch('http://localhost:3000/api/cart', {
+      const response = await fetch('http://148.230.99.149/api/cart', {
         credentials: 'include'
       });
       
@@ -49,7 +50,8 @@ function Cart() {
       setServicesLoading(true);
       console.log('🔄 Loading services from backend...');
       
-      const response = await fetch('http://localhost:3000/admin/services');
+      // const response = await fetch('http://localhost:3000/admin/services');
+      const response = await fetch('http://148.230.99.149/admin/services');
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -109,7 +111,8 @@ function Cart() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/cart/${itemId}`, {
+      // const response = await fetch(`http://localhost:3000/api/cart/${itemId}`, {
+      const response = await fetch(`http://148.230.99.149/api/cart/${itemId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -141,7 +144,8 @@ function Cart() {
       serviceId
     });
     
-    const response = await fetch(`http://localhost:3000/api/cart/${selectedCartItem.id}/services`, {
+    // const response = await fetch(`http://localhost:3000/api/cart/${selectedCartItem.id}/services`, {
+    const response = await fetch(`http://148.230.99.149/api/cart/${selectedCartItem.id}/services`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -198,7 +202,8 @@ function Cart() {
     try {
       console.log('🗑️ Removing service:', serviceItemId);
       
-      const response = await fetch(`http://localhost:3000/api/cart/services/${serviceItemId}`, {
+      // const response = await fetch(`http://localhost:3000/api/cart/services/${serviceItemId}`, {
+      const response = await fetch(`http://148.230.99.149/api/cart/services/${serviceItemId}`, {
         method: 'DELETE',
         credentials: 'include'
       });

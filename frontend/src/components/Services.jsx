@@ -23,7 +23,8 @@ const Services = () => {
   const fetchServices = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/admin/services');
+      // const response = await fetch('http://localhost:3000/admin/services');
+      const response = await fetch('http://148.230.99.149/admin/services');
       if (!response.ok) throw new Error('Failed to fetch services');
       const data = await response.json();
       setServices(data);
@@ -64,7 +65,8 @@ const Services = () => {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/admin/services', {
+      // const response = await fetch('http://localhost:3000/admin/services', {
+      const response = await fetch('http://148.230.99.149/admin/services', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(serviceForm),
@@ -106,7 +108,7 @@ const Services = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/admin/services/${editingService.id_service}`, {
+      const response = await fetch(`http://148.230.99.149/admin/services/${editingService.id_service}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(serviceForm),
@@ -141,7 +143,7 @@ const Services = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/admin/services/${serviceId}`, {
+      const response = await fetch(`http://148.230.99.149/admin/services/${serviceId}`, {
         method: 'DELETE',
       });
 

@@ -48,7 +48,8 @@ function Book() {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        const response = await fetch('http://localhost:3000/auth/me', {
+        // const response = await fetch('http://localhost:3000/auth/me', {
+        const response = await fetch('http://148.230.99.149/auth/me', {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json'
@@ -86,7 +87,8 @@ function Book() {
 
   const fetchCartRoomNumbers = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/cart/room-numbers', {
+      // const response = await fetch('http://localhost:3000/api/cart/room-numbers', {
+      const response = await fetch('http://148.230.99.149/api/cart/room-numbers', {
         credentials: 'include'
       });
 
@@ -228,7 +230,8 @@ function Book() {
         adults: totalAdults.toString()
       });
 
-      const response = await fetch(`http://localhost:3000/rooms/search?${queryParams}`);
+      // const response = await fetch(`http://localhost:3000/rooms/search?${queryParams}`);
+      const response = await fetch(`http://148.230.99.149/rooms/search?${queryParams}`);
       const data = await response.json();
 
       if (data.success) {
@@ -293,7 +296,8 @@ function Book() {
         roomNumber: selectedRoom.roomNumber
       };
 
-      const response = await fetch('http://localhost:3000/api/cart/add', {
+      // const response = await fetch('http://localhost:3000/api/cart/add', {
+      const response = await fetch('http://148.230.99.149/api/cart/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
