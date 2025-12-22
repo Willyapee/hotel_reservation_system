@@ -36,7 +36,8 @@ function Checkout() {
     // Fungsi untuk mendapatkan data user
     const fetchUserData = async () => {
         try {
-            const response = await fetch('http://localhost:3000/auth/me', {
+            // const response = await fetch('http://localhost:3000/auth/me', {
+            const response = await fetch('http://148.230.99.149/auth/me', {
                 credentials: 'include'
             });
             
@@ -64,7 +65,8 @@ function Checkout() {
             setLoading(true);
             setError(null);
 
-            const response = await fetch('http://localhost:3000/api/cart', {
+            // const response = await fetch('http://localhost:3000/api/cart', {
+            const response = await fetch('http://148.230.99.149/api/cart', {
                 credentials: 'include',
             });
 
@@ -104,7 +106,8 @@ function Checkout() {
 
     const handleClearCart = async () => {
         try {
-            await fetch('http://localhost:3000/api/cart', {
+            // await fetch('http://localhost:3000/api/cart', {
+            await fetch('http://148.230.99.149/api/cart', {
                 method: 'DELETE',
                 credentials: 'include'
             });
@@ -162,7 +165,8 @@ function Checkout() {
             roomNumber: item.room?.roomNumber || item.room?.room_number
         })));
 
-        const response = await fetch('http://localhost:3000/reservations/create-from-cart', {
+        // const response = await fetch('http://localhost:3000/reservations/create-from-cart', {
+        const response = await fetch('http://148.230.99.149/reservations/create-from-cart', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -198,7 +202,8 @@ function Checkout() {
         if (result.success) {
             // Bersihkan cart setelah berhasil checkout
             try {
-                await fetch('http://localhost:3000/api/cart', {
+                // await fetch('http://localhost:3000/api/cart', {
+                await fetch('http://148.230.99.149/api/cart', {
                     method: 'DELETE',
                     credentials: 'include'
                 });

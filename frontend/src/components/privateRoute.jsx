@@ -16,7 +16,7 @@ const PrivateRoute = ({ children, role }) => {
     try {
       console.log('🔒 PrivateRoute: Checking authentication...');
       
-      const response = await fetch('http://localhost:3000/auth/check', {
+      const response = await fetch('http://148.230.99.149/auth/check', {
         credentials: 'include' 
       });
       

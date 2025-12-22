@@ -44,7 +44,8 @@ const Profile = () => {
 			try {
 				console.log('🔐 Checking authentication for profile...');
 				
-				const authResponse = await fetch('http://localhost:3000/auth/check', {
+				// const authResponse = await fetch('http://localhost:3000/auth/check', {
+				const authResponse = await fetch('http://148.230.99.149/auth/check', {
 					credentials: 'include'
 				});
 				
@@ -64,7 +65,8 @@ const Profile = () => {
 				
 				console.log('✅ User authenticated, fetching profile data');
 				
-				const userRes = await fetch('http://localhost:3000/auth/me', {
+				// const userRes = await fetch('http://localhost:3000/auth/me', {
+				const userRes = await fetch('http://148.230.99.149/auth/me', {
 					credentials: 'include'
 				});
 				
@@ -95,7 +97,8 @@ const Profile = () => {
 					}));
 					
 					try {
-						const bookingRes = await fetch('http://localhost:3000/reservations/my', {
+						// const bookingRes = await fetch('http://localhost:3000/reservations/my', {
+						const bookingRes = await fetch('http://148.230.99.149/reservations/my', {
 							credentials: 'include'
 						});
 						
@@ -132,7 +135,8 @@ const Profile = () => {
 	const handleEditToggle = async () => {
 		if (isEditing) {
         try {
-            const response = await fetch(`http://localhost:3000/users/users/${user.id}`, {
+            // const response = await fetch(`http://localhost:3000/users/users/${user.id}`, {
+            const response = await fetch(`http://148.230.99.149/users/users/${user.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -201,7 +205,8 @@ const Profile = () => {
 
 	const handleSignOut = async () => {
 		try {
-			await fetch('http://localhost:3000/auth/logout', {
+			// await fetch('http://localhost:3000/auth/logout', {
+			await fetch('http://148.230.99.149/auth/logout', {
 				method: 'POST',
 				credentials: 'include'
 			});

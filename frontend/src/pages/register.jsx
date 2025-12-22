@@ -29,8 +29,9 @@ const Register = () => {
     if (!validatePassword()) return;
     e.preventDefault(); 
     console.log(username, email, password);
-
-    axios.post('http://localhost:3000/auth/register', {
+   
+    // axios.post('http://localhost:3000/auth/register', {
+    axios.post('http://148.230.99.149/auth/register', {
         username,
         email,
         password

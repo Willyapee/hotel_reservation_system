@@ -29,7 +29,7 @@ const FeedbackForm = ({ onFeedbackSubmit }) => {
 
         setIsSubmitting(true);
         try {
-            const response = await fetch('http://localhost:3000/feedbacks', {
+            const response = await fetch('http://148.230.99.149/feedbacks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include', // Penting agar backend bisa baca session user

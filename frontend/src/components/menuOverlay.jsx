@@ -144,7 +144,7 @@ const MenuOverlay = ({ isOpen, onClose, onNavigate }) => {
     
     localStorage.removeItem('user');
     
-    fetch('http://localhost:3000/auth/logout', {
+    fetch('http://148.230.99.149/auth/logout', {
       method: 'POST',
       credentials: 'include'
     }).catch(() => {

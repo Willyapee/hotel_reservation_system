@@ -46,7 +46,7 @@ export default function Analytics() {
                 console.log('🔐 Token found, adding to request');
             }
 
-            const res = await axios.get('http://localhost:3000/analytics/top-spenders', config);
+            const res = await axios.get('http://148.230.99.149/analytics/top-spenders', config);
             console.log('✅ Top spenders response:', res.data);
             
             if (res.data.success) {
@@ -88,7 +88,7 @@ export default function Analytics() {
                 config.headers.Authorization = `Bearer ${token}`;
             }
 
-            const res = await axios.get('http://localhost:3000/analytics/customer-loyalty', config);
+            const res = await axios.get('http://148.230.99.149/analytics/customer-loyalty', config);
             console.log('✅ Loyalty analytics response:', res.data);
             
             if (res.data.success) {

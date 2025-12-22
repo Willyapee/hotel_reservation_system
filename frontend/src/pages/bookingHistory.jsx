@@ -50,7 +50,8 @@ function BookingHistory() {
 
         console.log('📡 Fetching bookings...');
         
-        const response = await fetch('http://localhost:3000/reservations/my', {
+        // const response = await fetch('http://localhost:3000/reservations/my', {
+        const response = await fetch('http://148.230.99.149/reservations/my', {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -173,7 +174,8 @@ function BookingHistory() {
 
     try {
       // Ambil detail invoice dari backend
-      const response = await fetch(`http://localhost:3000/invoices/${invoice.id_invoice}`, {
+      // const response = await fetch(`http://localhost:3000/invoices/${invoice.id_invoice}`, {
+      const response = await fetch(`http://148.230.99.149/invoices/${invoice.id_invoice}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
