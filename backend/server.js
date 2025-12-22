@@ -43,6 +43,7 @@ import analyticsRoutes from './routes/analyticsRoutes.js';
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173',
   'http://localhost:5174', // BACKUP PORT
+  'http://148.230.99.149'
 ];
 /*=============================================================================== */
 
@@ -105,17 +106,17 @@ app.use('/feedbacks', feedbackRoutes);
 app.use('/analytics', analyticsRoutes);
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
-// const __filename = fileURLToPath(import.meta.url);
-// const _dirname = path.dirname(_filename);
+const __filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
 
-// if (process.env.NODE_ENV === 'production') {
-//   const buildPath = path.join(__dirname, '../client/dist');
-//   app.use(express.static(buildPath));
+if (process.env.NODE_ENV === 'production') {
+   const buildPath = path.join(__dirname, '../client/dist');
+   app.use(express.static(buildPath));
 
-//   app.get('*', (req, res) => {
-//     res.sendFile(path.join(buildPath, 'index.html'));
-//   });
-// }
+   app.get('*', (req, res) => {
+     res.sendFile(path.join(buildPath, 'index.html'));
+   });
+}
 /*=============================================================================== */
 
 const setupCronJobs = () => {
