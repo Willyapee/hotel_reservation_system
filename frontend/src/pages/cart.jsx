@@ -104,6 +104,10 @@ function Cart() {
   }, [cartData]);
 
   const handleRemove = async (itemId) => {
+    if (!window.confirm("Are you sure you want to remove this room from your cart?")) {
+      return;
+    }
+
     try {
       const response = await fetch(`http://localhost:3000/api/cart/${itemId}`, {
         method: 'DELETE',
@@ -123,6 +127,13 @@ function Cart() {
 
   const handleAddService = async (serviceId) => {
   if (!selectedCartItem) return;
+
+  const selectedService = services.find(service => service.id_service == serviceId);
+  const serviceName = selectedService ? selectedService.name : 'this service';
+
+  if (!window.confirm(`Are you sure you want to add "${serviceName}" to this booking?`)) {
+      return;
+    }
   
   try {
     console.log('➕ [FRONTEND] Adding service:', { 
@@ -180,6 +191,10 @@ function Cart() {
 };
 
   const handleRemoveService = async (serviceItemId) => {
+    if (!window.confirm("Are you sure you want to remove this service from your booking?")) {
+      return;
+    }
+
     try {
       console.log('🗑️ Removing service:', serviceItemId);
       
