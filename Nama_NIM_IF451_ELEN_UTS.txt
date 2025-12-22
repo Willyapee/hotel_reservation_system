@@ -29,31 +29,28 @@ GROUP MEMBERS:
 ROLES AND RESPONSIBILITIES:
 ---------------------------
 Abthal Akbar:
-- Frontend
-- Created book.jsx, checkout.jsx, admin.jsx
-- Created Invoice activity log
+- Created payment system
+- Integrated multi-user system (in booking context)
+- Integrated cookie-based JWT
+- Tested the website QA 
 
 Ceryne:
-- Frontend
-- Created homePage.jsx, register.jsx, profile.jsx, login.jsx
-- Created most jsx components
+- Integrated photo-uploading system
+- Created analytics system
+- Integrated multiple services system per room
+- Maximized UI/UX (responsive website)
 
 Josiah Maximus Suryadi:
-- Fullstack
 - Set up the VPS (Hostinger)
 - Created filter and search for "My Booking"
 - Created confirmation window on some CRUD action 
 - Created checkout process
-- Created feedback using MongoDB
 
 William Asabha Purnamadjaja:
-- Backend
-- Established framework and initial repository and base code creation
-- Half of the backend features and integration to the Frontend
-- Created CRUD for room management
-- Implementing mySQL database into ExpressJS
-
-
+- Created cart system for room and service reservation
+- Created booking confirmation system
+- Created invoice system
+- Created feedback using MongoDB
 
 TECHNICAL STACK:
 ----------------
