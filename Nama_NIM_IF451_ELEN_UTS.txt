@@ -50,7 +50,6 @@ William Asabha Purnamadjaja:
 - Created cart system for room and service reservation
 - Created booking confirmation system
 - Created invoice system
-- Created feedback using MongoDB
 
 TECHNICAL STACK:
 ----------------

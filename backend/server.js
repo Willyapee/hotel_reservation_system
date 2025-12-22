@@ -16,9 +16,6 @@ import Invoices from './models/Invoices.js';
 import Reservations from './models/Reservations.js';
 import RoomReservations from './models/RoomReservations.js';
 
-import connectMongoDB from './config/mongoDb.js'; 
-import feedbackRoutes from './routes/feedbackRoutes.js';
-
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -102,7 +99,6 @@ app.use('/invoices', invoiceRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/users', userRoutes);
 app.use('/api/cart', cartRoutes);
-app.use('/feedbacks', feedbackRoutes);
 app.use('/analytics', analyticsRoutes);
 
 /*===================== JADIIN COMMENT KALAU MAU LOCAL EDIT ===================== */
