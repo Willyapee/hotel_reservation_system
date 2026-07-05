@@ -309,6 +309,9 @@ Implemented Features:
 - MongoDB Integration
 - JWT Authentication
 - Deployment
+- PDF Invoice Export
+- Customer Review System
+- Mobile Application Version
 
 ---
 
@@ -316,12 +319,9 @@ Implemented Features:
 
 - Online Payment Gateway Integration
 - Email Notifications
-- PDF Invoice Export
-- Customer Review System
-- Advanced Reservation Analytics
-- Mobile Application Version
-- Multi-Hotel Support
 - Real-Time Room Availability Updates
+- Advanced Reservation Analytics
+- Multi-Hotel Support
 
 ---
 
